@@ -1167,3 +1167,94 @@ body {
 }
 
 .profile-card h3
+{
+    color: var(--azul-principal);
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid var(--turquesa);
+    padding-bottom: 0.5rem;
+}
+
+.profile-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.profile-form .form-group {
+    margin-bottom: 0;
+}
+
+.profile-form input[readonly] {
+    background-color: var(--gris-claro);
+    cursor: not-allowed;
+}
+
+/* Info List */
+.info-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.8rem;
+    background-color: var(--gris-claro);
+    border-radius: 8px;
+}
+
+.info-label {
+    font-weight: 600;
+    color: var(--azul-principal);
+}
+
+.info-value {
+    color: var(--gris-texto);
+}
+
+/* ==================== RESPONSIVE DASHBOARD ==================== */
+
+@media (max-width: 768px) {
+    .user-nav {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .user-info {
+        align-items: flex-start;
+    }
+
+    .nav-tabs {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .benefits-table {
+        overflow-x: auto;
+    }
+
+    .profile-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .convenios-grid-small {
+        grid-template-columns: 1fr;
+    }
+
+    .solicitud-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .solicitud-footer {
+        flex-direction: column;
+    }
+}
