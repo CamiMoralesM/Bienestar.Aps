@@ -1899,3 +1899,57 @@ body {
         overflow-x: auto;
     }
 }
+/* ==================== REGISTRO ==================== */
+
+.registro-container {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 3rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.registro-box {
+    background-color: var(--blanco);
+    padding: 3rem;
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+.form-row {
+    margin-bottom: 1rem;
+}
+
+.registro-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.registro-info .info-card {
+    background-color: var(--blanco);
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.registro-info .info-card h3 {
+    color: var(--azul-principal);
+    margin-bottom: 1rem;
+}
+
+.registro-info .info-card ul,
+.registro-info .info-card ol {
+    margin-left: 1.5rem;
+    color: var(--gris-texto);
+}
+
+.registro-info .info-card li {
+    margin: 0.5rem 0;
+}
+
+@media (max-width: 968px) {
+    .registro-container {
+        grid-template-columns: 1fr;
+    }
+}
