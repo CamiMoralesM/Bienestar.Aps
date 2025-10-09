@@ -316,7 +316,41 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+async function registrarAdministrador(datos) {
+    try {
+        // Crear usuario en Authentication
+        const userCredential = await createUserWithEmailAndPassword(
+            auth,
+            datos.email,
+            datos.password
+        );
+        const user = userCredential.user;
 
+        // Crear documento en Firestore
+        await setDoc(doc(db, 'administradores', user.uid), {
+            uid: user.uid,
+            rut: limpiarRUT(datos.rut),
+            nombre: datos.nombre,
+            email: datos.email,
+            estado: 'activo',
+            createdAt: new Date(),
+            updatedAt: new Date()
+        });
+
+        return {
+            success: true,
+            message: 'Registro exitoso. Puede ingresar como administrador.',
+            uid: user.uid
+        };
+
+    } catch (error) {
+        console.error('Error en registro administrador:', error);
+        return {
+            success: false,
+            error: error.message
+        };
+    }
+}
 // Exportar funciones
 export { 
     validarRUT, 
@@ -327,5 +361,6 @@ export {
     cerrarSesion,
     verificarAutenticacion,
     obtenerDatosUsuario,
-    buscarUsuarioPorRUT
+    buscarUsuarioPorRUT,
+    registrarAdministrador
 };
