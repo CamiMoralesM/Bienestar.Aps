@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Administrador - Bienestar APS</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c5282;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        input:focus {
+            border-color: #2c5282;
+            outline: none;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #2c5282 0%, #553c9a 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .error {
+            color: #e53e3e;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .success {
+            color: #38a169;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .alert {
+            background-color: #bee3f8;
+            border: 1px solid #63b3ed;
+            color: #2a69ac;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Crear Administrador</h1>
+        
+        <div class="alert">
+            <strong>⚠️ Importante:</strong> Este formulario debe usarse solo para crear el primer administrador del sistema.
+        </div>
+
+        <form id="createAdminForm">
+            <div class="form-group">
+                <label for="nombre">Nombre Completo *</label>
+                <input type="text" id="nombre" value="Camila Fernanda Morales Milanesi" required>
+                <div class="error" id="nombre-error"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="rut">RUT *</label>
+                <input type="text" id="rut" value="18.461.548-7" required maxlength="12">
+                <div class="error" id="rut-error"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email *</label>
+                <input type="email" id="email" value="c.morales.milanesi@gmail.com" required>
+                <div class="error" id="email-error"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Contraseña *</label>
+                <input type="password" id="password" placeholder="Mínimo 6 caracteres" required minlength="6">
+                <div class="error" id="password-error"></div>
+            </div>
+
+            <button type="submit" id="btnCrear">Crear Administrador</button>
+            <div class="success" id="success-message"></div>
+        </form>
+    </div>
+
+    <!-- Firebase Scripts -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Tu configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyA9nXi619VOgT6mUYmYfu2jja8TRAj9QJE",
+            authDomain: "bienestaraps-c87f0.firebaseapp.com",
+            projectId: "bienestaraps-c87f0",
+            storageBucket: "bienestaraps-c87f0.firebasestorage.app",
+            messagingSenderId: "471175424877",
+            appId: "1:471175424877:web:7e1a44f77362d13f78c864",
+            measurementId: "G-G1MGN967WT"
+        };
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Función para validar RUT
+        function validarRUT(rut) {
+            rut = rut.replace(/\./g, '').replace(/-/g, '');
+            if (rut.length < 8) return false;
+            
+            const cuerpo = rut.slice(0, -1);
+            const dv = rut.slice(-1).toUpperCase();
+            
+            let suma = 0;
+            let multiplo = 2;
+            
+            for (let i = cuerpo.length - 1; i >= 0; i--) {
+                suma += parseInt(cuerpo.charAt(i)) * multiplo;
+                multiplo = multiplo === 7 ? 2 : multiplo + 1;
+            }
+            
+            const dvEsperado = 11 - (suma % 11);
+            const dvCalculado = dvEsperado === 11 ? '0' : dvEsperado === 10 ? 'K' : String(dvEsperado);
+            
+            return dv === dvCalculado;
+        }
+
+        // Función para formatear RUT
+        function formatearRUT(rut) {
+            rut = rut.replace(/[^0-9kK]/g, '');
+            if (rut.length <= 1) return rut;
+            
+            const cuerpo = rut.slice(0, -1);
+            const dv = rut.slice(-1);
+            const cuerpoFormateado = cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            
+            return `${cuerpoFormateado}-${dv}`;
+        }
+
+        // Función para limpiar RUT
+        function limpiarRUT(rut) {
+            return rut.replace(/\./g, '').replace(/-/g, '');
+        }
+
+        // Formateo automático del RUT
+        document.getElementById('rut').addEventListener('input', function(e) {
+            e.target.value = formatearRUT(e.target.value);
+        });
+
+        // Manejo del formulario
+        document.getElementById('createAdminForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            // Limpiar mensajes previos
+            document.querySelectorAll('.error').forEach(el => el.textContent = '');
+            document.getElementById('success-message').textContent = '';
+
+            // Obtener valores
+            const nombre = document.getElementById('nombre').value.trim();
+            const rut = document.getElementById('rut').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+
+            let isValid = true;
+
+            // Validaciones
+            if (!nombre) {
+                document.getElementById('nombre-error').textContent = 'El nombre es requerido';
+                isValid = false;
+            }
+
+            if (!validarRUT(rut)) {
+                document.getElementById('rut-error').textContent = 'RUT inválido';
+                isValid = false;
+            }
+
+            if (!email) {
+                document.getElementById('email-error').textContent = 'El email es requerido';
+                isValid = false;
+            }
+
+            if (password.length < 6) {
+                document.getElementById('password-error').textContent = 'La contraseña debe tener al menos 6 caracteres';
+                isValid = false;
+            }
+
+            if (!isValid) return;
+
+            const btnCrear = document.getElementById('btnCrear');
+            btnCrear.textContent = 'Creando...';
+            btnCrear.disabled = true;
+
+            try {
+                console.log('Creando usuario en Authentication...');
+                
+                // 1. Crear usuario en Firebase Authentication
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                
+                console.log('Usuario creado en Auth:', user.uid);
+
+                // 2. Crear documento en Firestore
+                const adminData = {
+                    uid: user.uid,
+                    rut: limpiarRUT(rut),
+                    nombre: nombre,
+                    email: email,
+                    estado: 'activo',
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                };
+
+                console.log('Creando documento en Firestore:', adminData);
+                
+                await setDoc(doc(db, 'administradores', user.uid), adminData);
+                
+                console.log('Administrador creado exitosamente');
+
+                // Mostrar éxito
+                document.getElementById('success-message').textContent = 
+                    '✅ Administrador creado exitosamente. Ahora puede cerrar esta página e ingresar al sistema.';
+                
+                // Limpiar formulario
+                document.getElementById('createAdminForm').reset();
+                
+            } catch (error) {
+                console.error('Error al crear administrador:', error);
+                
+                let errorMessage = 'Error desconocido';
+                if (error.code === 'auth/email-already-in-use') {
+                    errorMessage = 'Este email ya está registrado';
+                } else if (error.code === 'auth/weak-password') {
+                    errorMessage = 'La contraseña es muy débil';
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = 'Email inválido';
+                } else {
+                    errorMessage = error.message;
+                }
+                
+                document.getElementById('password-error').textContent = errorMessage;
+            } finally {
+                btnCrear.textContent = 'Crear Administrador';
+                btnCrear.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
