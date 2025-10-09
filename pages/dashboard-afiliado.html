@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Panel - Bienestar APS</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <!-- Header con usuario logueado -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <a href="../index.html">
+                        <img src="../assets/images/logo-bienestar.png" alt="Logo Bienestar APS">
+                    </a>
+                </div>
+                <nav class="user-nav">
+                    <div class="user-info">
+                        <span class="user-name">👤 Juan Pérez Gómez</span>
+                        <span class="user-rut">RUT: 12.345.678-9</span>
+                    </div>
+                    <button class="btn btn-logout" onclick="logout()">Cerrar Sesión</button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navegación Dashboard -->
+    <nav class="dashboard-nav">
+        <div class="container">
+            <ul class="nav-tabs">
+                <li class="nav-tab active" data-tab="resumen">📊 Resumen</li>
+                <li class="nav-tab" data-tab="beneficios">💰 Mis Beneficios</li>
+                <li class="nav-tab" data-tab="convenios">🏪 Mis Convenios</li>
+                <li class="nav-tab" data-tab="solicitudes">📝 Solicitudes</li>
+                <li class="nav-tab" data-tab="perfil">⚙️ Mi Perfil</li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Contenido del Dashboard -->
+    <section class="dashboard-content">
+        <div class="container">
+            
+            <!-- Tab: Resumen -->
+            <div class="tab-content active" id="tab-resumen">
+                <div class="welcome-banner">
+                    <h1>¡Bienvenido/a, Juan!</h1>
+                    <p>Aquí puedes gestionar tus beneficios y convenios</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-info">
+                            <h3>$135.000</h3>
+                            <p>Beneficios recibidos 2025</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🏪</div>
+                        <div class="stat-info">
+                            <h3>12</h3>
+                            <p>Convenios disponibles</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📝</div>
+                        <div class="stat-info">
+                            <h3>2</h3>
+                            <p>Solicitudes pendientes</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-info">
+                            <h3>6 meses</h3>
+                            <p>Tiempo de afiliación</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Próximos Beneficios -->
+                <div class="section-card">
+                    <h2>📅 Próximos Beneficios</h2>
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-date">Diciembre 2025</div>
+                            <div class="timeline-content">
+                                <h4>Bono Navidad</h4>
+                                <p>$60.000 - Se depositará en tu cuenta bancaria</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-date">Marzo 2026</div>
+                            <div class="timeline-content">
+                                <h4>Bono Marzo</h4>
+                                <p>$35.000 - Inicio del año escolar</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notificaciones -->
+                <div class="section-card">
+                    <h2>🔔 Notificaciones Recientes</h2>
+                    <div class="notifications">
+                        <div class="notification new">
+                            <span class="notification-badge">Nuevo</span>
+                            <p><strong>Solicitud Aprobada:</strong> Tu asignación por natalidad ha sido aprobada.</p>
+                            <span class="notification-date">Hace 2 horas</span>
+                        </div>
+                        <div class="notification">
+                            <p><strong>Nuevo Convenio:</strong> Ahora disponible descuento en Gimnasios Energy.</p>
+                            <span class="notification-date">Hace 1 día</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Mis Beneficios -->
+            <div class="tab-content" id="tab-beneficios">
+                <h2>💰 Beneficios Recibidos</h2>
+                
+                <div class="benefits-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Beneficio</th>
+                                <th>Monto</th>
+                                <th>Estado</th>
+                                <th>Comprobante</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>15/09/2025</td>
+                                <td>Bono Fiestas Patrias</td>
+                                <td>$40.000</td>
+                                <td><span class="badge success">Pagado</span></td>
+                                <td><button class="btn-small">📄 Ver</button></td>
+                            </tr>
+                            <tr>
+                                <td>10/03/2025</td>
+                                <td>Bono Marzo</td>
+                                <td>$35.000</td>
+                                <td><span class="badge success">Pagado</span></td>
+                                <td><button class="btn-small">📄 Ver</button></td>
+                            </tr>
+                            <tr>
+                                <td>05/02/2025</td>
+                                <td>Asignación por Natalidad</td>
+                                <td>$100.000</td>
+                                <td><span class="badge success">Pagado</span></td>
+                                <td><button class="btn-small">📄 Ver</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="total-benefits">
+                    <h3>Total Beneficios 2025: <span class="highlight">$175.000</span></h3>
+                </div>
+            </div>
+
+            <!-- Tab: Mis Convenios -->
+            <div class="tab-content" id="tab-convenios">
+                <h2>🏪 Convenios Activos</h2>
+                
+                <div class="convenios-favoritos">
+                    <h3>⭐ Mis Convenios Favoritos</h3>
+                    <div class="convenios-grid-small">
+                        <div class="convenio-card-small">
+                            <div class="convenio-icon">🦷</div>
+                            <h4>Clínica Dental PSQ</h4>
+                            <p>70% descuento</p>
+                            <button class="btn-small btn-primary">Ver Detalles</button>
+                        </div>
+                        <div class="convenio-card-small">
+                            <div class="convenio-icon">💪</div>
+                            <h4>Gimnasios Energy</h4>
+                            <p>$18.000/mes</p>
+                            <button class="btn-small btn-primary">Ver Detalles</button>
+                        </div>
+                        <div class="convenio-card-small">
+                            <div class="convenio-icon">💊</div>
+                            <h4>Salcobrand</h4>
+                            <p>Hasta 25% dcto</p>
+                            <button class="btn-small btn-primary">Ver Detalles</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-card">
+                    <button class="btn btn-primary" onclick="location.href='convenios.html'">
+                        Ver Todos los Convenios
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tab: Solicitudes -->
+            <div class="tab-content" id="tab-solicitudes">
+                <h2>📝 Mis Solicitudes</h2>
+                
+                <div class="actions-bar">
+                    <button class="btn btn-primary" onclick="nuevaSolicitud()">
+                        ➕ Nueva Solicitud
+                    </button>
+                </div>
+
+                <div class="solicitudes-list">
+                    <div class="solicitud-item">
+                        <div class="solicitud-header">
+                            <h3>Asignación por Matrimonio</h3>
+                            <span class="badge warning">En Revisión</span>
+                        </div>
+                        <div class="solicitud-body">
+                            <p><strong>Fecha de solicitud:</strong> 10/10/2025</p>
+                            <p><strong>Monto:</strong> $100.000</p>
+                            <p><strong>Estado:</strong> Documentación en revisión</p>
+                        </div>
+                        <div class="solicitud-footer">
+                            <button class="btn-small">Ver Detalles</button>
+                            <button class="btn-small btn-secondary">Adjuntar Documentos</button>
+                        </div>
+                    </div>
+
+                    <div class="solicitud-item">
+                        <div class="solicitud-header">
+                            <h3>Préstamo Médico</h3>
+                            <span class="badge info">Pendiente Evaluación</span>
+                        </div>
+                        <div class="solicitud-body">
+                            <p><strong>Fecha de solicitud:</strong> 08/10/2025</p>
+                            <p><strong>Monto solicitado:</strong> $300.000</p>
+                            <p><strong>Estado:</strong> Evaluación social programada</p>
+                        </div>
+                        <div class="solicitud-footer">
+                            <button class="btn-small">Ver Detalles</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Mi Perfil -->
+            <div class="tab-content" id="tab-perfil">
+                <h2>⚙️ Mi Perfil</h2>
+                
+                <div class="profile-grid">
+                    <div class="profile-card">
+                        <h3>Información Personal</h3>
+                        <form class="profile-form">
+                            <div class="form-group">
+                                <label>Nombre Completo</label>
+                                <input type="text" value="Juan Pérez Gómez" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>RUT</label>
+                                <input type="text" value="12.345.678-9" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" value="juan.perez@salud.cl">
+                            </div>
+                            <div class="form-group">
+                                <label>Teléfono</label>
+                                <input type="tel" value="+56 9 1234 5678">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Actualizar Información</button>
+                        </form>
+                    </div>
+
+                    <div class="profile-card">
+                        <h3>Cambiar Contraseña</h3>
+                        <form class="profile-form">
+                            <div class="form-group">
+                                <label>Contraseña Actual</label>
+                                <input type="password" placeholder="••••••••">
+                            </div>
+                            <div class="form-group">
+                                <label>Nueva Contraseña</label>
+                                <input type="password" placeholder="••••••••">
+                            </div>
+                            <div class="form-group">
+                                <label>Confirmar Contraseña</label>
+                                <input type="password" placeholder="••••••••">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Cambiar Contraseña</button>
+                        </form>
+                    </div>
+
+                    <div class="profile-card">
+                        <h3>Información de Cuenta</h3>
+                        <div class="info-list">
+                            <div class="info-item">
+                                <span class="info-label">Fecha de afiliación:</span>
+                                <span class="info-value">01/05/2025</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Centro de Salud:</span>
+                                <span class="info-value">CESFAM Padre Hurtado</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Cargas familiares:</span>
+                                <span class="info-value">3</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Estado:</span>
+                                <span class="badge success">Activo</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary">Ver Cargas Familiares</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 Servicio Bienestar APS - Corporación Municipal de Puente Alto</p>
+        </div>
+    </footer>
+
+    <script src="../js/main.js"></script>
+    <script src="../js/dashboard.js"></script>
+</body>
+</html>
