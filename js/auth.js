@@ -15,7 +15,7 @@ import {
     getDocs 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// Validación de RUT chileno (mantener la función anterior)
+// Validación de RUT chileno
 function validarRUT(rut) {
     rut = rut.replace(/\./g, '').replace(/-/g, '');
     if (rut.length < 8) return false;
@@ -49,62 +49,92 @@ function formatearRUT(rut) {
     return `${cuerpoFormateado}-${dv}`;
 }
 
-// Limpiar RUT (quitar puntos y guión)
+// Limpiar RUT
 function limpiarRUT(rut) {
     return rut.replace(/\./g, '').replace(/-/g, '');
 }
 
-// Buscar usuario por RUT
+// Buscar usuario por RUT - CORREGIDO
 async function buscarUsuarioPorRUT(rut) {
-    const rutLimpio = limpiarRUT(rut);
-    
-    // Buscar en funcionarios
-    const funcionariosRef = collection(db, 'funcionarios');
-    const qFuncionarios = query(funcionariosRef, where('rut', '==', rutLimpio));
-    const funcionariosSnapshot = await getDocs(qFuncionarios);
-    
-    if (!funcionariosSnapshot.empty) {
-        const doc = funcionariosSnapshot.docs[0];
-        return {
-            tipo: 'funcionario',
-            uid: doc.id,
-            data: doc.data()
-        };
+    try {
+        const rutLimpio = limpiarRUT(rut);
+        console.log('Buscando usuario con RUT:', rutLimpio);
+        
+        // Buscar en funcionarios
+        const funcionariosRef = collection(db, 'funcionarios');
+        const qFuncionarios = query(funcionariosRef, where('rut', '==', rutLimpio));
+        
+        try {
+            const funcionariosSnapshot = await getDocs(qFuncionarios);
+            
+            if (!funcionariosSnapshot.empty) {
+                const doc = funcionariosSnapshot.docs[0];
+                console.log('Usuario encontrado en funcionarios:', doc.data());
+                return {
+                    tipo: 'funcionario',
+                    uid: doc.id,
+                    data: doc.data()
+                };
+            }
+        } catch (error) {
+            console.error('Error al buscar en funcionarios:', error);
+        }
+        
+        // Buscar en administradores
+        const adminsRef = collection(db, 'administradores');
+        const qAdmins = query(adminsRef, where('rut', '==', rutLimpio));
+        
+        try {
+            const adminsSnapshot = await getDocs(qAdmins);
+            
+            if (!adminsSnapshot.empty) {
+                const doc = adminsSnapshot.docs[0];
+                console.log('Usuario encontrado en administradores:', doc.data());
+                return {
+                    tipo: 'administrador',
+                    uid: doc.id,
+                    data: doc.data()
+                };
+            }
+        } catch (error) {
+            console.error('Error al buscar en administradores:', error);
+        }
+        
+        console.log('Usuario no encontrado en ninguna colección');
+        return null;
+        
+    } catch (error) {
+        console.error('Error general en buscarUsuarioPorRUT:', error);
+        return null;
     }
-    
-    // Buscar en administradores
-    const adminsRef = collection(db, 'administradores');
-    const qAdmins = query(adminsRef, where('rut', '==', rutLimpio));
-    const adminsSnapshot = await getDocs(qAdmins);
-    
-    if (!adminsSnapshot.empty) {
-        const doc = adminsSnapshot.docs[0];
-        return {
-            tipo: 'administrador',
-            uid: doc.id,
-            data: doc.data()
-        };
-    }
-    
-    return null;
 }
 
-// Login con RUT y contraseña
+// Login con RUT y contraseña - MEJORADO
 async function loginConRUT(rut, password) {
     try {
+        console.log('Iniciando login con RUT:', rut);
         const rutLimpio = limpiarRUT(rut);
         
         // Buscar usuario por RUT
         const usuario = await buscarUsuarioPorRUT(rutLimpio);
         
         if (!usuario) {
-            throw new Error('Usuario no encontrado');
+            throw new Error('Usuario no encontrado. Verifique su RUT.');
         }
         
-        // Verificar estado
+        console.log('Usuario encontrado:', usuario.tipo);
+        
+        // Verificar estado activo
         if (usuario.data.estado !== 'activo') {
             throw new Error('Usuario inactivo. Contacte al administrador.');
         }
+        
+        // Verificar que tiene email
+        if (!usuario.data.email) {
+            throw new Error('Usuario sin email configurado. Contacte al administrador.');
+        }
+        
+        console.log('Intentando login con email:', usuario.data.email);
         
         // Login con email y password
         const userCredential = await signInWithEmailAndPassword(
@@ -112,6 +142,8 @@ async function loginConRUT(rut, password) {
             usuario.data.email, 
             password
         );
+        
+        console.log('Login exitoso en Firebase Auth');
         
         // Guardar información en sessionStorage
         sessionStorage.setItem('userType', usuario.tipo);
@@ -126,9 +158,22 @@ async function loginConRUT(rut, password) {
         
     } catch (error) {
         console.error('Error en login:', error);
+        
+        // Mensajes de error más específicos
+        let errorMessage = error.message;
+        if (error.code === 'auth/user-not-found') {
+            errorMessage = 'Usuario no encontrado en el sistema de autenticación.';
+        } else if (error.code === 'auth/wrong-password') {
+            errorMessage = 'Contraseña incorrecta.';
+        } else if (error.code === 'auth/invalid-email') {
+            errorMessage = 'Email inválido en el sistema.';
+        } else if (error.code === 'auth/user-disabled') {
+            errorMessage = 'Usuario deshabilitado.';
+        }
+        
         return {
             success: false,
-            error: error.message
+            error: errorMessage
         };
     }
 }
@@ -136,7 +181,6 @@ async function loginConRUT(rut, password) {
 // Registrar nuevo funcionario
 async function registrarFuncionario(datos) {
     try {
-        // Crear usuario en Authentication
         const userCredential = await createUserWithEmailAndPassword(
             auth,
             datos.email,
@@ -145,7 +189,6 @@ async function registrarFuncionario(datos) {
         
         const user = userCredential.user;
         
-        // Crear documento en Firestore
         await setDoc(doc(db, 'funcionarios', user.uid), {
             uid: user.uid,
             rut: limpiarRUT(datos.rut),
@@ -155,7 +198,7 @@ async function registrarFuncionario(datos) {
             fechaAfiliacion: new Date(),
             centroSalud: datos.centroSalud,
             cargo: datos.cargo,
-            estado: 'pendiente', // Requiere aprobación admin
+            estado: 'pendiente',
             cargasFamiliares: [],
             createdAt: new Date(),
             updatedAt: new Date()
@@ -169,6 +212,41 @@ async function registrarFuncionario(datos) {
         
     } catch (error) {
         console.error('Error en registro:', error);
+        return {
+            success: false,
+            error: error.message
+        };
+    }
+}
+
+// Registrar administrador
+async function registrarAdministrador(datos) {
+    try {
+        const userCredential = await createUserWithEmailAndPassword(
+            auth,
+            datos.email,
+            datos.password
+        );
+        const user = userCredential.user;
+
+        await setDoc(doc(db, 'administradores', user.uid), {
+            uid: user.uid,
+            rut: limpiarRUT(datos.rut),
+            nombre: datos.nombre,
+            email: datos.email,
+            estado: 'activo',
+            createdAt: new Date(),
+            updatedAt: new Date()
+        });
+
+        return {
+            success: true,
+            message: 'Registro exitoso. Puede ingresar como administrador.',
+            uid: user.uid
+        };
+
+    } catch (error) {
+        console.error('Error en registro administrador:', error);
         return {
             success: false,
             error: error.message
@@ -220,7 +298,7 @@ async function obtenerDatosUsuario() {
     return null;
 }
 
-// Event listeners para el formulario de login
+// Event listeners para el formulario de login - MEJORADO
 document.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
     const tipo = urlParams.get('tipo');
@@ -230,8 +308,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnSubmit = document.getElementById('btn-submit');
     
     if (tipo === 'admin') {
-        loginTitle.textContent = 'Acceso Administrativo';
-        loginSubtitle.textContent = 'Panel de administración del sistema';
+        if (loginTitle) loginTitle.textContent = 'Acceso Administrativo';
+        if (loginSubtitle) loginSubtitle.textContent = 'Panel de administración del sistema';
         if (btnSubmit) {
             btnSubmit.style.background = 'linear-gradient(135deg, var(--azul-principal) 0%, var(--morado) 100%)';
         }
@@ -254,54 +332,63 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Manejo del formulario de login
+    // Manejo del formulario de login - MEJORADO
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
         loginForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const rut = rutInput.value;
-            const password = document.getElementById('password').value;
+            const rut = rutInput?.value || '';
+            const password = document.getElementById('password')?.value || '';
             const rutError = document.getElementById('rut-error');
             const passwordError = document.getElementById('password-error');
             
             // Limpiar errores previos
-            rutError.textContent = '';
-            passwordError.textContent = '';
+            if (rutError) rutError.textContent = '';
+            if (passwordError) passwordError.textContent = '';
             
             let isValid = true;
             
             // Validar RUT
             if (!validarRUT(rut)) {
-                rutError.textContent = 'RUT inválido';
+                if (rutError) rutError.textContent = 'RUT inválido';
                 isValid = false;
             }
             
             // Validar contraseña
             if (password.length < 6) {
-                passwordError.textContent = 'La contraseña debe tener al menos 6 caracteres';
+                if (passwordError) passwordError.textContent = 'La contraseña debe tener al menos 6 caracteres';
                 isValid = false;
             }
             
-            if (isValid) {
+            if (isValid && btnSubmit) {
                 btnSubmit.textContent = 'Ingresando...';
                 btnSubmit.disabled = true;
                 
-                // Intentar login
-                const resultado = await loginConRUT(rut, password);
-                
-                if (resultado.success) {
-                    // Redireccionar según tipo de usuario
-                    if (resultado.tipo === 'administrador') {
-                        window.location.href = 'dashboard-admin.html';
+                try {
+                    // Intentar login
+                    const resultado = await loginConRUT(rut, password);
+                    
+                    if (resultado.success) {
+                        console.log('Login exitoso, redirigiendo...');
+                        // Redireccionar según tipo de usuario
+                        if (resultado.tipo === 'administrador') {
+                            window.location.href = 'dashboard-admin.html';
+                        } else {
+                            window.location.href = 'dashboard-afiliado.html';
+                        }
                     } else {
-                        window.location.href = 'dashboard-afiliado.html';
+                        // Mostrar error
+                        if (passwordError) passwordError.textContent = resultado.error;
                     }
-                } else {
-                    // Mostrar error
-                    passwordError.textContent = resultado.error;
-                    btnSubmit.textContent = 'Iniciar Sesión';
-                    btnSubmit.disabled = false;
+                } catch (error) {
+                    console.error('Error inesperado:', error);
+                    if (passwordError) passwordError.textContent = 'Error inesperado. Intente nuevamente.';
+                } finally {
+                    if (btnSubmit) {
+                        btnSubmit.textContent = 'Iniciar Sesión';
+                        btnSubmit.disabled = false;
+                    }
                 }
             }
         });
@@ -316,41 +403,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
-async function registrarAdministrador(datos) {
-    try {
-        // Crear usuario en Authentication
-        const userCredential = await createUserWithEmailAndPassword(
-            auth,
-            datos.email,
-            datos.password
-        );
-        const user = userCredential.user;
 
-        // Crear documento en Firestore
-        await setDoc(doc(db, 'administradores', user.uid), {
-            uid: user.uid,
-            rut: limpiarRUT(datos.rut),
-            nombre: datos.nombre,
-            email: datos.email,
-            estado: 'activo',
-            createdAt: new Date(),
-            updatedAt: new Date()
-        });
-
-        return {
-            success: true,
-            message: 'Registro exitoso. Puede ingresar como administrador.',
-            uid: user.uid
-        };
-
-    } catch (error) {
-        console.error('Error en registro administrador:', error);
-        return {
-            success: false,
-            error: error.message
-        };
-    }
-}
 // Exportar funciones
 export { 
     validarRUT, 
