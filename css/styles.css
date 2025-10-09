@@ -237,3 +237,474 @@ body {
         grid-template-columns: 1fr;
     }
 }
+/* ==================== PÁGINAS INTERNAS ==================== */
+
+/* Page Hero */
+.page-hero {
+    background: linear-gradient(135deg, var(--turquesa) 0%, var(--azul-principal) 100%);
+    color: var(--blanco);
+    padding: 3rem 0;
+    text-align: center;
+}
+
+.page-hero h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.convenios-hero {
+    background: linear-gradient(135deg, var(--rojo) 0%, var(--morado) 100%);
+}
+
+/* Filtros */
+.filters-section {
+    background-color: var(--blanco);
+    padding: 2rem 0;
+    border-bottom: 2px solid var(--gris-claro);
+}
+
+.filters {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    padding: 0.6rem 1.5rem;
+    border: 2px solid var(--turquesa);
+    background-color: var(--blanco);
+    color: var(--turquesa);
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+
+.filter-btn:hover {
+    background-color: var(--turquesa);
+    color: var(--blanco);
+    transform: translateY(-2px);
+}
+
+.filter-btn.active {
+    background-color: var(--turquesa);
+    color: var(--blanco);
+}
+
+/* ==================== BENEFICIOS ==================== */
+
+.beneficios-section {
+    padding: 3rem 0;
+    background-color: var(--gris-claro);
+}
+
+.beneficios-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 2rem;
+}
+
+.beneficio-card {
+    background-color: var(--blanco);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    border-left: 4px solid var(--turquesa);
+}
+
+.beneficio-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.beneficio-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.beneficio-icon {
+    font-size: 2.5rem;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.familia-icon {
+    background-color: rgba(239, 68, 68, 0.1);
+}
+
+.educacion-icon {
+    background-color: rgba(132, 204, 22, 0.1);
+}
+
+.salud-icon {
+    background-color: rgba(6, 182, 212, 0.1);
+}
+
+.economico-icon {
+    background-color: rgba(251, 191, 36, 0.1);
+}
+
+.beneficio-header h3 {
+    font-size: 1.3rem;
+    color: var(--azul-principal);
+    margin: 0;
+}
+
+.beneficio-monto {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--turquesa);
+    margin-bottom: 1rem;
+}
+
+.beneficio-descripcion {
+    color: var(--gris-texto);
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+.beneficio-requisitos {
+    list-style: none;
+    margin-bottom: 1.5rem;
+    padding-left: 0;
+}
+
+.beneficio-requisitos li {
+    padding: 0.5rem 0;
+    color: var(--gris-texto);
+    font-size: 0.9rem;
+}
+
+.btn-detail {
+    width: 100%;
+    background-color: var(--azul-principal);
+    color: var(--blanco);
+}
+
+.btn-detail:hover {
+    background-color: var(--turquesa);
+}
+
+/* ==================== CONVENIOS ==================== */
+
+.convenios-section {
+    padding: 3rem 0;
+    background-color: var(--gris-claro);
+}
+
+.convenios-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 2rem;
+}
+
+.convenio-card {
+    background-color: var(--blanco);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    border-top: 4px solid var(--rojo);
+}
+
+.convenio-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.convenio-header {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.convenio-logo {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+}
+
+.convenio-header h3 {
+    font-size: 1.3rem;
+    color: var(--azul-principal);
+    margin: 0;
+}
+
+.convenio-descuento {
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--rojo);
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+    background-color: rgba(239, 68, 68, 0.1);
+    border-radius: 8px;
+}
+
+.convenio-descripcion {
+    color: var(--gris-texto);
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+.convenio-info {
+    background-color: var(--gris-claro);
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+}
+
+.convenio-info p {
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+    color: var(--gris-texto);
+}
+
+/* Info Section */
+.info-section {
+    padding: 3rem 0;
+    background-color: var(--blanco);
+}
+
+.info-box {
+    background: linear-gradient(135deg, var(--azul-principal) 0%, var(--turquesa) 100%);
+    color: var(--blanco);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.info-box h2 {
+    margin-bottom: 1.5rem;
+    font-size: 1.8rem;
+}
+
+.info-box ul {
+    list-style: none;
+    padding: 0;
+}
+
+.info-box li {
+    padding: 0.8rem 0;
+    font-size: 1.05rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.info-box li:last-child {
+    border-bottom: none;
+}
+
+/* ==================== LOGIN ==================== */
+
+.login-section {
+    min-height: calc(100vh - 200px);
+    display: flex;
+    align-items: center;
+    padding: 3rem 0;
+    background: linear-gradient(135deg, var(--gris-claro) 0%, var(--blanco) 100%);
+}
+
+.login-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.login-box {
+    background-color: var(--blanco);
+    padding: 3rem;
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.login-header h2 {
+    color: var(--azul-principal);
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.login-header p {
+    color: var(--gris-texto);
+}
+
+.login-form {
+    margin-bottom: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--azul-principal);
+    font-weight: 600;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 0.8rem;
+    border: 2px solid var(--gris-claro);
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--turquesa);
+}
+
+.error-message {
+    display: block;
+    color: var(--rojo);
+    font-size: 0.85rem;
+    margin-top: 0.3rem;
+}
+
+.form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.forgot-password {
+    color: var(--turquesa);
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.forgot-password:hover {
+    text-decoration: underline;
+}
+
+.btn-login {
+    width: 100%;
+    background: linear-gradient(135deg, var(--turquesa) 0%, var(--azul-principal) 100%);
+    color: var(--blanco);
+    padding: 1rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.login-footer {
+    text-align: center;
+    margin-top: 1.5rem;
+}
+
+.login-footer a {
+    color: var(--turquesa);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.login-divider {
+    text-align: center;
+    margin: 1.5rem 0;
+    position: relative;
+}
+
+.login-divider::before,
+.login-divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 45%;
+    height: 1px;
+    background-color: var(--gris-claro);
+}
+
+.login-divider::before {
+    left: 0;
+}
+
+.login-divider::after {
+    right: 0;
+}
+
+.login-divider span {
+    background-color: var(--blanco);
+    padding: 0 1rem;
+    color: var(--gris-texto);
+}
+
+.btn-back {
+    width: 100%;
+}
+
+.login-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.info-card {
+    background-color: var(--blanco);
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.info-card h3 {
+    color: var(--azul-principal);
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+}
+
+.info-card p {
+    color: var(--gris-texto);
+    margin: 0.5rem 0;
+}
+
+.btn-secondary {
+    background-color: var(--gris-claro);
+    color: var(--azul-principal);
+}
+
+.btn-secondary:hover {
+    background-color: var(--gris-texto);
+    color: var(--blanco);
+}
+
+/* ==================== RESPONSIVE ==================== */
+
+@media (max-width: 768px) {
+    .beneficios-grid,
+    .convenios-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .login-container {
+        grid-template-columns: 1fr;
+    }
+
+    .login-info {
+        display: none;
+    }
+
+    .page-hero h1 {
+        font-size: 2rem;
+    }
+}
