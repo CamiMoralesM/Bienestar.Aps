@@ -1953,3 +1953,51 @@ body {
         grid-template-columns: 1fr;
     }
 }
+/* ==================== ESTADÍSTICAS CENTROS ==================== */
+
+.centros-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.centro-stat-card {
+    background-color: var(--blanco);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border-left: 4px solid var(--turquesa);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.centro-stat-card h4 {
+    color: var(--azul-principal);
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.centro-stat-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--gris-claro);
+}
+
+.centro-stat-item:last-child {
+    border-bottom: none;
+}
+
+.centro-stat-label {
+    color: var(--gris-texto);
+    font-size: 0.9rem;
+}
+
+.centro-stat-value {
+    font-weight: 700;
+    color: var(--azul-principal);
+}
+
+.centro-stat-value.highlight {
+    color: var(--turquesa);
+    font-size: 1.2rem;
+}
