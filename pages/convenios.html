@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convenios - Bienestar APS</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <a href="../index.html">
+                        <img src="../assets/images/logo-bienestar.png" alt="Logo Bienestar APS">
+                    </a>
+                </div>
+                <nav class="nav-buttons">
+                    <button class="btn btn-secondary" onclick="location.href='../index.html'">
+                        Volver al Inicio
+                    </button>
+                    <button class="btn btn-afiliado" onclick="location.href='login.html?tipo=afiliado'">
+                        Acceso Afiliados
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Convenios -->
+    <section class="page-hero convenios-hero">
+        <div class="container">
+            <h1>Convenios y Descuentos</h1>
+            <p>Accede a descuentos exclusivos en salud, educación, bienestar y más</p>
+        </div>
+    </section>
+
+    <!-- Filtros -->
+    <section class="filters-section">
+        <div class="container">
+            <div class="filters">
+                <button class="filter-btn active" data-category="todos">Todos</button>
+                <button class="filter-btn" data-category="salud">Salud</button>
+                <button class="filter-btn" data-category="dental">Dental</button>
+                <button class="filter-btn" data-category="optica">Óptica</button>
+                <button class="filter-btn" data-category="farmacia">Farmacia</button>
+                <button class="filter-btn" data-category="otros">Otros</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Convenios Grid -->
+    <section class="convenios-section">
+        <div class="container">
+            <div class="convenios-grid">
+
+                <!-- Clínica Dental PSQ -->
+                <div class="convenio-card" data-category="dental">
+                    <div class="convenio-header">
+                        <div class="convenio-logo">🦷</div>
+                        <h3>Clínica Dental PSQ</h3>
+                    </div>
+                    <div class="convenio-descuento">70% descuento</div>
+                    <p class="convenio-descripcion">
+                        70% de descuento sobre el Arancel Único del Colegio de Dentistas de Chile. Incluye presupuesto y radiografía sin costo.
+                    </p>
+                    <div class="convenio-info">
+                        <p><strong>📍 Ubicación:</strong> Balmaceda 371, Local 112, Puente Alto</p>
+                        <p><strong>📱 WhatsApp:</strong> +56 9 5310 9576</p>
+                        <p><strong>✉️ Email:</strong> centrodental.psq2@gmail.com</p>
+                    </div>
+                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
+                </div>
+
+                <!-- Óptica Imagen Optical -->
+                <div class="convenio-card" data-category="optica">
+                    <div class="convenio-header">
+                        <div class="convenio-logo">👓</div>
+                        <h3>Óptica Imagen Optical</h3>
+                    </div>
+                    <div class="convenio-descuento">10-20% descuento</div>
+                    <p class="convenio-descripcion">
+                        20% dcto en cristales stock + armazón, 15% dcto en cristales laboratorio, 10% dcto en lentes de contacto y sol.
+                    </p>
+                    <div class="convenio-info">
+                        <p><strong>📍 Ubicación:</strong> Sergio Roubillard N° 86, Puente Alto</p>
+                        <p><strong>📞 Teléfono:</strong> 22 769 1196</p>
+                        <p><strong>📱 WhatsApp:</strong> +56 9 3113 1761</p>
+                        <p><strong>✉️ Email:</strong> opticaimagenoptical@gmail.com</p>
+                    </div>
+                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
+                </div>
+
+                <!-- Óptica Boketto -->
+                <div class="convenio-card" data-category="optica">
+                    <div class="convenio-header">
+                        <div class="convenio-logo">👁️</div>
+                        <h3>Óptica Boketto</h3>
+                    </div>
+                    <div class="convenio-descuento">Chequeo gratis</div>
+                    <p class="convenio-descripcion">
+                        Chequeo preventivo gratuito. Consulta oftalmológica $5.000 (costo cero si adquiere lentes).
+                    </p>
+                    <div class="convenio-info">
+                        <p><strong>📍 Ubicación:</strong> Av. Concha y Toro 3093, Local 9, Puente Alto</p>
+                        <p><strong>📱 Teléfono:</strong> +56 9 5741 3172</p>
+                    </div>
+                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
+                </div>
+
+                <!-- Salcobrand -->
+                <div class="convenio-card" data-category="farmacia">
+                    <div class="convenio-header">
+                        <div class="convenio-logo">💊</div>
+                        <h3>Salcobrand</h3>
+                    </div>
+                    <div class="convenio-descuento">Hasta 25% descuento</div>
+                    <p class="convenio-descripcion">
+                        Hasta 25% dcto en medicamentos (analgésicos, respiratorio, cardiovascular, etc.) y 7% dcto en cuidado personal.
+                    </p>
+                    <div class="convenio-info">
+                        <p><strong>📍 Aplica:</strong> En todas las sucursales Salcobrand</p>
+                        <p><strong>✅ Identificación:</strong> Indicar afiliación a Bienestar APS</p>
+                    </div>
+                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
+                </div>
+
+                <!-- Farmacia Estrella -->
+                <div class="convenio-card" data-category="farmacia">
+                    <div class="convenio-header">
+                        <div class="convenio-logo">⭐</div>
+                        <h3>Farmacia Estrella</h3>
+                    </div>
+                    <div class="convenio-descuento">7-18% descuento</div>
+                    <p class="convenio-descripcion">
+                        18% dcto en genéricos, 12% dcto en suplementos y vitaminas, 7% dcto en productos veterinarios.
+                    </p>
+                    <div class="convenio-info">
+                        <p><strong>📍 Ubicación:</strong> Concha y Toro 180, Puente Alto</p>
+                        <p><strong>📱 WhatsApp:</strong> +56 9 2096 4044</p>
+                        <p><strong>📞 Teléfono:</strong> 2 2404 8229</p>
+                        <p><strong>🕐 Horario:</strong> L-V 9:00-18:00 / S 10:00-17:00</p>
+                    </div>
+                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
+                </div>
+
+                <!-- Espacio Sandrino -->
+                <div class="convenio-card" data-category="salud">
+                    <div class="convenio-header">
+                        <div class="convenio-logo">🧠</div>
+                        <h3>Espacio Sandrino - Salud Mental</h3>
+                    </div>
+                    <div class="convenio-descuento">10% descuento</div>
+                    <p class="convenio-descripcion">
+                        10% dcto en atenciones individuales, test ADIR/ADOS 2, talleres grupales. Psicología, fonoaudiología, terapia ocupacional.
+                    </p>
+                    <div class="convenio-info">
+                        <p><strong>📍 Ubicación:</strong> Coquimbo N° 2905, Puente Alto</p>
+                        <p><strong>📱 WhatsApp:</strong> +56 9 7454 6089</p>
+                        <p><strong>✉️ Email:</strong> espaciosandrino@gmail.com</p>
+                        <p><strong>🌐 Web:</strong> www.espaciosandrino.com</p>
+                    </div>
+                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
+                </div>
+
+                <!-- Gimnasios Energy -->
+                <div class="convenio-card" data-category="otros">
+                    <div class="convenio-header">
+                        <div class="convenio-logo">💪</div>
+                        <h3>Gimnasios ENERGY</h3>
+                    </div>
+                    <div class="convenio-descuento">$18.000/mes</div>
+                    <p class="convenio-descripcion">
+                        Ticket mensual full por $18.000. Incluye todos los servicios, cualquier día y horario, más matrícula y enrolamiento.
+                    </p>
+                    <div class="convenio-info">
+                        <p><strong>📍 Aplica:</strong> Todas las sucursales Energy</p>
+                        <p><strong>💳 Compra:</strong> Transferencia a cuenta Bienestar APS</p>
+                        <p><strong>📧 Envío:</strong> Ticket digital por correo</p>
+                    </div>
+                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
+                </div>
+
+                <!-- Acupuntura Flor de Loto -->
+                <div class="convenio-card" data-category="salud">
+                    <div class="convenio-header">
+                        <div class="convenio-logo">🌸</div>
+                        <h3>Acupuntura Flor de Loto</h3>
+                    </div>
+                    <div class="convenio-descuento">$25.000/sesión</div>
+                    <p class="convenio-descripcion">
+                        Precio preferencial de $25.000 por sesión (valor normal $35.000).
+                    </p>
+                    <div class="convenio-info">
+                        <p><strong>📍 Ubicación:</strong> Juan Antonio Ríos N° 0348, Puente Alto</p>
+                        <p><strong>📱 WhatsApp:</strong> +56 9 4930 5213</p>
+                        <p><strong>✉️ Email:</strong> flordeloto.acupuntura@gmail.com</p>
+                        <p><strong>🕐 Horario:</strong> L-V 9:00-18:00 / S 10:00-13:00</p>
+                    </div>
+                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
+                </div>
+
+                <!-- Hospital Veterinario -->
+                <div class="convenio-card" data-category="otros">
+                    <div class="convenio-header">
+                        <div class="convenio-logo">🐾</div>
+                        <h3>Hospital Veterinario Nuevo Porvenir</h3>
+                    </div>
+                    <div class="convenio-descuento">Descuentos varios</div>
+                    <p class="convenio-descripcion">
+                        Descuentos en consultas, vacunación, desparasitación, esterilización e higiene bucal para mascotas.
+                    </p>
+                    <div class="convenio-info">
+                        <p><strong>📍 Ubicación:</strong> Av. Eyzaguirre N° 01285, Puente Alto</p>
+                        <p><strong>📞 Teléfono:</strong> 22 850 2417</p>
+                        <p><strong>📱 WhatsApp:</strong> +56 9 8239 6488</p>
+                        <p><strong>✉️ Email:</strong> recepcion@hvnp.cl</p>
+                    </div>
+                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
+                </div>
+
+                <!-- Escuela de Conductores FMC -->
+                <div class="convenio-card" data-category="otros">
+                    <div class="convenio-header">
+                        <div class="convenio-logo">🚗</div>
+                        <h3>Escuela de Conductores FMC</h3>
+                    </div>
+                    <div class="convenio-descuento">5% descuento</div>
+                    <p class="convenio-descripcion">
+                        5% de descuento en todos los cursos de conducir.
+                    </p>
+                    <div class="convenio-info">
+                        <p><strong>📍 Ubicación:</strong> Gandarillas #68, Puente Alto</p>
+                        <p><strong>📞 Teléfono:</strong> 22 725 5325</p>
+                    </div>
+                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
+                </div>
+
+                <!-- Funeraria Iván Martínez -->
+                <div class="convenio-card" data-category="otros">
+                    <div class="convenio-header">
+                        <div class="convenio-logo">🕊️</div>
+                        <h3>Funeraria Iván Martínez</h3>
+                    </div>
+                    <div class="convenio-descuento">Capilla gratuita</div>
+                    <p class="convenio-descripcion">
+                        Uso gratuito de capillas de velatorio. Servicio completo con cuota mortuoria. 10-20% dcto en traslados regionales.
+                    </p>
+                    <div class="convenio-info">
+                        <p><strong>📍 Ubicación:</strong> Av. Concha y T
