@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro - Bienestar APS</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <a href="../index.html">
+                        <img src="../assets/images/logo-bienestar.png" alt="Logo Bienestar APS">
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section class="login-section">
+        <div class="container">
+            <div class="registro-container">
+                <div class="registro-box">
+                    <div class="login-header">
+                        <h2>Registro de Nuevo Afiliado</h2>
+                        <p>Complete el formulario para crear su cuenta</p>
+                    </div>
+
+                    <form id="registroForm" class="login-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="nombre">Nombre Completo *</label>
+                                <input 
+                                    type="text" 
+                                    id="nombre" 
+                                    name="nombre" 
+                                    placeholder="Juan Pérez Gómez"
+                                    required
+                                >
+                                <span class="error-message" id="nombre-error"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="rut-registro">RUT *</label>
+                                <input 
+                                    type="text" 
+                                    id="rut-registro" 
+                                    name="rut" 
+                                    placeholder="12.345.678-9"
+                                    required
+                                    maxlength="12"
+                                >
+                                <span class="error-message" id="rut-registro-error"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="email">Email *</label>
+                                <input 
+                                    type="email" 
+                                    id="email" 
+                                    name="email" 
+                                    placeholder="juan.perez@salud.cl"
+                                    required
+                                >
+                                <span class="error-message" id="email-error"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="telefono">Teléfono</label>
+                                <input 
+                                    type="tel" 
+                                    id="telefono" 
+                                    name="telefono" 
+                                    placeholder="+56 9 1234 5678"
+                                >
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="centroSalud">Centro de Salud *</label>
+                                <select id="centroSalud" name="centroSalud" required>
+                                    <option value="">Seleccione...</option>
+                                    <option value="CESFAM Padre Hurtado">CESFAM Padre Hurtado</option>
+                                    <option value="CESFAM La Faena">CESFAM La Faena</option>
+                                    <option value="CESFAM El Bosque">CESFAM El Bosque</option>
+                                    <option value="CESFAM Karol Wojtyla">CESFAM Karol Wojtyla</option>
+                                    <option value="CECOSF Gabriela Mistral">CECOSF Gabriela Mistral</option>
+                                </select>
+                                <span class="error-message" id="centro-error"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="cargo">Cargo *</label>
+                                <input 
+                                    type="text" 
+                                    id="cargo" 
+                                    name="cargo" 
+                                    placeholder="Ej: Enfermero, Técnico, etc."
+                                    required
+                                >
+                                <span class="error-message" id="cargo-error"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="password-registro">Contraseña *</label>
+                                <input 
+                                    type="password" 
+                                    id="password-registro" 
+                                    name="password" 
+                                    placeholder="Mínimo 6 caracteres"
+                                    required
+                                    minlength="6"
+                                >
+                                <span class="error-message" id="password-registro-error"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="password-confirm">Confirmar Contraseña *</label>
+                                <input 
+                                    type="password" 
+                                    id="password-confirm" 
+                                    name="passwordConfirm" 
+                                    placeholder="Repita su contraseña"
+                                    required
+                                >
+                                <span class="error-message" id="password-confirm-error"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="terminos" required>
+                                <span>Acepto los términos y condiciones del servicio</span>
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn btn-login" id="btn-registro">
+                            Registrarse
+                        </button>
+
+                        <div class="login-footer">
+                            <p>¿Ya tienes cuenta? <a href="login.html">Inicia sesión aquí</a></p>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="registro-info">
+                    <div class="info-card">
+                        <h3>📋 Requisitos</h3>
+                        <ul>
+                            <li>✓ Ser funcionario activo de salud</li>
+                            <li>✓ Tener RUT válido</li>
+                            <li>✓ Email institucional o personal</li>
+                            <li>✓ Estar en planilla activa</li>
+                        </ul>
+                    </div>
+                    <div class="info-card">
+                        <h3>⏱️ Proceso</h3>
+                        <ol>
+                            <li>Complete el formulario</li>
+                            <li>Espere aprobación (24-48 hrs)</li>
+                            <li>Recibirá confirmación por email</li>
+                            <li>Acceda a todos los beneficios</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 Servicio Bienestar APS - Corporación Municipal de Puente Alto</p>
+        </div>
+    </footer>
+
+    <script type="module" src="../js/registro.js"></script>
+</body>
+</html>
