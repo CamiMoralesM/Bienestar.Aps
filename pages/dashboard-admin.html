@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Administrativo - Bienestar APS</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <!-- Header Admin -->
+    <header class="header admin-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <a href="../index.html">
+                        <img src="../assets/images/logo-bienestar.png" alt="Logo Bienestar APS">
+                    </a>
+                    <span class="admin-badge">ADMIN</span>
+                </div>
+                <nav class="user-nav">
+                    <div class="user-info">
+                        <span class="user-name">🔐 Administrador</span>
+                        <span class="user-rut">Panel de Control</span>
+                    </div>
+                    <button class="btn btn-logout" onclick="logout()">Cerrar Sesión</button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navegación Admin -->
+    <nav class="dashboard-nav admin-nav">
+        <div class="container">
+            <ul class="nav-tabs">
+                <li class="nav-tab active" data-tab="dashboard">📊 Dashboard</li>
+                <li class="nav-tab" data-tab="afiliados">👥 Afiliados</li>
+                <li class="nav-tab" data-tab="solicitudes">📝 Solicitudes</li>
+                <li class="nav-tab" data-tab="beneficios">💰 Beneficios</li>
+                <li class="nav-tab" data-tab="convenios">🏪 Convenios</li>
+                <li class="nav-tab" data-tab="reportes">📈 Reportes</li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Contenido Admin -->
+    <section class="dashboard-content admin-content">
+        <div class="container">
+            
+            <!-- Tab: Dashboard -->
+            <div class="tab-content active" id="tab-dashboard">
+                <h1 class="page-title">Panel de Control Administrativo</h1>
+                
+                <!-- Estadísticas Principales -->
+                <div class="admin-stats-grid">
+                    <div class="admin-stat-card card-primary">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-info">
+                            <h3>1,247</h3>
+                            <p>Afiliados Activos</p>
+                            <span class="stat-trend positive">+5% este mes</span>
+                        </div>
+                    </div>
+                    <div class="admin-stat-card card-success">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-info">
+                            <h3>$156.8M</h3>
+                            <p>Beneficios Entregados 2025</p>
+                            <span class="stat-trend positive">+12% vs 2024</span>
+                        </div>
+                    </div>
+                    <div class="admin-stat-card card-warning">
+                        <div class="stat-icon">📝</div>
+                        <div class="stat-info">
+                            <h3>23</h3>
+                            <p>Solicitudes Pendientes</p>
+                            <span class="stat-trend negative">Requiere atención</span>
+                        </div>
+                    </div>
+                    <div class="admin-stat-card card-info">
+                        <div class="stat-icon">🏪</div>
+                        <div class="stat-info">
+                            <h3>24</h3>
+                            <p>Convenios Activos</p>
+                            <span class="stat-trend neutral">2 por renovar</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actividad Reciente -->
+                <div class="admin-section">
+                    <div class="section-header">
+                        <h2>📋 Actividad Reciente</h2>
+                        <button class="btn btn-small btn-secondary">Ver Todo</button>
+                    </div>
+                    <div class="activity-list">
+                        <div class="activity-item">
+                            <div class="activity-icon success">✓</div>
+                            <div class="activity-content">
+                                <p><strong>Solicitud Aprobada:</strong> Asignación por Natalidad - María González</p>
+                                <span class="activity-time">Hace 10 minutos</span>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon info">📄</div>
+                            <div class="activity-content">
+                                <p><strong>Nueva Solicitud:</strong> Préstamo Médico - Carlos Soto</p>
+                                <span class="activity-time">Hace 25 minutos</span>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon warning">⚠️</div>
+                            <div class="activity-content">
+                                <p><strong>Alerta:</strong> Convenio por renovar - Gimnasios Energy</p>
+                                <span class="activity-time">Hace 1 hora</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gráficos -->
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h3>📊 Beneficios por Mes (2025)</h3>
+                        <div class="chart-placeholder">
+                            <p>Gráfico de barras - Beneficios entregados mensualmente</p>
+                            <small>Se integraría Chart.js aquí</small>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h3>📈 Crecimiento de Afiliados</h3>
+                        <div class="chart-placeholder">
+                            <p>Gráfico de líneas - Evolución de afiliados</p>
+                            <small>Se integraría Chart.js aquí</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Afiliados -->
+            <div class="tab-content" id="tab-afiliados">
+                <div class="section-header">
+                    <h2>👥 Gestión de Afiliados</h2>
+                    <button class="btn btn-primary" onclick="nuevoAfiliado()">
+                        ➕ Nuevo Afiliado
+                    </button>
+                </div>
+
+                <!-- Filtros y Búsqueda -->
+                <div class="admin-filters">
+                    <input type="text" class="search-input" placeholder="🔍 Buscar por nombre, RUT o centro de salud...">
+                    <select class="filter-select">
+                        <option>Todos los estados</option>
+                        <option>Activos</option>
+                        <option>Inactivos</option>
+                        <option>Pendientes</option>
+                    </select>
+                    <select class="filter-select">
+                        <option>Todos los centros</option>
+                        <option>CESFAM Padre Hurtado</option>
+                        <option>CESFAM La Faena</option>
+                        <option>CESFAM El Bosque</option>
+                    </select>
+                    <button class="btn btn-secondary">Exportar Excel</button>
+                </div>
+
+                <!-- Tabla de Afiliados -->
+                <div class="admin-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>RUT</th>
+                                <th>Nombre</th>
+                                <th>Centro de Salud</th>
+                                <th>Fecha Afiliación</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>12.345.678-9</td>
+                                <td>Juan Pérez Gómez</td>
+                                <td>CESFAM Padre Hurtado</td>
+                                <td>01/05/2025</td>
+                                <td><span class="badge success">Activo</span></td>
+                                <td>
+                                    <button class="btn-icon" title="Ver perfil">👁️</button>
+                                    <button class="btn-icon" title="Editar">✏️</button>
+                                    <button class="btn-icon danger" title="Desactivar">🚫</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>23.456.789-0</td>
+                                <td>María González López</td>
+                                <td>CESFAM La Faena</td>
+                                <td>15/03/2025</td>
+                                <td><span class="badge success">Activo</span></td>
+                                <td>
+                                    <button class="btn-icon" title="Ver perfil">👁️</button>
+                                    <button class="btn-icon" title="Editar">✏️</button>
+                                    <button class="btn-icon danger" title="Desactivar">🚫</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>34.567.890-1</td>
+                                <td>Carlos Soto Muñoz</td>
+                                <td>CESFAM El Bosque</td>
+                                <td>10/01/2025</td>
+                                <td><span class="badge warning">Pendiente</span></td>
+                                <td>
+                                    <button class="btn-icon" title="Ver perfil">👁️</button>
+                                    <button class="btn-icon" title="Editar">✏️</button>
+                                    <button class="btn-icon danger" title="Desactivar">🚫</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Paginación -->
+                <div class="pagination">
+                    <button class="btn-small">← Anterior</button>
+                    <span>Página 1 de 25</span>
+                    <button class="btn-small">Siguiente →</button>
+                </div>
+            </div>
+
+            <!-- Tab: Solicitudes -->
+            <div class="tab-content" id="tab-solicitudes">
+                <div class="section-header">
+                    <h2>📝 Gestión de Solicitudes</h2>
+                    <div class="filter-pills">
+                        <button class="pill active">Todas (23)</button>
+                        <button class="pill">Pendientes (15)</button>
+                        <button class="pill">En Revisión (5)</button>
+                        <button class="pill">Aprobadas (3)</button>
+                    </div>
+                </div>
+
+                <!-- Lista de Solicitudes Admin -->
+                <div class="admin-solicitudes">
+                    <div class="solicitud-admin-card priority-high">
+                        <div class="solicitud-admin-header">
+                            <div class="solicitud-info">
+                                <h3>Préstamo Médico - Urgente</h3>
+                                <p class="solicitud-afiliado">👤 María González López (23.456.789-0)</p>
+                            </div>
+                            <span class="badge warning">Pendiente Evaluación</span>
+                        </div>
+                        <div class="solicitud-admin-body">
+                            <div class="solicitud-details">
+                                <p><strong>Monto solicitado:</strong> $500.000</p>
+                                <p><strong>Motivo:</strong> Cirugía programada</p>
+                                <p><strong>Fecha solicitud:</strong> 09/10/2025</p>
+                                <p><strong>Prioridad:</strong> <span class="priority-badge high">Alta</span></p>
+                            </div>
+                            <div class="solicitud-admin-actions">
+                                <button class="btn btn-success">✓ Aprobar</button>
+                                <button class="btn btn-danger">✗ Rechazar</button>
+                                <button class="btn btn-secondary">👁️ Ver Documentos</button>
+                                <button class="btn btn-secondary">💬 Comentar</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="solicitud-admin-card priority-normal">
+                        <div class="solicitud-admin-header">
+                            <div class="solicitud-info">
+                                <h3>Asignación por Matrimonio</h3>
+                                <p class="solicitud-afiliado">👤 Carlos Soto Muñoz (34.567.890-1)</p>
+                            </div>
+                            <span class="badge info">En Revisión</span>
+                        </div>
+                        <div class="solicitud-admin-body">
+                            <div class="solicitud-details">
+                                <p><strong>Monto:</strong> $100.000</p>
+                                <p><strong>Fecha solicitud:</strong> 08/10/2025</p>
+                                <p><strong>Documentos:</strong> Certificado de matrimonio adjunto</p>
+                                <p><strong>Prioridad:</strong> <span class="priority-badge normal">Normal</span></p>
+                            </div>
+                            <div class="solicitud-admin-actions">
+                                <button class="btn btn-success">✓ Aprobar</button>
+                                <button class="btn btn-danger">✗ Rechazar</button>
+                                <button class="btn btn-secondary">👁️ Ver Documentos</button>
+                                <button class="btn btn-secondary">💬 Comentar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Beneficios -->
+            <div class="tab-content" id="tab-beneficios">
+                <div class="section-header">
+                    <h2>💰 Administración de Beneficios</h2>
+                    <button class="btn btn-primary">➕ Crear Beneficio</button>
+                </div>
+
+                <div class="beneficios-admin-grid">
+                    <div class="beneficio-admin-card">
+                        <h3>Bono Navidad 2025</h3>
+                        <div class="beneficio-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Monto:</span>
+                                <span class="stat-value">$60.000</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Beneficiarios:</span>
+                                <span class="stat-value">1,247</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Total:</span>
+                                <span class="stat-value highlight">$74.82M</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Estado:</span>
+                                <span class="badge info">Programado</span>
+                            </div>
+                        </div>
+                        <div class="beneficio-actions">
+                            <button class="btn btn-small">Editar</button>
+                            <button class="btn btn-small btn-success">Procesar Pago</button>
+                        </div>
+                    </div>
+
+                    <div class="beneficio-admin-card">
+                        <h3>Bono Fiestas Patrias 2025</h3>
+                        <div class="beneficio-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Monto:</span>
+                                <span class="stat-value">$40.000</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Beneficiarios:</span>
+                                <span class="stat-value">1,198</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Total:</span>
+                                <span class="stat-value highlight">$47.92M</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Estado:</span>
+                                <span class="badge success">Pagado</span>
+                            </div>
+                        </div>
+                        <div class="beneficio-actions">
+                            <button class="btn btn-small">Ver Reporte</button>
+                            <button class="btn btn-small btn-secondary">Descargar Excel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Convenios -->
+            <div class="tab-content" id="tab-convenios">
+                <div class="section-header">
+                    <h2>🏪 Administración de Convenios</h2>
+                    <button class="btn btn-primary">➕ Nuevo Convenio</button>
+                </div>
+
+                <div class="convenios-admin-list">
+                    <div class="convenio-admin-item">
+                        <div class="convenio-admin-header">
+                            <div>
+                                <h3>Clínica Dental PSQ</h3>
+                                <p>Categoría: Salud Dental</p>
+                            </div>
+                            <span class="badge success">Activo</span>
+                        </div>
+                        <div class="convenio-admin-body">
+                            <p><strong>Descuento:</strong> 70% sobre arancel</p>
+                            <p><strong>Vigencia:</strong> 01/01/2025 - 31/12/2025</p>
+                            <p><strong>Contacto:</strong> +56 9 5310 9576</p>
+                            <p><strong>Uso este mes:</strong> 45 afiliados</p>
+                        </div>
+                        <div class="convenio-admin-actions">
+                            <button class="btn btn-small">Editar</button>
+                            <button class="btn btn-small">Ver Estadísticas</button>
+                            <button class="btn btn-small btn-warning">Renovar</button>
+                        </div>
+                    </div>
+
+                    <div class="convenio-admin-item">
+                        <div class="convenio-admin-header">
+                            <div>
+                                <h3>Gimnasios Energy</h3>
+                                <p>Categoría: Deportes</p>
+                            </div>
+                            <span class="badge warning">Por Renovar</span>
+                        </div>
+                        <div class="convenio-admin-body">
+                            <p><strong>Precio:</strong> $18.000/mes</p>
+                            <p><strong>Vigencia:</strong> 01/01/2025 - 30/11/2025</p>
+                            <p><strong>Contacto:</strong> convenios@energy.cl</p>
+                            <p><strong>Uso este mes:</strong> 89 afiliados</p>
+                        </div>
+                        <div class="convenio-admin-actions">
+                            <button class="btn btn-small">Editar</button>
+                            <button class="btn btn-small">Ver Estadísticas</button>
+                            <button class="btn btn-small btn-primary">Renovar Ahora</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Reportes -->
+            <div class="tab-content" id="tab-reportes">
+                <h2>📈 Centro de Reportes</h2>
+                
+                <div class="reportes-grid">
+                    <div class="reporte-card">
+                        <h3>📊 Reporte de Beneficios</h3>
+                        <p>Detalle de beneficios entregados por período</p>
+                        <div class="reporte-form">
+                            <select>
+                                <option>Último mes</option>
+                                <option>Último trimestre</option>
+                                <option>Último año</option>
+                                <option>Personalizado</option>
+                            </select>
+                            <button class="btn btn-primary">Generar</button>
+                        </div>
+                    </div>
+
+                    <div class="reporte-card">
+                        <h3>👥 Reporte de Afiliados</h3>
+                        <p>Listado completo de afiliados y su estado</p>
+                        <div class="reporte-form">
+                            <select>
+                                <option>Todos los centros</option>
+                                <option>CESFAM Padre Hurtado</option>
+                                <option>CESFAM La Faena</option>
+                            </select>
+                            <button class="btn btn-primary">Generar</button>
+                        </div>
+                    </div>
+
+                    <div class="reporte-card">
+                        <h3>💰 Reporte Financiero</h3>
+                        <p>Resumen de montos entregados y presupuesto</p>
+                        <div class="reporte-form">
+                            <select>
+                                <option>2025</option>
+                                <option>2024</option>
+                                <option>2023</option>
+                            </select>
+                            <button class="btn btn-primary">Generar</button>
+                        </div>
+                    </div>
+
+                    <div class="reporte-card">
+                        <h3>🏪 Reporte de Convenios</h3>
+                        <p>Uso y efectividad de convenios activos</p>
+                        <div class="reporte-form">
+                            <select>
+                                <option>Todos los convenios</option>
+                                <option>Salud</option>
+                                <option>Educación</option>
+                            </select>
+                            <button class="btn btn-primary">Generar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 Servicio Bienestar APS - Panel Administrativo</p>
+        </div>
+    </footer>
+
+    <script src="../js/main.js"></script>
+    <script src="../js/dashboard.js"></script>
+    <script src="../js/admin.js"></script>
+</body>
+</html>
