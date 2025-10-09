@@ -1,383 +1,406 @@
-import { auth } from './firebase-config.js';
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { 
-    obtenerFuncionarios,
-    obtenerTodasSolicitudes,
-    obtenerEstadisticasGenerales,
-    aprobarSolicitud,
-    rechazarSolicitud,
-    actualizarFuncionario,
-    obtenerConvenios
-} from './firestore-operations.js';
-import { cerrarSesion } from './auth.js';
-
-// Verificar autenticación al cargar
-onAuthStateChanged(auth, async (user) => {
-    if (user) {
-        const userType = sessionStorage.getItem('userType');
-        
-        if (userType !== 'administrador') {
-            window.location.href = 'login.html';
-            return;
-        }
-        
-        // Cargar datos del dashboard
-        await cargarDashboardAdmin();
-    } else {
-        window.location.href = 'login.html';
-    }
-});
-
-// Cargar dashboard administrativo
-async function cargarDashboardAdmin() {
-    try {
-        // Cargar estadísticas generales
-        await cargarEstadisticasGenerales();
-        
-        // Cargar afiliados
-        await cargarAfiliados();
-        
-        // Cargar solicitudes
-        await cargarSolicitudesAdmin();
-        
-        // Cargar convenios
-        await cargarConveniosAdmin();
-        
-    } catch (error) {
-        console.error('Error al cargar dashboard admin:', error);
-    }
-}
-
-// Cargar estadísticas generales
-async function cargarEstadisticasGenerales() {
-    try {
-        const stats = await obtenerEstadisticasGenerales();
-        
-        const statCards = document.querySelectorAll('.admin-stat-card');
-        if (statCards.length >= 4) {
-            statCards[0].querySelector('h3').textContent = stats.totalFuncionarios.toLocaleString('es-CL');
-            statCards[1].querySelector('h3').textContent = `$${(stats.totalBeneficios / 1000000).toFixed(1)}M`;
-            statCards[2].querySelector('h3').textContent = stats.solicitudesPendientes;
-            statCards[3].querySelector('h3').textContent = stats.conveniosActivos;
-        }
-        
-    } catch (error) {
-        console.error('Error al cargar estadísticas:', error);
-    }
-}
-
-// Cargar tabla de afiliados
-async function cargarAfiliados() {
-    try {
-        const funcionarios = await obtenerFuncionarios();
-        const tbody = document.querySelector('#tab-afiliados tbody');
-        
-        if (!tbody) return;
-        
-        tbody.innerHTML = '';
-        
-        funcionarios.forEach(func => {
-            const fecha = func.fechaAfiliacion?.toDate().toLocaleDateString('es-CL') || 'N/A';
-            
-            let estadoBadge = '';
-            if (func.estado === 'activo') {
-                estadoBadge = '<span class="badge success">Activo</span>';
-            } else if (func.estado === 'pendiente') {
-                estadoBadge = '<span class="badge warning">Pendiente</span>';
-            } else {
-                estadoBadge = '<span class="badge">Inactivo</span>';
-            }
-            
-            const row = `
-                <tr>
-                    <td>${func.rut}</td>
-                    <td>${func.nombre}</td>
-                    <td>${func.centroSalud}</td>
-                    <td>${fecha}</td>
-                    <td>${estadoBadge}</td>
-                    <td>
-                        <button class="btn-icon" title="Ver perfil" onclick="verPerfilFuncionario('${func.id}')">👁️</button>
-                        <button class="btn-icon" title="Editar" onclick="editarFuncionario('${func.id}')">✏️</button>
-                        <button class="btn-icon danger" title="Desactivar" onclick="desactivarFuncionario('${func.id}')">🚫</button>
-                    </td>
-                </tr>
-            `;
-            
-            tbody.innerHTML += row;
-        });
-        
-    } catch (error) {
-        console.error('Error al cargar afiliados:', error);
-    }
-}
-
-// Cargar solicitudes para admin
-async function cargarSolicitudesAdmin() {
-    try {
-        const solicitudes = await obtenerTodasSolicitudes();
-        const container = document.querySelector('.admin-solicitudes');
-        
-        if (!container) return;
-        
-        container.innerHTML = '';
-        
-        if (solicitudes.length === 0) {
-            container.innerHTML = '<p>No hay solicitudes pendientes.</p>';
-            return;
-        }
-        
-        solicitudes.forEach(solicitud => {
-            const fecha = solicitud.createdAt?.toDate().toLocaleDateString('es-CL') || 'N/A';
-            
-            let estadoBadge = '';
-            let prioridadClass = 'priority-normal';
-            
-            if (solicitud.estado === 'pendiente') {
-                estadoBadge = '<span class="badge warning">Pendiente Evaluación</span>';
-            } else if (solicitud.estado === 'en_revision') {
-                estadoBadge = '<span class="badge info">En Revisión</span>';
-            } else if (solicitud.estado === 'aprobada') {
-                estadoBadge = '<span class="badge success">Aprobada</span>';
-            }
-            
-            if (solicitud.prioridad === 'alta') {
-                prioridadClass = 'priority-high';
-            }
-            
-            const solicitudHTML = `
-                <div class="solicitud-admin-card ${prioridadClass}">
-                    <div class="solicitud-admin-header">
-                        <div class="solicitud-info">
-                            <h3>${solicitud.tipoBeneficio.replace(/_/g, ' ')}</h3>
-                            <p class="solicitud-afiliado">👤 ${solicitud.funcionarioNombre} (${solicitud.funcionarioRut})</p>
-                        </div>
-                        ${estadoBadge}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Administrativo - Bienestar APS</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <!-- Header Admin -->
+    <header class="header admin-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <a href="../index.html">
+                      <img src="../assets/images/logo-bienestar.png" alt="Logo Bienestar APS" style="height:120px; width:auto;">
+                    </a>
+                    <span class="admin-badge">ADMIN</span>
+                </div>
+                <nav class="user-nav">
+                    <div class="user-info">
+                        <span class="user-name">🔐 Administrador</span>
+                        <span class="user-rut">Panel de Control</span>
                     </div>
-                    <div class="solicitud-admin-body">
-                        <div class="solicitud-details">
-                            <p><strong>Monto solicitado:</strong> $${solicitud.monto.toLocaleString('es-CL')}</p>
-                            <p><strong>Fecha solicitud:</strong> ${fecha}</p>
-                            <p><strong>Prioridad:</strong> <span class="priority-badge ${solicitud.prioridad}">${solicitud.prioridad}</span></p>
+                    <button class="btn btn-logout" onclick="logout()">Cerrar Sesión</button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navegación Admin -->
+    <nav class="dashboard-nav admin-nav">
+        <div class="container">
+            <ul class="nav-tabs">
+                <li class="nav-tab active" data-tab="dashboard">📊 Dashboard</li>
+                <li class="nav-tab" data-tab="afiliados">👥 Afiliados</li>
+                <li class="nav-tab" data-tab="solicitudes">📝 Solicitudes</li>
+                <li class="nav-tab" data-tab="beneficios">💰 Beneficios</li>
+                <li class="nav-tab" data-tab="convenios">🏪 Convenios</li>
+                <li class="nav-tab" data-tab="reportes">📈 Reportes</li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Contenido Admin -->
+    <section class="dashboard-content admin-content">
+        <div class="container">
+            
+            <!-- Tab: Dashboard -->
+            <div class="tab-content active" id="tab-dashboard">
+                <h1 class="page-title">Panel de Control Administrativo</h1>
+                
+                <!-- Estadísticas Principales -->
+                <div class="admin-stats-grid">
+                    <div class="admin-stat-card card-primary">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-info">
+                            <h3 id="total-afiliados">0</h3>
+                            <p>Afiliados Activos</p>
+                            <span class="stat-trend positive">+5% este mes</span>
                         </div>
-                        <div class="solicitud-admin-actions">
-                            <button class="btn btn-success" onclick="aprobarSolicitudAdmin('${solicitud.id}')">✓ Aprobar</button>
-                            <button class="btn btn-danger" onclick="rechazarSolicitudAdmin('${solicitud.id}')">✗ Rechazar</button>
-                            <button class="btn btn-secondary" onclick="verDocumentosSolicitud('${solicitud.id}')">👁️ Ver Documentos</button>
+                    </div>
+                    <div class="admin-stat-card card-success">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-info">
+                            <h3 id="total-beneficios">$0</h3>
+                            <p>Beneficios Entregados 2025</p>
+                            <span class="stat-trend positive">+12% vs 2024</span>
+                        </div>
+                    </div>
+                    <div class="admin-stat-card card-warning">
+                        <div class="stat-icon">📝</div>
+                        <div class="stat-info">
+                            <h3 id="solicitudes-pendientes">0</h3>
+                            <p>Solicitudes Pendientes</p>
+                            <span class="stat-trend negative">Requiere atención</span>
+                        </div>
+                    </div>
+                    <div class="admin-stat-card card-info">
+                        <div class="stat-icon">🏪</div>
+                        <div class="stat-info">
+                            <h3 id="convenios-activos">0</h3>
+                            <p>Convenios Activos</p>
+                            <span class="stat-trend neutral">2 por renovar</span>
                         </div>
                     </div>
                 </div>
-            `;
-            
-            container.innerHTML += solicitudHTML;
-        });
-        
-    } catch (error) {
-        console.error('Error al cargar solicitudes:', error);
-    }
-}
 
-// Cargar convenios para admin
-async function cargarConveniosAdmin() {
-    try {
-        const convenios = await obtenerConvenios({ estado: '' }); // Todos los convenios
-        const container = document.querySelector('.convenios-admin-list');
-        
-        if (!container) return;
-        
-        container.innerHTML = '';
-        
-        convenios.forEach(convenio => {
-            let estadoBadge = '';
-            if (convenio.estado === 'activo') {
-                estadoBadge = '<span class="badge success">Activo</span>';
-            } else if (convenio.estado === 'por_renovar') {
-                estadoBadge = '<span class="badge warning">Por Renovar</span>';
-            } else {
-                estadoBadge = '<span class="badge">Inactivo</span>';
-            }
-            
-            const convenioHTML = `
-                <div class="convenio-admin-item">
-                    <div class="convenio-admin-header">
-                        <div>
-                            <h3>${convenio.nombre}</h3>
-                            <p>Categoría: ${convenio.categoria}</p>
-                        </div>
-                        ${estadoBadge}
+                <!-- Pendientes de Aprobación -->
+                <div class="admin-section">
+                    <div class="section-header">
+                        <h2>⏳ Afiliados Pendientes de Aprobación</h2>
+                        <span id="pendientes-count" class="badge warning">0</span>
                     </div>
-                    <div class="convenio-admin-body">
-                        <p><strong>Descuento:</strong> ${convenio.descuento}</p>
-                        <p><strong>Dirección:</strong> ${convenio.direccion}</p>
-                        <p><strong>Contacto:</strong> ${convenio.telefono}</p>
-                        <p><strong>Uso este mes:</strong> ${convenio.usosMensual || 0} afiliados</p>
-                    </div>
-                    <div class="convenio-admin-actions">
-                        <button class="btn btn-small" onclick="editarConvenio('${convenio.id}')">Editar</button>
-                        <button class="btn btn-small" onclick="verEstadisticasConvenio('${convenio.id}')">Ver Estadísticas</button>
-                        ${convenio.estado === 'por_renovar' ? 
-                            `<button class="btn btn-small btn-primary" onclick="renovarConvenio('${convenio.id}')">Renovar Ahora</button>` :
-                            `<button class="btn btn-small btn-warning" onclick="marcarRenovacion('${convenio.id}')">Marcar Renovación</button>`
-                        }
+                    <div id="afiliados-pendientes" class="pending-list">
+                        <!-- Se carga dinámicamente -->
                     </div>
                 </div>
-            `;
-            
-            container.innerHTML += convenioHTML;
-        });
-        
-    } catch (error) {
-        console.error('Error al cargar convenios:', error);
-    }
-}
 
-// Funciones de administración de solicitudes
-window.aprobarSolicitudAdmin = async function(solicitudId) {
-    if (!confirm('¿Está seguro de que desea aprobar esta solicitud?')) return;
-    
-    try {
-        const resultado = await aprobarSolicitud(solicitudId);
-        
-        if (resultado.success) {
-            alert('✓ Solicitud aprobada exitosamente');
-            await cargarSolicitudesAdmin();
-            await cargarEstadisticasGenerales();
-        } else {
-            alert('Error al aprobar solicitud: ' + resultado.error);
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Error al procesar la solicitud');
-    }
-}
+                <!-- Actividad Reciente -->
+                <div class="admin-section">
+                    <div class="section-header">
+                        <h2>📋 Actividad Reciente</h2>
+                        <button class="btn btn-small btn-secondary">Ver Todo</button>
+                    </div>
+                    <div class="activity-list">
+                        <div class="activity-item">
+                            <div class="activity-icon success">✓</div>
+                            <div class="activity-content">
+                                <p><strong>Solicitud Aprobada:</strong> Asignación por Natalidad - María González</p>
+                                <span class="activity-time">Hace 10 minutos</span>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon info">📄</div>
+                            <div class="activity-content">
+                                <p><strong>Nueva Solicitud:</strong> Préstamo Médico - Carlos Soto</p>
+                                <span class="activity-time">Hace 25 minutos</span>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon warning">⚠️</div>
+                            <div class="activity-content">
+                                <p><strong>Alerta:</strong> Convenio por renovar - Gimnasios Energy</p>
+                                <span class="activity-time">Hace 1 hora</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-window.rechazarSolicitudAdmin = async function(solicitudId) {
-    const motivo = prompt('Ingrese el motivo del rechazo:');
-    
-    if (!motivo) {
-        alert('Debe ingresar un motivo para rechazar');
-        return;
-    }
-    
-    try {
-        const resultado = await rechazarSolicitud(solicitudId, motivo);
-        
-        if (resultado.success) {
-            alert('Solicitud rechazada');
-            await cargarSolicitudesAdmin();
-        } else {
-            alert('Error al rechazar solicitud: ' + resultado.error);
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Error al procesar la solicitud');
-    }
-}
+            <!-- Tab: Afiliados -->
+            <div class="tab-content" id="tab-afiliados">
+                <div class="section-header">
+                    <h2>👥 Gestión de Afiliados</h2>
+                    <button class="btn btn-primary" onclick="abrirModalNuevoAfiliado()">
+                        ➕ Nuevo Afiliado
+                    </button>
+                </div>
 
-// Funciones de administración de funcionarios
-window.verPerfilFuncionario = function(funcionarioId) {
-    alert(`Ver perfil del funcionario: ${funcionarioId}\n(Función en desarrollo)`);
-}
+                <!-- Filtros y Búsqueda -->
+                <div class="admin-filters">
+                    <input type="text" id="search-afiliados" class="search-input" placeholder="🔍 Buscar por nombre, RUT o centro de salud...">
+                    
+                    <select id="filter-estado" class="filter-select">
+                        <option value="">Todos los estados</option>
+                        <option value="activo">Activos</option>
+                        <option value="pendiente">Pendientes</option>
+                        <option value="inactivo">Inactivos</option>
+                    </select>
+                    
+                    <select id="filter-centro" class="filter-select">
+                        <option value="">Todos los centros</option>
+                        <option value="CESFAM Karol Wojtyla">CESFAM Karol Wojtyla</option>
+                        <option value="CESFAM Padre Manuel Villaseca">CESFAM Padre Manuel Villaseca</option>
+                        <option value="CESFAM Alejandro del Rio">CESFAM Alejandro del Rio</option>
+                        <option value="CESFAM Bernardo Leighton">CESFAM Bernardo Leighton</option>
+                        <option value="CESFAM Cardenal Raúl Silva Henríquez">CESFAM Cardenal Raúl Silva Henríquez</option>
+                        <option value="CESFAM Vista Hermosa">CESFAM Vista Hermosa</option>
+                        <option value="CESFAM Laurita Vicuña">CESFAM Laurita Vicuña</option>
+                        <option value="Centro de Imágenes">Centro de Imágenes</option>
+                        <option value="Central de Ambulancia">Central de Ambulancia</option>
+                        <option value="Administración Salud">Administración Salud</option>
+                        <option value="San Lázaro">San Lázaro</option>
+                        <option value="CEIF">CEIF</option>
+                        <option value="Laboratorio Salud">Laboratorio Salud</option>
+                    </select>
+                    
+                    <button class="btn btn-secondary" onclick="exportarAfiliados()">
+                        📊 Exportar Excel
+                    </button>
+                </div>
 
-window.editarFuncionario = function(funcionarioId) {
-    alert(`Editar funcionario: ${funcionarioId}\n(Función en desarrollo)`);
-}
+                <!-- Tabla de Afiliados -->
+                <div class="admin-table">
+                    <table id="tabla-afiliados">
+                        <thead>
+                            <tr>
+                                <th>RUT</th>
+                                <th>Nombre</th>
+                                <th>Centro de Salud</th>
+                                <th>Fecha Afiliación</th>
+                                <th>Estado Civil</th>
+                                <th>Email</th>
+                                <th>Teléfono</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Se carga dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
 
-window.desactivarFuncionario = async function(funcionarioId) {
-    if (!confirm('¿Está seguro de que desea desactivar este funcionario?')) return;
-    
-    try {
-        const resultado = await actualizarFuncionario(funcionarioId, { estado: 'inactivo' });
-        
-        if (resultado.success) {
-            alert('Funcionario desactivado');
-            await cargarAfiliados();
-        } else {
-            alert('Error al desactivar funcionario');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Error al procesar la solicitud');
-    }
-}
+                <!-- Paginación -->
+                <div class="pagination">
+                    <button class="btn-small" onclick="previousPage()">← Anterior</button>
+                    <span id="pagination-info">Página 1 de 1</span>
+                    <button class="btn-small" onclick="nextPage()">Siguiente →</button>
+                </div>
+            </div>
 
-// Funciones de convenios
-window.editarConvenio = function(convenioId) {
-    alert(`Editar convenio: ${convenioId}\n(Función en desarrollo)`);
-}
+            <!-- Tab: Solicitudes -->
+            <div class="tab-content" id="tab-solicitudes">
+                <div class="section-header">
+                    <h2>📝 Gestión de Solicitudes</h2>
+                    <div class="filter-pills">
+                        <button class="pill active" data-estado="">Todas (<span id="count-todas">0</span>)</button>
+                        <button class="pill" data-estado="pendiente">Pendientes (<span id="count-pendientes">0</span>)</button>
+                        <button class="pill" data-estado="en_revision">En Revisión (<span id="count-revision">0</span>)</button>
+                        <button class="pill" data-estado="aprobada">Aprobadas (<span id="count-aprobadas">0</span>)</button>
+                    </div>
+                </div>
 
-window.verEstadisticasConvenio = function(convenioId) {
-    alert(`Ver estadísticas del convenio: ${convenioId}\n(Función en desarrollo)`);
-}
+                <!-- Lista de Solicitudes Admin -->
+                <div class="admin-solicitudes">
+                    <!-- Se carga dinámicamente -->
+                </div>
+            </div>
 
-window.renovarConvenio = function(convenioId) {
-    alert(`Renovar convenio: ${convenioId}\n(Función en desarrollo)`);
-}
+            <!-- Tab: Beneficios -->
+            <div class="tab-content" id="tab-beneficios">
+                <div class="section-header">
+                    <h2>💰 Administración de Beneficios</h2>
+                    <button class="btn btn-primary">➕ Crear Beneficio</button>
+                </div>
 
-window.marcarRenovacion = function(convenioId) {
-    alert(`Marcar para renovación: ${convenioId}\n(Función en desarrollo)`);
-}
+                <div class="beneficios-admin-grid">
+                    <!-- Se carga dinámicamente -->
+                </div>
+            </div>
 
-window.verDocumentosSolicitud = function(solicitudId) {
-    alert(`Ver documentos de solicitud: ${solicitudId}\n(Función en desarrollo)`);
-}
+            <!-- Tab: Convenios -->
+            <div class="tab-content" id="tab-convenios">
+                <div class="section-header">
+                    <h2>🏪 Administración de Convenios</h2>
+                    <button class="btn btn-primary">➕ Nuevo Convenio</button>
+                </div>
 
-// Función de logout
-window.logout = async function() {
-    if (confirm('¿Está seguro de que desea cerrar sesión?')) {
-        await cerrarSesion();
-    }
-}
+                <div class="convenios-admin-list">
+                    <!-- Se carga dinámicamente -->
+                </div>
+            </div>
 
-// Función para nuevo afiliado
-window.nuevoAfiliado = function() {
-    alert('Función para crear nuevo afiliado en desarrollo');
-}
+            <!-- Tab: Reportes -->
+            <div class="tab-content" id="tab-reportes">
+                <h2>📈 Centro de Reportes</h2>
+                
+                <div class="reportes-grid">
+                    <div class="reporte-card">
+                        <h3>📊 Reporte de Beneficios</h3>
+                        <p>Detalle de beneficios entregados por período</p>
+                        <div class="reporte-form">
+                            <select>
+                                <option>Último mes</option>
+                                <option>Último trimestre</option>
+                                <option>Último año</option>
+                                <option>Personalizado</option>
+                            </select>
+                            <button class="btn btn-primary">Generar</button>
+                        </div>
+                    </div>
 
-// Sistema de búsqueda en tiempo real
-function initSearch() {
-    const searchInput = document.querySelector('.search-input');
-    if (searchInput) {
-        searchInput.addEventListener('input', function(e) {
-            const searchTerm = e.target.value.toLowerCase();
-            const tableRows = document.querySelectorAll('.admin-table tbody tr');
-            
-            tableRows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                if (text.includes(searchTerm)) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-        });
-    }
-}
+                    <div class="reporte-card">
+                        <h3>👥 Reporte de Afiliados</h3>
+                        <p>Listado completo de afiliados y su estado</p>
+                        <div class="reporte-form">
+                            <select>
+                                <option>Todos los centros</option>
+                                <option>CESFAM Karol Wojtyla</option>
+                                <option>CESFAM Padre Manuel Villaseca</option>
+                            </select>
+                            <button class="btn btn-primary">Generar</button>
+                        </div>
+                    </div>
 
-// Manejo de tabs
-document.addEventListener('DOMContentLoaded', function() {
-    const navTabs = document.querySelectorAll('.nav-tab');
-    const tabContents = document.querySelectorAll('.tab-content');
+                    <div class="reporte-card">
+                        <h3>💰 Reporte Financiero</h3>
+                        <p>Resumen de montos entregados y presupuesto</p>
+                        <div class="reporte-form">
+                            <select>
+                                <option>2025</option>
+                                <option>2024</option>
+                                <option>2023</option>
+                            </select>
+                            <button class="btn btn-primary">Generar</button>
+                        </div>
+                    </div>
 
-    navTabs.forEach(tab => {
-        tab.addEventListener('click', function() {
-            navTabs.forEach(t => t.classList.remove('active'));
-            tabContents.forEach(c => c.classList.remove('active'));
+                    <div class="reporte-card">
+                        <h3>🏪 Reporte de Convenios</h3>
+                        <p>Uso y efectividad de convenios activos</p>
+                        <div class="reporte-form">
+                            <select>
+                                <option>Todos los convenios</option>
+                                <option>Salud</option>
+                                <option>Educación</option>
+                            </select>
+                            <button class="btn btn-primary">Generar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-            this.classList.add('active');
+        </div>
+    </section>
 
-            const tabId = this.getAttribute('data-tab');
-            const targetContent = document.getElementById(`tab-${tabId}`);
-            if (targetContent) {
-                targetContent.classList.add('active');
-            }
+    <!-- Modal Nuevo Afiliado -->
+    <div id="modal-nuevo-afiliado" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>➕ Nuevo Afiliado</h2>
+                <span class="close" onclick="cerrarModalNuevoAfiliado()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="form-nuevo-afiliado">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="nuevo-rut">RUT *</label>
+                            <input type="text" id="nuevo-rut" required maxlength="12" placeholder="12.345.678-9">
+                            <span class="error-message" id="nuevo-rut-error"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="nuevo-nombre">Nombre Completo *</label>
+                            <input type="text" id="nuevo-nombre" required placeholder="Juan Pérez Gómez">
+                            <span class="error-message" id="nuevo-nombre-error"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="nuevo-email">Correo Electrónico *</label>
+                            <input type="email" id="nuevo-email" required placeholder="juan.perez@salud.cl">
+                            <span class="error-message" id="nuevo-email-error"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="nuevo-telefono">Número de Teléfono</label>
+                            <input type="tel" id="nuevo-telefono" placeholder="+56 9 1234 5678">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="nuevo-centro">Lugar de Trabajo *</label>
+                            <select id="nuevo-centro" required>
+                                <option value="">Seleccione...</option>
+                                <option value="CESFAM Karol Wojtyla">CESFAM Karol Wojtyla</option>
+                                <option value="CESFAM Padre Manuel Villaseca">CESFAM Padre Manuel Villaseca</option>
+                                <option value="CESFAM Alejandro del Rio">CESFAM Alejandro del Rio</option>
+                                <option value="CESFAM Bernardo Leighton">CESFAM Bernardo Leighton</option>
+                                <option value="CESFAM Cardenal Raúl Silva Henríquez">CESFAM Cardenal Raúl Silva Henríquez</option>
+                                <option value="CESFAM Vista Hermosa">CESFAM Vista Hermosa</option>
+                                <option value="CESFAM Laurita Vicuña">CESFAM Laurita Vicuña</option>
+                                <option value="Centro de Imágenes">Centro de Imágenes</option>
+                                <option value="Central de Ambulancia">Central de Ambulancia</option>
+                                <option value="Administración Salud">Administración Salud</option>
+                                <option value="San Lázaro">San Lázaro</option>
+                                <option value="CEIF">CEIF</option>
+                                <option value="Laboratorio Salud">Laboratorio Salud</option>
+                            </select>
+                            <span class="error-message" id="nuevo-centro-error"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="nuevo-estado-civil">Estado Civil</label>
+                            <select id="nuevo-estado-civil">
+                                <option value="">Seleccione...</option>
+                                <option value="Soltero/a">Soltero/a</option>
+                                <option value="Casado/a">Casado/a</option>
+                                <option value="Divorciado/a">Divorciado/a</option>
+                                <option value="Viudo/a">Viudo/a</option>
+                                <option value="Unión Civil">Unión Civil</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="nuevo-cargo">Cargo</label>
+                            <input type="text" id="nuevo-cargo" placeholder="Ej: Enfermero, Técnico, etc.">
+                        </div>
+                        <div class="form-group">
+                            <label for="nuevo-password">Contraseña Temporal *</label>
+                            <input type="password" id="nuevo-password" required minlength="6" placeholder="Mínimo 6 caracteres">
+                            <span class="error-message" id="nuevo-password-error"></span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="cerrarModalNuevoAfiliado()">Cancelar</button>
+                <button type="submit" form="form-nuevo-afiliado" class="btn btn-primary" id="btn-crear-afiliado">Crear Afiliado</button>
+            </div>
+        </div>
+    </div>
 
-            window.scrollTo({
-                top: document.querySelector('.dashboard-content').offsetTop - 100,
-                behavior: 'smooth'
-            });
-        });
-    });
-    
-    // Inicializar búsqueda
-    initSearch();
-});
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 Servicio Bienestar APS - Panel Administrativo</p>
+        </div>
+    </footer>
+
+    <script type="module" src="../js/dashboard-admin-firebase.js"></script>
+</body>
+</html>
