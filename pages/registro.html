@@ -84,20 +84,40 @@
                             </div>
                         </div>
 
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="centroSalud">Centro de Salud *</label>
-                                <select id="centroSalud" name="centroSalud" required>
-                                    <option value="">Seleccione...</option>
-                                    <option value="CESFAM Padre Hurtado">CESFAM Padre Hurtado</option>
-                                    <option value="CESFAM La Faena">CESFAM La Faena</option>
-                                    <option value="CESFAM El Bosque">CESFAM El Bosque</option>
-                                    <option value="CESFAM Karol Wojtyla">CESFAM Karol Wojtyla</option>
-                                    <option value="CECOSF Gabriela Mistral">CECOSF Gabriela Mistral</option>
-                                </select>
-                                <span class="error-message" id="centro-error"></span>
-                            </div>
-                        </div>
+                       <div class="form-row">
+    <div class="form-group">
+        <label for="centroSalud">Centro de Salud *</label>
+        <select id="centroSalud" name="centroSalud" required>
+            <option value="">Seleccione...</option>
+            
+            <!-- CESFAM -->
+            <optgroup label="CESFAM">
+                <option value="CESFAM Karol Wojtyla">CESFAM Karol Wojtyla</option>
+                <option value="CESFAM Padre Manuel Villaseca">CESFAM Padre Manuel Villaseca</option>
+                <option value="CESFAM Alejandro del Rio">CESFAM Alejandro del Rio</option>
+                <option value="CESFAM Bernardo Leighton">CESFAM Bernardo Leighton</option>
+                <option value="CESFAM Cardenal Raúl Silva Henríquez">CESFAM Cardenal Raúl Silva Henríquez</option>
+                <option value="CESFAM Vista Hermosa">CESFAM Vista Hermosa</option>
+                <option value="CESFAM Laurita Vicuña">CESFAM Laurita Vicuña</option>
+            </optgroup>
+            
+            <!-- Servicios Administrativos -->
+            <optgroup label="Servicios Administrativos">
+                <option value="Administración Salud">Administración Salud</option>
+            </optgroup>
+            
+            <!-- Servicios Especializados -->
+            <optgroup label="Servicios Especializados">
+                <option value="Centro de Imágenes">Centro de Imágenes</option>
+                <option value="Central de Ambulancia">Central de Ambulancia</option>
+                <option value="Laboratorio Salud">Laboratorio Salud</option>
+                <option value="San Lázaro">San Lázaro</option>
+                <option value="CEIF">CEIF (Centro de Especialidades Integral Familiar)</option>
+            </optgroup>
+        </select>
+        <span class="error-message" id="centro-error"></span>
+    </div>
+</div>
 
                         <div class="form-row">
                             <div class="form-group">
