@@ -708,3 +708,462 @@ body {
         font-size: 2rem;
     }
 }
+/* ==================== DASHBOARD ==================== */
+
+.user-nav {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.user-name {
+    font-weight: 600;
+    color: var(--azul-principal);
+}
+
+.user-rut {
+    font-size: 0.85rem;
+    color: var(--gris-texto);
+}
+
+.btn-logout {
+    background-color: var(--rojo);
+    color: var(--blanco);
+}
+
+.btn-logout:hover {
+    background-color: #dc2626;
+}
+
+/* Dashboard Navigation */
+.dashboard-nav {
+    background-color: var(--blanco);
+    border-bottom: 2px solid var(--gris-claro);
+    position: sticky;
+    top: 100px;
+    z-index: 90;
+}
+
+.nav-tabs {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    gap: 0.5rem;
+    overflow-x: auto;
+}
+
+.nav-tab {
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    font-weight: 600;
+    color: var(--gris-texto);
+}
+
+.nav-tab:hover {
+    background-color: var(--gris-claro);
+    color: var(--azul-principal);
+}
+
+.nav-tab.active {
+    color: var(--turquesa);
+    border-bottom-color: var(--turquesa);
+}
+
+/* Dashboard Content */
+.dashboard-content {
+    padding: 3rem 0;
+    background-color: var(--gris-claro);
+    min-height: 60vh;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Welcome Banner */
+.welcome-banner {
+    background: linear-gradient(135deg, var(--azul-principal) 0%, var(--turquesa) 100%);
+    color: var(--blanco);
+    padding: 2rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.welcome-banner h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background-color: var(--blanco);
+    padding: 1.5rem;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--gris-claro);
+    border-radius: 12px;
+}
+
+.stat-info h3 {
+    font-size: 1.8rem;
+    color: var(--azul-principal);
+    margin: 0;
+}
+
+.stat-info p {
+    color: var(--gris-texto);
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+/* Section Card */
+.section-card {
+    background-color: var(--blanco);
+    padding: 2rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.section-card h2 {
+    color: var(--azul-principal);
+    margin-bottom: 1.5rem;
+}
+
+/* Timeline */
+.timeline {
+    position: relative;
+    padding-left: 2rem;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: var(--turquesa);
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 2rem;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -2.5rem;
+    top: 0;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: var(--turquesa);
+    border: 3px solid var(--blanco);
+}
+
+.timeline-date {
+    font-weight: 600;
+    color: var(--turquesa);
+    margin-bottom: 0.5rem;
+}
+
+.timeline-content h4 {
+    color: var(--azul-principal);
+    margin-bottom: 0.3rem;
+}
+
+.timeline-content p {
+    color: var(--gris-texto);
+}
+
+/* Notifications */
+.notifications {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.notification {
+    padding: 1rem;
+    border-left: 4px solid var(--gris-claro);
+    background-color: var(--gris-claro);
+    border-radius: 8px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.notification:hover {
+    background-color: #e5e7eb;
+}
+
+.notification.new {
+    border-left-color: var(--turquesa);
+    background-color: rgba(6, 182, 212, 0.1);
+}
+
+.notification-badge {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background-color: var(--rojo);
+    color: var(--blanco);
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.notification p {
+    margin: 0 0 0.5rem 0;
+}
+
+.notification-date {
+    font-size: 0.85rem;
+    color: var(--gris-texto);
+}
+
+/* Benefits Table */
+.benefits-table {
+    background-color: var(--blanco);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    margin-bottom: 2rem;
+}
+
+.benefits-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.benefits-table th,
+.benefits-table td {
+    padding: 1rem;
+    text-align: left;
+}
+
+.benefits-table thead {
+    background-color: var(--azul-principal);
+    color: var(--blanco);
+}
+
+.benefits-table tbody tr {
+    border-bottom: 1px solid var(--gris-claro);
+}
+
+.benefits-table tbody tr:hover {
+    background-color: var(--gris-claro);
+}
+
+/* Badges */
+.badge {
+    padding: 0.3rem 0.8rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.badge.success {
+    background-color: rgba(132, 204, 22, 0.2);
+    color: var(--verde);
+}
+
+.badge.warning {
+    background-color: rgba(251, 191, 36, 0.2);
+    color: var(--amarillo);
+}
+
+.badge.info {
+    background-color: rgba(6, 182, 212, 0.2);
+    color: var(--turquesa);
+}
+
+/* Small Buttons */
+.btn-small {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    background-color: var(--gris-claro);
+    transition: all 0.3s ease;
+}
+
+.btn-small:hover {
+    background-color: var(--gris-texto);
+    color: var(--blanco);
+}
+
+.btn-small.btn-primary {
+    background-color: var(--turquesa);
+    color: var(--blanco);
+}
+
+/* Total Benefits */
+.total-benefits {
+    text-align: right;
+    padding: 1.5rem;
+    background-color: var(--blanco);
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.total-benefits .highlight {
+    color: var(--turquesa);
+    font-size: 2rem;
+}
+
+/* Convenios Grid Small */
+.convenios-favoritos {
+    background-color: var(--blanco);
+    padding: 2rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.convenios-grid-small {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.convenio-card-small {
+    text-align: center;
+    padding: 1.5rem;
+    border: 2px solid var(--gris-claro);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.convenio-card-small:hover {
+    border-color: var(--turquesa);
+    transform: translateY(-5px);
+}
+
+.convenio-card-small .convenio-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.convenio-card-small h4 {
+    color: var(--azul-principal);
+    margin-bottom: 0.5rem;
+}
+
+/* Solicitudes */
+.actions-bar {
+    margin-bottom: 2rem;
+}
+
+.solicitudes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.solicitud-item {
+    background-color: var(--blanco);
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.solicitud-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.solicitud-header h3 {
+    color: var(--azul-principal);
+    margin: 0;
+}
+
+.solicitud-body {
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--gris-claro);
+}
+
+.solicitud-body p {
+    margin: 0.5rem 0;
+    color: var(--gris-texto);
+}
+
+.solicitud-footer {
+    display: flex;
+    gap: 1rem;
+}
+
+/* Profile Grid */
+.profile-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+}
+
+.profile-card {
+    background-color: var(--blanco);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.profile-card h3
