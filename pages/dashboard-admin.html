@@ -286,7 +286,18 @@
                     </div>
                 </div>
             </div>
-
+            
+<div class="tab-content" id="tab-compras-gas-admin">
+    <h2>🛒 Compras de Gas - Administración</h2>
+    <div class="compras-gas-admin-actions">
+        <button class="btn btn-success" onclick="exportarLipigasExcel()">Descargar Lipigas Excel</button>
+        <button class="btn btn-warning" onclick="exportarAbastibleExcel()">Descargar Abastible Excel</button>
+        <button class="btn btn-info" onclick="exportarGeneralExcel()">Descargar General Excel</button>
+    </div>
+    <div id="listadoComprasGas">
+        <!-- Aquí se despliega el listado de compras del día, separado por empresa -->
+    </div>
+</div>
             <!-- Tab: Convenios -->
             <div class="tab-content" id="tab-convenios">
                 <div class="section-header">
