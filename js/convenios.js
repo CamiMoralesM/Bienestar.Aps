@@ -170,33 +170,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Contador de convenios visibles
-    function updateConvenioCount() {
-        const visibleCards = Array.from(convenioCards).filter(card => 
-            card.style.display !== 'none'
-        );
-        
-        const countElement = document.querySelector('.convenios-count');
-        if (countElement) {
-            countElement.textContent = `${visibleCards.length} convenios disponibles`;
-        }
-    }
-
-    // Agregar contador si no existe
-    const filtersContainer = document.querySelector('.filters-section .container');
-    if (filtersContainer && !document.querySelector('.convenios-count')) {
-        const countElement = document.createElement('div');
-        countElement.className = 'convenios-count';
-        countElement.style.cssText = `
-            text-align: center;
-            margin: 10px 0;
-            font-weight: bold;
-            color: #666;
-        `;
-        countElement.textContent = `${convenioCards.length} convenios disponibles`;
-        filtersContainer.appendChild(countElement);
-    }
-
     // Inicializar funcionalidades
     addSearchFunctionality();
     updateConvenioCount();
