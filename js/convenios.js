@@ -50,6 +50,21 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // Función para búsqueda en convenios
+        const searchInput = document.createElement('input');
+        searchInput.type = 'text';
+        searchInput.placeholder = 'Buscar convenio o empresa...';
+        searchInput.className = 'search-input';
+        searchInput.style.cssText = `
+            width: 100%;
+            max-width: 300px;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        `;
+        
         const filtersSection = document.querySelector('.filters-section .container');
         if (filtersSection) {
             filtersSection.appendChild(searchInput);
