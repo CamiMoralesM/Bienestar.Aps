@@ -127,6 +127,34 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Contador de beneficios visibles
+    function updateBeneficioCount() {
+        const visibleCards = Array.from(beneficioCards).filter(card => 
+            card.style.display !== 'none'
+        );
+        
+        const countElement = document.querySelector('.beneficios-count');
+        if (countElement) {
+            countElement.textContent = `${visibleCards.length} beneficios disponibles`;
+        }
+    }
+
+    // Agregar contador si no existe
+    const filtersContainer = document.querySelector('.filters-section .container');
+    if (filtersContainer && !document.querySelector('.beneficios-count')) {
+        const countElement = document.createElement('div');
+        countElement.className = 'beneficios-count';
+        countElement.textContent = `${beneficioCards.length} beneficios disponibles`;
+        filtersContainer.appendChild(countElement);
+    }
+
+    // Actualizar contador después de cada filtro
+    filterButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            setTimeout(updateBeneficioCount, 350);
+        });
+    });
+
     // Inicializar contador
     updateBeneficioCount();
 });
@@ -182,3 +210,4 @@ function toggleDetail(button) {
         alert(`${title}\n\nMonto: ${monto}\n\nDescripción: ${descripcion}\n\nRequisitos:\n${requisitos.join('\n')}`);
     }
 }
+
