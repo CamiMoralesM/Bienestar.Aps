@@ -1,0 +1,110 @@
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// Utiliza SheetJS (XLSX) para exportar los archivos
+async function exportarLipigasExcel() {
+    const db = getFirestore();
+    const fechaHoy = new Date().toISOString().slice(0, 10);
+    const snapshot = await getDocs(collection(db, "comprasGas"));
+    const compras = [];
+    snapshot.forEach(doc => {
+        const data = doc.data();
+        const compraFecha = data.fechaCompra?.slice(0, 10);
+        if (data.empresa === "Lipigas" && compraFecha === fechaHoy) {
+            compras.push(data);
+        }
+    });
+
+    // Agrupar por usuario y tipo de carga
+    const usuarios = {};
+    compras.forEach(compra => {
+        const key = compra.email;
+        if (!usuarios[key]) {
+            usuarios[key] = {
+                nombre: `${compra.nombre} ${compra.apellido}`,
+                email: compra.email,
+                "5 kg (1105)": 0,
+                "11 kg (1111)": 0,
+                "15 kg (1115)": 0,
+                "45 kg (1145)": 0
+            };
+        }
+        usuarios[key][`${compra.tipoCarga} kg (${cargaCodigo(compra.tipoCarga)})`] += compra.cantidad;
+    });
+
+    // Generar Excel
+    const excelData = Object.values(usuarios);
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Lipigas');
+    XLSX.writeFile(workbook, `lipigas_${fechaHoy}.xlsx`);
+}
+
+function cargaCodigo(tipo) {
+    if (tipo == "5") return "1105";
+    if (tipo == "11") return "1111";
+    if (tipo == "15") return "1115";
+    if (tipo == "45") return "1145";
+    return "";
+}
+
+async function exportarAbastibleExcel() {
+    const db = getFirestore();
+    const fechaHoy = new Date().toISOString().slice(0, 10);
+    const snapshot = await getDocs(collection(db, "comprasGas"));
+    const compras = [];
+    snapshot.forEach(doc => {
+        const data = doc.data();
+        const compraFecha = data.fechaCompra?.slice(0, 10);
+        if (data.empresa === "Abastible" && compraFecha === fechaHoy) {
+            // Una fila por cada cupón
+            for (let i = 0; i < data.cantidad; i++) {
+                compras.push({
+                    "Rut Benef.": data.rut,
+                    "Nombre": data.nombre,
+                    "Apellido": data.apellido,
+                    "Email": data.email,
+                    "Teléfono": data.telefono
+                });
+            }
+        }
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(compras);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Abastible');
+    XLSX.writeFile(workbook, `abastible_${fechaHoy}.xlsx`);
+}
+
+async function exportarGeneralExcel() {
+    const db = getFirestore();
+    const fechaHoy = new Date().toISOString().slice(0, 10);
+    const snapshot = await getDocs(collection(db, "comprasGas"));
+    const compras = [];
+    snapshot.forEach(doc => {
+        const data = doc.data();
+        const compraFecha = data.fechaCompra?.slice(0, 10);
+        if (compraFecha === fechaHoy) {
+            compras.push({
+                Fecha: compraFecha,
+                Nombre: `${data.nombre} ${data.apellido}`,
+                Rut: data.rut,
+                Teléfono: data.telefono,
+                Correo: data.email,
+                "Tipo de carga": `${data.tipoCarga} kg`,
+                Cantidad: data.cantidad,
+                Empresa: data.empresa,
+                "Comprobante URL": data.comprobanteUrl
+            });
+        }
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(compras);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'General');
+    XLSX.writeFile(workbook, `general_${fechaHoy}.xlsx`);
+}
+
+// Asocia estos métodos a los botones en dashboard-admin.html
+window.exportarLipigasExcel = exportarLipigasExcel;
+window.exportarAbastibleExcel = exportarAbastibleExcel;
+window.exportarGeneralExcel = exportarGeneralExcel;
