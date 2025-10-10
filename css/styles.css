@@ -2219,16 +2219,30 @@ body {
 /* Evitar scroll del body cuando modal está abierto */
 body.modal-open {
     overflow: hidden;
-}/* ========== CSS PARA LOGIN ADMINISTRATIVO CENTRADO ========== */
-/* Agregar este CSS a tu archivo styles.css */
+}
+/* ========== CSS PARA LOGIN ADMINISTRATIVO PERFECTAMENTE CENTRADO ========== */
+/* Reemplaza el CSS anterior con este */
 
-/* Para páginas de login administrativo centrado */
+/* Centrado perfecto para login administrativo */
 .login-section.admin-centered {
-    min-height: calc(100vh - 200px);
+    min-height: 100vh; /* Altura completa de la ventana */
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 40px 20px;
+    padding: 0;
+    background-color: #f3f4f6; /* Fondo gris claro */
+}
+
+/* Remover márgenes y padding del container */
+.login-section.admin-centered .container {
+    max-width: none;
+    width: 100%;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
 }
 
 .login-container.centered {
@@ -2241,72 +2255,77 @@ body.modal-open {
 
 .login-box.centered {
     width: 100%;
-    max-width: 400px;
-    margin: 0 auto;
+    max-width: 420px;
+    margin: 0;
     background: white;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
     padding: 0;
-    border: 1px solid #e2e8f0;
+    border: none;
+    position: relative;
 }
 
 .login-header.centered {
     text-align: center;
-    padding: 30px 30px 20px 30px;
-    background: linear-gradient(135deg, var(--azul-principal, #3b82f6) 0%, var(--morado, #8b5cf6) 100%);
+    padding: 35px 35px 25px 35px;
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
     color: white;
-    border-radius: 12px 12px 0 0;
+    border-radius: 16px 16px 0 0;
 }
 
 .login-header.centered h2 {
-    margin: 0 0 8px 0;
-    font-size: 1.5rem;
-    font-weight: 600;
+    margin: 0 0 10px 0;
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
 }
 
 .login-header.centered p {
     margin: 0;
-    font-size: 0.9rem;
-    opacity: 0.9;
+    font-size: 0.95rem;
+    opacity: 0.85;
+    font-weight: 400;
 }
 
 .login-form.centered {
-    padding: 30px;
+    padding: 35px;
 }
 
 .login-form.centered .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 24px;
 }
 
 .login-form.centered .form-group label {
     display: block;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
     font-weight: 600;
     color: #374151;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
 }
 
 .login-form.centered .form-group input {
     width: 100%;
-    padding: 12px 16px;
+    padding: 14px 18px;
     border: 2px solid #e5e7eb;
-    border-radius: 8px;
+    border-radius: 10px;
     font-size: 1rem;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    transition: all 0.2s ease;
     box-sizing: border-box;
+    background-color: #f9fafb;
 }
 
 .login-form.centered .form-group input:focus {
     outline: none;
-    border-color: var(--azul-principal, #3b82f6);
+    border-color: #3b82f6;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    background-color: white;
 }
 
 .login-form.centered .form-options {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 25px;
+    margin-bottom: 30px;
     font-size: 0.9rem;
 }
 
@@ -2314,40 +2333,50 @@ body.modal-open {
     display: flex;
     align-items: center;
     cursor: pointer;
+    color: #6b7280;
 }
 
 .login-form.centered .checkbox-container input {
     margin-right: 8px;
     width: auto;
+    padding: 0;
+    background: none;
 }
 
 .login-form.centered .forgot-password {
-    color: var(--azul-principal, #3b82f6);
+    color: #3b82f6;
     text-decoration: none;
     font-size: 0.9rem;
+    font-weight: 500;
 }
 
 .login-form.centered .forgot-password:hover {
     text-decoration: underline;
+    color: #2563eb;
 }
 
 .btn.btn-login.centered {
     width: 100%;
-    padding: 14px;
-    background: linear-gradient(135deg, var(--azul-principal, #3b82f6) 0%, var(--morado, #8b5cf6) 100%);
+    padding: 16px;
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
     color: white;
     border: none;
-    border-radius: 8px;
-    font-size: 1rem;
+    border-radius: 10px;
+    font-size: 1.05rem;
     font-weight: 600;
     cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    margin-bottom: 20px;
+    transition: all 0.2s ease;
+    margin-bottom: 25px;
+    letter-spacing: 0.02em;
 }
 
 .btn.btn-login.centered:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+}
+
+.btn.btn-login.centered:active {
+    transform: translateY(0);
 }
 
 .btn.btn-login.centered:disabled {
@@ -2358,10 +2387,11 @@ body.modal-open {
 
 .login-divider.centered {
     text-align: center;
-    margin: 20px 0;
+    margin: 25px 0;
     position: relative;
-    color: #6b7280;
+    color: #9ca3af;
     font-size: 0.9rem;
+    font-weight: 500;
 }
 
 .login-divider.centered::before {
@@ -2377,46 +2407,80 @@ body.modal-open {
 
 .login-divider.centered span {
     background: white;
-    padding: 0 15px;
+    padding: 0 20px;
     position: relative;
     z-index: 2;
 }
 
 .btn.btn-secondary.btn-back.centered {
     width: 100%;
-    padding: 12px;
+    padding: 14px;
     background: #f8fafc;
-    color: #374151;
+    color: #6b7280;
     border: 2px solid #e5e7eb;
-    border-radius: 8px;
+    border-radius: 10px;
     font-size: 1rem;
     font-weight: 500;
     cursor: pointer;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
+    transition: all 0.2s ease;
 }
 
 .btn.btn-secondary.btn-back.centered:hover {
     background: #f1f5f9;
     border-color: #d1d5db;
+    color: #374151;
+    transform: translateY(-1px);
 }
 
 /* Error messages */
 .error-message {
     color: #dc2626;
-    font-size: 0.8rem;
-    margin-top: 4px;
+    font-size: 0.85rem;
+    margin-top: 6px;
     display: block;
+    font-weight: 500;
+}
+
+/* Ajustar header para que no interfiera */
+.header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid #e5e7eb;
 }
 
 /* Responsive */
-@media (max-width: 480px) {
+@media (max-width: 640px) {
+    .login-section.admin-centered .container {
+        padding: 15px;
+    }
+    
     .login-box.centered {
-        margin: 20px;
-        max-width: none;
+        max-width: 100%;
+        margin: 0;
     }
     
     .login-header.centered,
     .login-form.centered {
-        padding: 20px;
+        padding: 25px;
+    }
+    
+    .login-header.centered h2 {
+        font-size: 1.4rem;
+    }
+}
+
+@media (max-height: 700px) {
+    .login-section.admin-centered {
+        min-height: auto;
+        padding: 40px 0;
+    }
+    
+    .login-section.admin-centered .container {
+        min-height: auto;
     }
 }
