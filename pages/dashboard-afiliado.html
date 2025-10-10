@@ -18,15 +18,14 @@
                 </div>
                 <nav class="user-nav">
                     <div class="user-info">
-                        <span class="user-name">👤 Juan Pérez Gómez</span>
-                        <span class="user-rut">RUT: 12.345.678-9</span>
+                        <span class="user-name" id="usuario-nombre-header"></span>
+                        <span class="user-rut" id="usuario-rut-header"></span>
                     </div>
                     <button class="btn btn-logout" onclick="logout()">Cerrar Sesión</button>
                 </nav>
             </div>
         </div>
     </header>
-
     <!-- Navegación Dashboard -->
     <nav class="dashboard-nav">
         <div class="container">
@@ -40,91 +39,59 @@
             </ul>
         </div>
     </nav>
-
     <!-- Contenido del Dashboard -->
     <section class="dashboard-content">
         <div class="container">
-            
             <!-- Tab: Resumen -->
             <div class="tab-content active" id="tab-resumen">
                 <div class="welcome-banner">
-                    <h1>¡Bienvenido/a, Juan!</h1>
+                    <h1 id="bienvenida-usuario"></h1>
                     <p>Aquí puedes gestionar tus beneficios y convenios</p>
                 </div>
-
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-icon">💰</div>
                         <div class="stat-info">
-                            <h3>$135.000</h3>
-                            <p>Beneficios recibidos 2025</p>
+                            <h3 id="beneficios-recibidos"></h3>
+                            <p>Beneficios recibidos</p>
                         </div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">🏪</div>
                         <div class="stat-info">
-                            <h3>12</h3>
+                            <h3 id="convenios-disponibles"></h3>
                             <p>Convenios disponibles</p>
                         </div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">📝</div>
                         <div class="stat-info">
-                            <h3>2</h3>
+                            <h3 id="solicitudes-pendientes"></h3>
                             <p>Solicitudes pendientes</p>
                         </div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">✅</div>
                         <div class="stat-info">
-                            <h3>6 meses</h3>
+                            <h3 id="tiempo-afiliacion"></h3>
                             <p>Tiempo de afiliación</p>
                         </div>
                     </div>
                 </div>
-
                 <!-- Próximos Beneficios -->
                 <div class="section-card">
                     <h2>📅 Próximos Beneficios</h2>
-                    <div class="timeline">
-                        <div class="timeline-item">
-                            <div class="timeline-date">Diciembre 2025</div>
-                            <div class="timeline-content">
-                                <h4>Bono Navidad</h4>
-                                <p>$60.000 - Se depositará en tu cuenta bancaria</p>
-                            </div>
-                        </div>
-                        <div class="timeline-item">
-                            <div class="timeline-date">Marzo 2026</div>
-                            <div class="timeline-content">
-                                <h4>Bono Marzo</h4>
-                                <p>$35.000 - Inicio del año escolar</p>
-                            </div>
-                        </div>
-                    </div>
+                    <div class="timeline" id="proximos-beneficios"></div>
                 </div>
-
                 <!-- Notificaciones -->
                 <div class="section-card">
                     <h2>🔔 Notificaciones Recientes</h2>
-                    <div class="notifications">
-                        <div class="notification new">
-                            <span class="notification-badge">Nuevo</span>
-                            <p><strong>Solicitud Aprobada:</strong> Tu asignación por natalidad ha sido aprobada.</p>
-                            <span class="notification-date">Hace 2 horas</span>
-                        </div>
-                        <div class="notification">
-                            <p><strong>Nuevo Convenio:</strong> Ahora disponible descuento en Gimnasios Energy.</p>
-                            <span class="notification-date">Hace 1 día</span>
-                        </div>
-                    </div>
+                    <div class="notifications" id="notificaciones-recientes"></div>
                 </div>
             </div>
-
             <!-- Tab: Mis Beneficios -->
             <div class="tab-content" id="tab-beneficios">
                 <h2>💰 Beneficios Recibidos</h2>
-                
                 <div class="benefits-table">
                     <table>
                         <thead>
@@ -136,224 +103,144 @@
                                 <th>Comprobante</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td>15/09/2025</td>
-                                <td>Bono Fiestas Patrias</td>
-                                <td>$40.000</td>
-                                <td><span class="badge success">Pagado</span></td>
-                                <td><button class="btn-small">📄 Ver</button></td>
-                            </tr>
-                            <tr>
-                                <td>10/03/2025</td>
-                                <td>Bono Marzo</td>
-                                <td>$35.000</td>
-                                <td><span class="badge success">Pagado</span></td>
-                                <td><button class="btn-small">📄 Ver</button></td>
-                            </tr>
-                            <tr>
-                                <td>05/02/2025</td>
-                                <td>Asignación por Natalidad</td>
-                                <td>$100.000</td>
-                                <td><span class="badge success">Pagado</span></td>
-                                <td><button class="btn-small">📄 Ver</button></td>
-                            </tr>
+                        <tbody id="tabla-beneficios">
                         </tbody>
                     </table>
                 </div>
-
                 <div class="total-benefits">
-                    <h3>Total Beneficios 2025: <span class="highlight">$175.000</span></h3>
+                    <h3>Total Beneficios: <span class="highlight" id="total-beneficios"></span></h3>
                 </div>
             </div>
-
             <!-- Tab: Mis Convenios -->
             <div class="tab-content" id="tab-convenios">
                 <h2>🏪 Convenios Activos</h2>
-                
                 <div class="convenios-favoritos">
                     <h3>⭐ Mis Convenios Favoritos</h3>
-                    <div class="convenios-grid-small">
-                        <div class="convenio-card-small">
-                            <div class="convenio-icon">🦷</div>
-                            <h4>Clínica Dental PSQ</h4>
-                            <p>70% descuento</p>
-                            <button class="btn-small btn-primary">Ver Detalles</button>
-                        </div>
-                        <div class="convenio-card-small">
-                            <div class="convenio-icon">💪</div>
-                            <h4>Gimnasios Energy</h4>
-                            <p>$18.000/mes</p>
-                            <button class="btn-small btn-primary">Ver Detalles</button>
-                        </div>
-                        <div class="convenio-card-small">
-                            <div class="convenio-icon">💊</div>
-                            <h4>Salcobrand</h4>
-                            <p>Hasta 25% dcto</p>
-                            <button class="btn-small btn-primary">Ver Detalles</button>
-                        </div>
-                    </div>
+                    <div class="convenios-grid-small" id="convenios-favoritos"></div>
                 </div>
-
                 <div class="section-card">
                     <button class="btn btn-primary" onclick="location.href='convenios.html'">
                         Ver Todos los Convenios
                     </button>
                 </div>
             </div>
-<div class="tab-content" id="tab-compras-gas">
-    <h2>🛒 Compra de Vales de Gas</h2>
-    <form id="formCompraGas" enctype="multipart/form-data">
-        <div class="form-grid">
-            <div class="form-group">
-                <label for="emailGas">Correo Electrónico</label>
-                <input type="email" id="emailGas" name="emailGas" required>
+            <div class="tab-content" id="tab-compras-gas">
+                <h2>🛒 Compra de Vales de Gas</h2>
+                <form id="formCompraGas" enctype="multipart/form-data">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="emailGas">Correo Electrónico</label>
+                            <input type="email" id="emailGas" name="emailGas" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="fechaCompraGas">Fecha de compra</label>
+                            <input type="text" id="fechaCompraGas" name="fechaCompraGas" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="rutGas">Rut</label>
+                            <input type="text" id="rutGas" name="rutGas" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="nombreGas">Nombre y Apellido Afiliado</label>
+                            <input type="text" id="nombreGas" name="nombreGas" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="telefonoGas">Teléfono</label>
+                            <input type="tel" id="telefonoGas" name="telefonoGas" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Compra Lipigas</label>
+                            <select id="compraLipigas" name="compraLipigas">
+                                <option value="no">No</option>
+                                <option value="si">Sí</option>
+                            </select>
+                        </div>
+                        <div id="lipigasOpciones" style="display:none;">
+                            <div class="form-group">
+                                <label for="tipoLipigas">Tipo de carga Lipigas</label>
+                                <select id="tipoLipigas" name="tipoLipigas">
+                                    <option value="5">5 kg</option>
+                                    <option value="11">11 kg</option>
+                                    <option value="15">15 kg</option>
+                                    <option value="45">45 kg</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="cantidadLipigas">Cantidad (máx 2/cupon, 4 mensual)</label>
+                                <input type="number" id="cantidadLipigas" name="cantidadLipigas" min="0" max="4">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Compra Abastible</label>
+                            <select id="compraAbastible" name="compraAbastible">
+                                <option value="no">No</option>
+                                <option value="si">Sí</option>
+                            </select>
+                        </div>
+                        <div id="abastibleOpciones" style="display:none;">
+                            <div class="form-group">
+                                <label for="tipoAbastible">Tipo de carga Abastible</label>
+                                <select id="tipoAbastible" name="tipoAbastible">
+                                    <option value="5">5 kg</option>
+                                    <option value="11">11 kg</option>
+                                    <option value="15">15 kg</option>
+                                    <option value="45">45 kg</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="cantidadAbastible">Cantidad (máx 2/cupon, 4 mensual)</label>
+                                <input type="number" id="cantidadAbastible" name="cantidadAbastible" min="0" max="4">
+                            </div>
+                            <div class="form-group">
+                                <label for="saldoFavor">Saldo a favor (si aplica)</label>
+                                <input type="text" id="saldoFavor" name="saldoFavor" placeholder="Fecha y monto">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="comprobanteGas">Adjuntar comprobante de transferencia</label>
+                            <input type="file" id="comprobanteGas" name="comprobanteGas" required>
+                            <small>Recuerde que el asunto debe indicar cantidad y carga de gas (5k-11k-15k-45k).</small>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Enviar Compra</button>
+                </form>
             </div>
-            <div class="form-group">
-                <label for="fechaCompraGas">Fecha de compra</label>
-                <input type="text" id="fechaCompraGas" name="fechaCompraGas" readonly>
-            </div>
-            <div class="form-group">
-                <label for="rutGas">Rut</label>
-                <input type="text" id="rutGas" name="rutGas" required>
-            </div>
-            <div class="form-group">
-                <label for="nombreGas">Nombre y Apellido Afiliado</label>
-                <input type="text" id="nombreGas" name="nombreGas" required>
-            </div>
-            <div class="form-group">
-                <label for="telefonoGas">Teléfono</label>
-                <input type="tel" id="telefonoGas" name="telefonoGas" required>
-            </div>
-            <div class="form-group">
-                <label>Compra Lipigas</label>
-                <select id="compraLipigas" name="compraLipigas">
-                    <option value="no">No</option>
-                    <option value="si">Sí</option>
-                </select>
-            </div>
-            <div id="lipigasOpciones" style="display:none;">
-                <div class="form-group">
-                    <label for="tipoLipigas">Tipo de carga Lipigas</label>
-                    <select id="tipoLipigas" name="tipoLipigas">
-                        <option value="5">5 kg</option>
-                        <option value="11">11 kg</option>
-                        <option value="15">15 kg</option>
-                        <option value="45">45 kg</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="cantidadLipigas">Cantidad (máx 2/cupon, 4 mensual)</label>
-                    <input type="number" id="cantidadLipigas" name="cantidadLipigas" min="0" max="4">
-                </div>
-            </div>
-            <div class="form-group">
-                <label>Compra Abastible</label>
-                <select id="compraAbastible" name="compraAbastible">
-                    <option value="no">No</option>
-                    <option value="si">Sí</option>
-                </select>
-            </div>
-            <div id="abastibleOpciones" style="display:none;">
-                <div class="form-group">
-                    <label for="tipoAbastible">Tipo de carga Abastible</label>
-                    <select id="tipoAbastible" name="tipoAbastible">
-                        <option value="5">5 kg</option>
-                        <option value="11">11 kg</option>
-                        <option value="15">15 kg</option>
-                        <option value="45">45 kg</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="cantidadAbastible">Cantidad (máx 2/cupon, 4 mensual)</label>
-                    <input type="number" id="cantidadAbastible" name="cantidadAbastible" min="0" max="4">
-                </div>
-                <div class="form-group">
-                    <label for="saldoFavor">Saldo a favor (si aplica)</label>
-                    <input type="text" id="saldoFavor" name="saldoFavor" placeholder="Fecha y monto">
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="comprobanteGas">Adjuntar comprobante de transferencia</label>
-                <input type="file" id="comprobanteGas" name="comprobanteGas" required>
-                <small>Recuerde que el asunto debe indicar cantidad y carga de gas (5k-11k-15k-45k).</small>
-            </div>
-        </div>
-        <button type="submit" class="btn btn-primary">Enviar Compra</button>
-    </form>
-</div>
             <!-- Tab: Solicitudes -->
             <div class="tab-content" id="tab-solicitudes">
                 <h2>📝 Mis Solicitudes</h2>
-                
                 <div class="actions-bar">
                     <button class="btn btn-primary" onclick="nuevaSolicitud()">
                         ➕ Nueva Solicitud
                     </button>
                 </div>
-
-                <div class="solicitudes-list">
-                    <div class="solicitud-item">
-                        <div class="solicitud-header">
-                            <h3>Asignación por Matrimonio</h3>
-                            <span class="badge warning">En Revisión</span>
-                        </div>
-                        <div class="solicitud-body">
-                            <p><strong>Fecha de solicitud:</strong> 10/10/2025</p>
-                            <p><strong>Monto:</strong> $100.000</p>
-                            <p><strong>Estado:</strong> Documentación en revisión</p>
-                        </div>
-                        <div class="solicitud-footer">
-                            <button class="btn-small">Ver Detalles</button>
-                            <button class="btn-small btn-secondary">Adjuntar Documentos</button>
-                        </div>
-                    </div>
-
-                    <div class="solicitud-item">
-                        <div class="solicitud-header">
-                            <h3>Préstamo Médico</h3>
-                            <span class="badge info">Pendiente Evaluación</span>
-                        </div>
-                        <div class="solicitud-body">
-                            <p><strong>Fecha de solicitud:</strong> 08/10/2025</p>
-                            <p><strong>Monto solicitado:</strong> $300.000</p>
-                            <p><strong>Estado:</strong> Evaluación social programada</p>
-                        </div>
-                        <div class="solicitud-footer">
-                            <button class="btn-small">Ver Detalles</button>
-                        </div>
-                    </div>
-                </div>
+                <div class="solicitudes-list" id="mis-solicitudes"></div>
             </div>
-
             <!-- Tab: Mi Perfil -->
             <div class="tab-content" id="tab-perfil">
                 <h2>⚙️ Mi Perfil</h2>
-                
                 <div class="profile-grid">
                     <div class="profile-card">
                         <h3>Información Personal</h3>
                         <form class="profile-form">
                             <div class="form-group">
                                 <label>Nombre Completo</label>
-                                <input type="text" value="Juan Pérez Gómez" readonly>
+                                <input type="text" id="perfil-nombre" readonly>
                             </div>
                             <div class="form-group">
                                 <label>RUT</label>
-                                <input type="text" value="12.345.678-9" readonly>
+                                <input type="text" id="perfil-rut" readonly>
                             </div>
                             <div class="form-group">
                                 <label>Email</label>
-                                <input type="email" value="juan.perez@salud.cl">
+                                <input type="email" id="perfil-email">
                             </div>
                             <div class="form-group">
                                 <label>Teléfono</label>
-                                <input type="tel" value="+56 9 1234 5678">
+                                <input type="tel" id="perfil-telefono">
                             </div>
                             <button type="submit" class="btn btn-primary">Actualizar Información</button>
                         </form>
                     </div>
-
                     <div class="profile-card">
                         <h3>Cambiar Contraseña</h3>
                         <form class="profile-form">
@@ -372,42 +259,196 @@
                             <button type="submit" class="btn btn-primary">Cambiar Contraseña</button>
                         </form>
                     </div>
-
                     <div class="profile-card">
                         <h3>Información de Cuenta</h3>
                         <div class="info-list">
                             <div class="info-item">
                                 <span class="info-label">Fecha de afiliación:</span>
-                                <span class="info-value">01/05/2025</span>
+                                <span class="info-value" id="perfil-fecha-afiliacion"></span>
                             </div>
                             <div class="info-item">
                                 <span class="info-label">Centro de Salud:</span>
-                                <span class="info-value">CESFAM Padre Hurtado</span>
+                                <span class="info-value" id="perfil-centro-salud"></span>
                             </div>
                             <div class="info-item">
                                 <span class="info-label">Cargas familiares:</span>
-                                <span class="info-value">3</span>
+                                <span class="info-value" id="perfil-cargas"></span>
                             </div>
                             <div class="info-item">
                                 <span class="info-label">Estado:</span>
-                                <span class="badge success">Activo</span>
+                                <span class="badge success" id="perfil-estado"></span>
                             </div>
                         </div>
                         <button class="btn btn-secondary">Ver Cargas Familiares</button>
                     </div>
                 </div>
             </div>
-
         </div>
     </section>
-
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
             <p>&copy; 2025 Servicio Bienestar APS - Corporación Municipal de Puente Alto</p>
         </div>
     </footer>
+    <!-- JS Dinámico: todos los datos se llenan desde JS, nada está fijo en el HTML -->
+    <script>
+    // Aquí debes obtener los datos del usuario desde tu backend/Firebase y llenar los campos
+    // Ejemplo de estructura, reemplaza por tu lógica real:
+    const usuario = {
+        nombre: "",
+        genero: "",
+        rut: "",
+        fechaAfiliacion: "",
+        centroSalud: "",
+        cargas: "",
+        estado: "",
+        email: "",
+        telefono: "",
+        beneficiosRecibidos: "",
+        conveniosDisponibles: "",
+        solicitudesPendientes: "",
+        beneficios: [],
+        totalBeneficios: "",
+        proximosBeneficios: [],
+        notificaciones: [],
+        conveniosFavoritos: [],
+        solicitudes: []
+    };
+    function calcularTiempoAfiliacion(fechaAfiliacion) {
+        if(!fechaAfiliacion) return "";
+        const [dia, mes, año] = fechaAfiliacion.split('/');
+        const fechaInicio = new Date(`${año}-${mes}-${dia}`);
+        const hoy = new Date();
+        const msPorMes = 1000 * 60 * 60 * 24 * 30.44;
+        const meses = Math.floor((hoy - fechaInicio) / msPorMes);
+        return meses + (meses === 1 ? " mes" : " meses");
+    }
+    function bienvenida(nombre, genero) {
+        if(!nombre) return "";
+        const primerNombre = nombre.split(" ")[0];
+        if (genero === "F") {
+            return `¡Bienvenida, ${primerNombre}!`;
+        } else {
+            return `¡Bienvenido, ${primerNombre}!`;
+        }
+    }
+    function formateaFecha(fechaStr) {
+        if (!fechaStr) return "";
+        const meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+        const [año, mes] = fechaStr.split("-");
+        return `${meses[parseInt(mes,10)-1]} ${año}`;
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        // Aquí debes llenar usuario con datos reales
+        // Ejemplo de llenado:
+        // usuario.nombre = "Camila González";
+        // usuario.genero = "F";
+        // usuario.rut = "22.222.222-2";
+        // usuario.fechaAfiliacion = "14/05/2025";
+        // usuario.centroSalud = "CESFAM Karol Wojtyla";
+        // usuario.cargas = "3";
+        // usuario.estado = "Activo";
+        // usuario.email = "camila@salud.cl";
+        // usuario.telefono = "+56 9 1234 5678";
+        // usuario.beneficiosRecibidos = 135000;
+        // usuario.conveniosDisponibles = 12;
+        // usuario.solicitudesPendientes = 2;
+        // usuario.beneficios = [...];
+        // usuario.totalBeneficios = 175000;
+        // usuario.proximosBeneficios = [...];
+        // usuario.notificaciones = [...];
+        // usuario.conveniosFavoritos = [...];
+        // usuario.solicitudes = [...];
 
-   <script type="module" src="../js/dashboard-afiliado-firebase.js"></script>
+        document.getElementById('usuario-nombre-header').textContent = usuario.nombre ? `👤 ${usuario.nombre}` : "";
+        document.getElementById('usuario-rut-header').textContent = usuario.rut ? `RUT: ${usuario.rut}` : "";
+
+        document.getElementById('bienvenida-usuario').textContent = bienvenida(usuario.nombre, usuario.genero);
+
+        document.getElementById('beneficios-recibidos').textContent = usuario.beneficiosRecibidos ? `$${usuario.beneficiosRecibidos.toLocaleString("es-CL")}` : "";
+        document.getElementById('convenios-disponibles').textContent = usuario.conveniosDisponibles || "";
+        document.getElementById('solicitudes-pendientes').textContent = usuario.solicitudesPendientes || "";
+        document.getElementById('tiempo-afiliacion').textContent = calcularTiempoAfiliacion(usuario.fechaAfiliacion);
+
+        // Próximos beneficios
+        const listaBeneficios = (usuario.proximosBeneficios || [])
+            .filter(b => new Date(b.fecha) > new Date())
+            .map(b => `<div class="timeline-item">
+                <div class="timeline-date">${formateaFecha(b.fecha)}</div>
+                <div class="timeline-content">
+                    <h4>${b.nombre}</h4>
+                    <p>$${b.monto ? b.monto.toLocaleString("es-CL") : ""} - Se depositará en tu cuenta bancaria</p>
+                </div>
+            </div>`).join('');
+        document.getElementById('proximos-beneficios').innerHTML = listaBeneficios;
+
+        // Notificaciones
+        const notifLista = (usuario.notificaciones || []).map(n =>
+            `<div class="notification ${n.nueva ? "new" : ""}">
+                ${n.nueva ? '<span class="notification-badge">Nuevo</span>' : ""}
+                <p><strong>${n.titulo || ""}</strong> ${n.mensaje || ""}</p>
+                <span class="notification-date">${n.fecha || ""}</span>
+            </div>`
+        ).join('');
+        document.getElementById('notificaciones-recientes').innerHTML = notifLista;
+
+        // Beneficios recibidos (tabla)
+        const tablaBeneficios = (usuario.beneficios || []).map(b =>
+            `<tr>
+                <td>${b.fecha || ""}</td>
+                <td>${b.nombre || ""}</td>
+                <td>$${b.monto ? b.monto.toLocaleString("es-CL") : ""}</td>
+                <td><span class="badge ${b.estadoClass || ""}">${b.estado || ""}</span></td>
+                <td><button class="btn-small">${b.comprobanteIcon || ""} Ver</button></td>
+            </tr>`
+        ).join('');
+        document.getElementById('tabla-beneficios').innerHTML = tablaBeneficios;
+        document.getElementById('total-beneficios').textContent = usuario.totalBeneficios ? `$${usuario.totalBeneficios.toLocaleString("es-CL")}` : "";
+
+        // Convenios favoritos
+        document.getElementById('convenios-favoritos').innerHTML = (usuario.conveniosFavoritos || []).map(c =>
+            `<div class="convenio-card-small">
+                <div class="convenio-icon">${c.icono || ""}</div>
+                <h4>${c.nombre || ""}</h4>
+                <p>${c.descripcion || ""}</p>
+                <button class="btn-small btn-primary">Ver Detalles</button>
+            </div>`
+        ).join('');
+
+        // Solicitudes
+        document.getElementById('mis-solicitudes').innerHTML = (usuario.solicitudes || []).map(s =>
+            `<div class="solicitud-item">
+                <div class="solicitud-header">
+                    <h3>${s.titulo || ""}</h3>
+                    <span class="badge ${s.estadoClass || ""}">${s.estado || ""}</span>
+                </div>
+                <div class="solicitud-body">
+                    <p><strong>Fecha de solicitud:</strong> ${s.fecha || ""}</p>
+                    <p><strong>Monto:</strong> $${s.monto ? s.monto.toLocaleString("es-CL") : ""}</p>
+                    <p><strong>Estado:</strong> ${s.detalleEstado || ""}</p>
+                </div>
+                <div class="solicitud-footer">
+                    <button class="btn-small">Ver Detalles</button>
+                    ${s.permiteAdjuntar ? '<button class="btn-small btn-secondary">Adjuntar Documentos</button>' : ''}
+                </div>
+            </div>`
+        ).join('');
+
+        // Perfil
+        document.getElementById('perfil-nombre').value = usuario.nombre || "";
+        document.getElementById('perfil-rut').value = usuario.rut || "";
+        document.getElementById('perfil-email').value = usuario.email || "";
+        document.getElementById('perfil-telefono').value = usuario.telefono || "";
+        document.getElementById('perfil-fecha-afiliacion').textContent = usuario.fechaAfiliacion || "";
+        document.getElementById('perfil-centro-salud').textContent = usuario.centroSalud || "";
+        document.getElementById('perfil-cargas').textContent = usuario.cargas || "";
+        document.getElementById('perfil-estado').textContent = usuario.estado || "";
+    });
+    function logout() {
+        alert("Sesión cerrada");
+        location.href = "../index.html";
+    }
+    </script>
 </body>
 </html>
