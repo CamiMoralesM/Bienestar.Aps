@@ -363,12 +363,12 @@
     </footer>
     <!-- JS Dinámico -->
     <script>
-    // ESTO DEBE VENIR DE TU BACKEND O FIREBASE. SOLO EJEMPLO PARA DEMOSTRACION:
+    // Simulación de usuario (esto debe venir de tu backend/Firebase)
     const usuario = {
-        nombre: "Camila González", // ejemplo femenino
+        nombre: "Camila González", // puede ser Juan Pérez
         genero: "F", // "F" para mujer, "M" para hombre
         rut: "22.222.222-2",
-        fechaAfiliacion: "14/05/2025",
+        fechaAfiliacion: "14/05/2025", // formato dd/mm/yyyy
         beneficiosRecibidos: 135000,
         conveniosDisponibles: 12,
         solicitudesPendientes: 2,
@@ -377,11 +377,13 @@
             { nueva: false, titulo: "Nuevo Convenio:", mensaje: "Ahora disponible descuento en Gimnasios Energy.", fecha: "Hace 1 día" }
         ]
     };
+
     const beneficiosProximos = [
         { nombre: "Bono Fiestas Patrias", fecha: "2025-09-15", monto: 40000 },
         { nombre: "Bono Navidad", fecha: "2025-12-20", monto: 60000 },
         { nombre: "Bono Marzo", fecha: "2026-03-10", monto: 35000 }
     ];
+
     function calcularTiempoAfiliacion(fechaAfiliacion) {
         const [dia, mes, año] = fechaAfiliacion.split('/');
         const fechaInicio = new Date(`${año}-${mes}-${dia}`);
@@ -390,6 +392,7 @@
         const meses = Math.floor((hoy - fechaInicio) / msPorMes);
         return meses + (meses === 1 ? " mes" : " meses");
     }
+
     function bienvenida(nombre, genero) {
         const primerNombre = nombre.split(" ")[0];
         if (genero === "F") {
@@ -398,23 +401,29 @@
             return `¡Bienvenido, ${primerNombre}!`;
         }
     }
+
     function proximosBeneficios(beneficios) {
         const hoy = new Date();
         return beneficios.filter(b => new Date(b.fecha) > hoy);
     }
+
     function formateaFecha(fechaStr) {
         const meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
         const [año, mes] = fechaStr.split("-");
         return `${meses[parseInt(mes,10)-1]} ${año}`;
     }
+
     document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('usuario-nombre-header').textContent = `👤 ${usuario.nombre}`;
         document.getElementById('usuario-rut-header').textContent = `RUT: ${usuario.rut}`;
+
         document.getElementById('bienvenida-usuario').textContent = bienvenida(usuario.nombre, usuario.genero);
+
         document.getElementById('beneficios-recibidos').textContent = `$${usuario.beneficiosRecibidos.toLocaleString("es-CL")}`;
         document.getElementById('convenios-disponibles').textContent = usuario.conveniosDisponibles;
         document.getElementById('solicitudes-pendientes').textContent = usuario.solicitudesPendientes;
         document.getElementById('tiempo-afiliacion').textContent = calcularTiempoAfiliacion(usuario.fechaAfiliacion);
+
         const listaBeneficios = proximosBeneficios(beneficiosProximos)
             .map(b => `<div class="timeline-item">
                 <div class="timeline-date">${formateaFecha(b.fecha)}</div>
@@ -424,6 +433,7 @@
                 </div>
             </div>`).join('');
         document.getElementById('proximos-beneficios').innerHTML = listaBeneficios;
+
         const notifLista = usuario.notificaciones.map(n =>
             `<div class="notification ${n.nueva ? "new" : ""}">
                 ${n.nueva ? '<span class="notification-badge">Nuevo</span>' : ""}
@@ -433,6 +443,7 @@
         ).join('');
         document.getElementById('notificaciones-recientes').innerHTML = notifLista;
     });
+
     function logout() {
         alert("Sesión cerrada");
         location.href = "../index.html";
