@@ -2219,4 +2219,204 @@ body {
 /* Evitar scroll del body cuando modal está abierto */
 body.modal-open {
     overflow: hidden;
+}/* ========== CSS PARA LOGIN ADMINISTRATIVO CENTRADO ========== */
+/* Agregar este CSS a tu archivo styles.css */
+
+/* Para páginas de login administrativo centrado */
+.login-section.admin-centered {
+    min-height: calc(100vh - 200px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+}
+
+.login-container.centered {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    max-width: none;
+}
+
+.login-box.centered {
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    padding: 0;
+    border: 1px solid #e2e8f0;
+}
+
+.login-header.centered {
+    text-align: center;
+    padding: 30px 30px 20px 30px;
+    background: linear-gradient(135deg, var(--azul-principal, #3b82f6) 0%, var(--morado, #8b5cf6) 100%);
+    color: white;
+    border-radius: 12px 12px 0 0;
+}
+
+.login-header.centered h2 {
+    margin: 0 0 8px 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.login-header.centered p {
+    margin: 0;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.login-form.centered {
+    padding: 30px;
+}
+
+.login-form.centered .form-group {
+    margin-bottom: 20px;
+}
+
+.login-form.centered .form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.9rem;
+}
+
+.login-form.centered .form-group input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    box-sizing: border-box;
+}
+
+.login-form.centered .form-group input:focus {
+    outline: none;
+    border-color: var(--azul-principal, #3b82f6);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.login-form.centered .form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    font-size: 0.9rem;
+}
+
+.login-form.centered .checkbox-container {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.login-form.centered .checkbox-container input {
+    margin-right: 8px;
+    width: auto;
+}
+
+.login-form.centered .forgot-password {
+    color: var(--azul-principal, #3b82f6);
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.login-form.centered .forgot-password:hover {
+    text-decoration: underline;
+}
+
+.btn.btn-login.centered {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--azul-principal, #3b82f6) 0%, var(--morado, #8b5cf6) 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    margin-bottom: 20px;
+}
+
+.btn.btn-login.centered:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.btn.btn-login.centered:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.login-divider.centered {
+    text-align: center;
+    margin: 20px 0;
+    position: relative;
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+.login-divider.centered::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: #e5e7eb;
+    z-index: 1;
+}
+
+.login-divider.centered span {
+    background: white;
+    padding: 0 15px;
+    position: relative;
+    z-index: 2;
+}
+
+.btn.btn-secondary.btn-back.centered {
+    width: 100%;
+    padding: 12px;
+    background: #f8fafc;
+    color: #374151;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.btn.btn-secondary.btn-back.centered:hover {
+    background: #f1f5f9;
+    border-color: #d1d5db;
+}
+
+/* Error messages */
+.error-message {
+    color: #dc2626;
+    font-size: 0.8rem;
+    margin-top: 4px;
+    display: block;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .login-box.centered {
+        margin: 20px;
+        max-width: none;
+    }
+    
+    .login-header.centered,
+    .login-form.centered {
+        padding: 20px;
+    }
 }
