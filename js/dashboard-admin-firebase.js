@@ -1,406 +1,508 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Administrativo - Bienestar APS</title>
-    <link rel="stylesheet" href="../css/styles.css">
-</head>
-<body>
-    <!-- Header Admin -->
-    <header class="header admin-header">
-        <div class="container">
-            <div class="header-content">
-                <div class="logo">
-                    <a href="../index.html">
-                      <img src="../assets/images/logo-bienestar.png" alt="Logo Bienestar APS" style="height:120px; width:auto;">
-                    </a>
-                    <span class="admin-badge">ADMIN</span>
-                </div>
-                <nav class="user-nav">
-                    <div class="user-info">
-                        <span class="user-name">🔐 Administrador</span>
-                        <span class="user-rut">Panel de Control</span>
-                    </div>
-                    <button class="btn btn-logout" onclick="logout()">Cerrar Sesión</button>
-                </nav>
-            </div>
-        </div>
-    </header>
+import { db } from './firebase-config.js';
+import { 
+    collection, 
+    doc, 
+    getDoc, 
+    getDocs, 
+    setDoc, 
+    updateDoc, 
+    deleteDoc,
+    query,
+    where,
+    orderBy,
+    limit,
+    addDoc,
+    Timestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    <!-- Navegación Admin -->
-    <nav class="dashboard-nav admin-nav">
-        <div class="container">
-            <ul class="nav-tabs">
-                <li class="nav-tab active" data-tab="dashboard">📊 Dashboard</li>
-                <li class="nav-tab" data-tab="afiliados">👥 Afiliados</li>
-                <li class="nav-tab" data-tab="solicitudes">📝 Solicitudes</li>
-                <li class="nav-tab" data-tab="beneficios">💰 Beneficios</li>
-                <li class="nav-tab" data-tab="convenios">🏪 Convenios</li>
-                <li class="nav-tab" data-tab="reportes">📈 Reportes</li>
-            </ul>
-        </div>
-    </nav>
+// ==================== FUNCIONARIOS ====================
 
-    <!-- Contenido Admin -->
-    <section class="dashboard-content admin-content">
-        <div class="container">
-            
-            <!-- Tab: Dashboard -->
-            <div class="tab-content active" id="tab-dashboard">
-                <h1 class="page-title">Panel de Control Administrativo</h1>
-                
-                <!-- Estadísticas Principales -->
-                <div class="admin-stats-grid">
-                    <div class="admin-stat-card card-primary">
-                        <div class="stat-icon">👥</div>
-                        <div class="stat-info">
-                            <h3 id="total-afiliados">0</h3>
-                            <p>Afiliados Activos</p>
-                            <span class="stat-trend positive">+5% este mes</span>
-                        </div>
-                    </div>
-                    <div class="admin-stat-card card-success">
-                        <div class="stat-icon">💰</div>
-                        <div class="stat-info">
-                            <h3 id="total-beneficios">$0</h3>
-                            <p>Beneficios Entregados 2025</p>
-                            <span class="stat-trend positive">+12% vs 2024</span>
-                        </div>
-                    </div>
-                    <div class="admin-stat-card card-warning">
-                        <div class="stat-icon">📝</div>
-                        <div class="stat-info">
-                            <h3 id="solicitudes-pendientes">0</h3>
-                            <p>Solicitudes Pendientes</p>
-                            <span class="stat-trend negative">Requiere atención</span>
-                        </div>
-                    </div>
-                    <div class="admin-stat-card card-info">
-                        <div class="stat-icon">🏪</div>
-                        <div class="stat-info">
-                            <h3 id="convenios-activos">0</h3>
-                            <p>Convenios Activos</p>
-                            <span class="stat-trend neutral">2 por renovar</span>
-                        </div>
-                    </div>
-                </div>
+// Obtener todos los funcionarios
+async function obtenerFuncionarios(filtros = {}) {
+    try {
+        let q = collection(db, 'funcionarios');
+        
+        // Aplicar filtros
+        if (filtros.estado) {
+            q = query(q, where('estado', '==', filtros.estado));
+        }
+        if (filtros.centroSalud) {
+            q = query(q, where('centroSalud', '==', filtros.centroSalud));
+        }
+        
+        // Ordenar por fecha de creación
+        q = query(q, orderBy('createdAt', 'desc'));
+        
+        const querySnapshot = await getDocs(q);
+        const funcionarios = [];
+        
+        querySnapshot.forEach((doc) => {
+            funcionarios.push({
+                id: doc.id,
+                ...doc.data()
+            });
+        });
+        
+        return funcionarios;
+    } catch (error) {
+        console.error('Error al obtener funcionarios:', error);
+        return [];
+    }
+}
 
-                <!-- Pendientes de Aprobación -->
-                <div class="admin-section">
-                    <div class="section-header">
-                        <h2>⏳ Afiliados Pendientes de Aprobación</h2>
-                        <span id="pendientes-count" class="badge warning">0</span>
-                    </div>
-                    <div id="afiliados-pendientes" class="pending-list">
-                        <!-- Se carga dinámicamente -->
-                    </div>
-                </div>
+// Obtener funcionario por ID
+async function obtenerFuncionario(id) {
+    try {
+        const docRef = doc(db, 'funcionarios', id);
+        const docSnap = await getDoc(docRef);
+        
+        if (docSnap.exists()) {
+            return {
+                id: docSnap.id,
+                ...docSnap.data()
+            };
+        }
+        return null;
+    } catch (error) {
+        console.error('Error al obtener funcionario:', error);
+        return null;
+    }
+}
 
-                <!-- Actividad Reciente -->
-                <div class="admin-section">
-                    <div class="section-header">
-                        <h2>📋 Actividad Reciente</h2>
-                        <button class="btn btn-small btn-secondary">Ver Todo</button>
-                    </div>
-                    <div class="activity-list">
-                        <div class="activity-item">
-                            <div class="activity-icon success">✓</div>
-                            <div class="activity-content">
-                                <p><strong>Solicitud Aprobada:</strong> Asignación por Natalidad - María González</p>
-                                <span class="activity-time">Hace 10 minutos</span>
-                            </div>
-                        </div>
-                        <div class="activity-item">
-                            <div class="activity-icon info">📄</div>
-                            <div class="activity-content">
-                                <p><strong>Nueva Solicitud:</strong> Préstamo Médico - Carlos Soto</p>
-                                <span class="activity-time">Hace 25 minutos</span>
-                            </div>
-                        </div>
-                        <div class="activity-item">
-                            <div class="activity-icon warning">⚠️</div>
-                            <div class="activity-content">
-                                <p><strong>Alerta:</strong> Convenio por renovar - Gimnasios Energy</p>
-                                <span class="activity-time">Hace 1 hora</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+// Crear nuevo funcionario (por admin)
+async function crearFuncionario(datos) {
+    try {
+        // Importar funciones de autenticación
+        const { createUserWithEmailAndPassword } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js");
+        const { auth } = await import('./firebase-config.js');
+        
+        // Crear usuario en Authentication
+        const userCredential = await createUserWithEmailAndPassword(
+            auth,
+            datos.email,
+            datos.password
+        );
+        
+        const user = userCredential.user;
+        
+        // Limpiar RUT
+        function limpiarRUT(rut) {
+            return rut.replace(/\./g, '').replace(/-/g, '');
+        }
+        
+        // Crear documento en Firestore
+        await setDoc(doc(db, 'funcionarios', user.uid), {
+            uid: user.uid,
+            rut: limpiarRUT(datos.rut),
+            nombre: datos.nombre,
+            email: datos.email,
+            telefono: datos.telefono || '',
+            fechaAfiliacion: datos.fechaAfiliacion || new Date(),
+            centroSalud: datos.centroSalud,
+            cargo: datos.cargo || '',
+            estadoCivil: datos.estadoCivil || '',
+            estado: datos.estado || 'activo',
+            cargasFamiliares: [],
+            creadoPorAdmin: datos.creadoPorAdmin || false,
+            createdAt: new Date(),
+            updatedAt: new Date()
+        });
+        
+        return {
+            success: true,
+            message: 'Funcionario creado exitosamente.',
+            uid: user.uid
+        };
+        
+    } catch (error) {
+        console.error('Error al crear funcionario:', error);
+        
+        let errorMessage = error.message;
+        if (error.code === 'auth/email-already-in-use') {
+            errorMessage = 'Este email ya está registrado';
+        } else if (error.code === 'auth/weak-password') {
+            errorMessage = 'La contraseña es muy débil';
+        } else if (error.code === 'auth/invalid-email') {
+            errorMessage = 'Email inválido';
+        }
+        
+        return {
+            success: false,
+            error: errorMessage
+        };
+    }
+}
 
-            <!-- Tab: Afiliados -->
-            <div class="tab-content" id="tab-afiliados">
-                <div class="section-header">
-                    <h2>👥 Gestión de Afiliados</h2>
-                    <button class="btn btn-primary" onclick="abrirModalNuevoAfiliado()">
-                        ➕ Nuevo Afiliado
-                    </button>
-                </div>
+// Actualizar funcionario
+async function actualizarFuncionario(id, datos) {
+    try {
+        const docRef = doc(db, 'funcionarios', id);
+        await updateDoc(docRef, {
+            ...datos,
+            updatedAt: Timestamp.now()
+        });
+        return { success: true };
+    } catch (error) {
+        console.error('Error al actualizar funcionario:', error);
+        return { success: false, error: error.message };
+    }
+}
 
-                <!-- Filtros y Búsqueda -->
-                <div class="admin-filters">
-                    <input type="text" id="search-afiliados" class="search-input" placeholder="🔍 Buscar por nombre, RUT o centro de salud...">
-                    
-                    <select id="filter-estado" class="filter-select">
-                        <option value="">Todos los estados</option>
-                        <option value="activo">Activos</option>
-                        <option value="pendiente">Pendientes</option>
-                        <option value="inactivo">Inactivos</option>
-                    </select>
-                    
-                    <select id="filter-centro" class="filter-select">
-                        <option value="">Todos los centros</option>
-                        <option value="CESFAM Karol Wojtyla">CESFAM Karol Wojtyla</option>
-                        <option value="CESFAM Padre Manuel Villaseca">CESFAM Padre Manuel Villaseca</option>
-                        <option value="CESFAM Alejandro del Rio">CESFAM Alejandro del Rio</option>
-                        <option value="CESFAM Bernardo Leighton">CESFAM Bernardo Leighton</option>
-                        <option value="CESFAM Cardenal Raúl Silva Henríquez">CESFAM Cardenal Raúl Silva Henríquez</option>
-                        <option value="CESFAM Vista Hermosa">CESFAM Vista Hermosa</option>
-                        <option value="CESFAM Laurita Vicuña">CESFAM Laurita Vicuña</option>
-                        <option value="Centro de Imágenes">Centro de Imágenes</option>
-                        <option value="Central de Ambulancia">Central de Ambulancia</option>
-                        <option value="Administración Salud">Administración Salud</option>
-                        <option value="San Lázaro">San Lázaro</option>
-                        <option value="CEIF">CEIF</option>
-                        <option value="Laboratorio Salud">Laboratorio Salud</option>
-                    </select>
-                    
-                    <button class="btn btn-secondary" onclick="exportarAfiliados()">
-                        📊 Exportar Excel
-                    </button>
-                </div>
+// ==================== SOLICITUDES ====================
 
-                <!-- Tabla de Afiliados -->
-                <div class="admin-table">
-                    <table id="tabla-afiliados">
-                        <thead>
-                            <tr>
-                                <th>RUT</th>
-                                <th>Nombre</th>
-                                <th>Centro de Salud</th>
-                                <th>Fecha Afiliación</th>
-                                <th>Estado Civil</th>
-                                <th>Email</th>
-                                <th>Teléfono</th>
-                                <th>Estado</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Se carga dinámicamente -->
-                        </tbody>
-                    </table>
-                </div>
+// Crear nueva solicitud
+async function crearSolicitud(datosSolicitud) {
+    try {
+        const solicitudRef = await addDoc(collection(db, 'solicitudes'), {
+            ...datosSolicitud,
+            estado: 'pendiente',
+            prioridad: 'normal',
+            createdAt: Timestamp.now(),
+            updatedAt: Timestamp.now()
+        });
+        
+        return { 
+            success: true, 
+            id: solicitudRef.id 
+        };
+    } catch (error) {
+        console.error('Error al crear solicitud:', error);
+        return { success: false, error: error.message };
+    }
+}
 
-                <!-- Paginación -->
-                <div class="pagination">
-                    <button class="btn-small" onclick="previousPage()">← Anterior</button>
-                    <span id="pagination-info">Página 1 de 1</span>
-                    <button class="btn-small" onclick="nextPage()">Siguiente →</button>
-                </div>
-            </div>
+// Obtener solicitudes por funcionario
+async function obtenerSolicitudesFuncionario(funcionarioId) {
+    try {
+        const q = query(
+            collection(db, 'solicitudes'),
+            where('funcionarioId', '==', funcionarioId),
+            orderBy('createdAt', 'desc')
+        );
+        
+        const querySnapshot = await getDocs(q);
+        const solicitudes = [];
+        
+        querySnapshot.forEach((doc) => {
+            solicitudes.push({
+                id: doc.id,
+                ...doc.data()
+            });
+        });
+        
+        return solicitudes;
+    } catch (error) {
+        console.error('Error al obtener solicitudes:', error);
+        return [];
+    }
+}
 
-            <!-- Tab: Solicitudes -->
-            <div class="tab-content" id="tab-solicitudes">
-                <div class="section-header">
-                    <h2>📝 Gestión de Solicitudes</h2>
-                    <div class="filter-pills">
-                        <button class="pill active" data-estado="">Todas (<span id="count-todas">0</span>)</button>
-                        <button class="pill" data-estado="pendiente">Pendientes (<span id="count-pendientes">0</span>)</button>
-                        <button class="pill" data-estado="en_revision">En Revisión (<span id="count-revision">0</span>)</button>
-                        <button class="pill" data-estado="aprobada">Aprobadas (<span id="count-aprobadas">0</span>)</button>
-                    </div>
-                </div>
+// Obtener todas las solicitudes (Admin)
+async function obtenerTodasSolicitudes(filtros = {}) {
+    try {
+        let q = collection(db, 'solicitudes');
+        const conditions = [];
+        
+        if (filtros.estado) {
+            conditions.push(where('estado', '==', filtros.estado));
+        }
+        if (filtros.prioridad) {
+            conditions.push(where('prioridad', '==', filtros.prioridad));
+        }
+        
+        if (conditions.length > 0) {
+            q = query(q, ...conditions, orderBy('createdAt', 'desc'));
+        } else {
+            q = query(q, orderBy('createdAt', 'desc'));
+        }
+        
+        const querySnapshot = await getDocs(q);
+        const solicitudes = [];
+        
+        querySnapshot.forEach((doc) => {
+            solicitudes.push({
+                id: doc.id,
+                ...doc.data()
+            });
+        });
+        
+        return solicitudes;
+    } catch (error) {
+        console.error('Error al obtener solicitudes:', error);
+        return [];
+    }
+}
 
-                <!-- Lista de Solicitudes Admin -->
-                <div class="admin-solicitudes">
-                    <!-- Se carga dinámicamente -->
-                </div>
-            </div>
+// Actualizar estado de solicitud
+async function actualizarSolicitud(solicitudId, datos) {
+    try {
+        const docRef = doc(db, 'solicitudes', solicitudId);
+        await updateDoc(docRef, {
+            ...datos,
+            updatedAt: Timestamp.now()
+        });
+        return { success: true };
+    } catch (error) {
+        console.error('Error al actualizar solicitud:', error);
+        return { success: false, error: error.message };
+    }
+}
 
-            <!-- Tab: Beneficios -->
-            <div class="tab-content" id="tab-beneficios">
-                <div class="section-header">
-                    <h2>💰 Administración de Beneficios</h2>
-                    <button class="btn btn-primary">➕ Crear Beneficio</button>
-                </div>
+// Aprobar solicitud
+async function aprobarSolicitud(solicitudId, comentario = '') {
+    try {
+        const docRef = doc(db, 'solicitudes', solicitudId);
+        const docSnap = await getDoc(docRef);
+        
+        if (!docSnap.exists()) {
+            throw new Error('Solicitud no encontrada');
+        }
+        
+        const solicitud = docSnap.data();
+        
+        // Actualizar solicitud
+        await updateDoc(docRef, {
+            estado: 'aprobada',
+            fechaRespuesta: Timestamp.now(),
+            comentarioAdmin: comentario,
+            updatedAt: Timestamp.now()
+        });
+        
+        // Crear registro de beneficio
+        await addDoc(collection(db, 'beneficios'), {
+            funcionarioId: solicitud.funcionarioId,
+            tipo: solicitud.tipoBeneficio,
+            nombre: solicitud.tipoBeneficio.replace(/_/g, ' ').toUpperCase(),
+            monto: solicitud.monto,
+            estado: 'pendiente',
+            solicitudId: solicitudId,
+            createdAt: Timestamp.now()
+        });
+        
+        return { success: true, message: 'Solicitud aprobada exitosamente' };
+    } catch (error) {
+        console.error('Error al aprobar solicitud:', error);
+        return { success: false, error: error.message };
+    }
+}
 
-                <div class="beneficios-admin-grid">
-                    <!-- Se carga dinámicamente -->
-                </div>
-            </div>
+// Rechazar solicitud
+async function rechazarSolicitud(solicitudId, motivo) {
+    try {
+        const docRef = doc(db, 'solicitudes', solicitudId);
+        await updateDoc(docRef, {
+            estado: 'rechazada',
+            motivoRechazo: motivo,
+            fechaRespuesta: Timestamp.now(),
+            updatedAt: Timestamp.now()
+        });
+        
+        return { success: true, message: 'Solicitud rechazada' };
+    } catch (error) {
+        console.error('Error al rechazar solicitud:', error);
+        return { success: false, error: error.message };
+    }
+}
 
-            <!-- Tab: Convenios -->
-            <div class="tab-content" id="tab-convenios">
-                <div class="section-header">
-                    <h2>🏪 Administración de Convenios</h2>
-                    <button class="btn btn-primary">➕ Nuevo Convenio</button>
-                </div>
+// ==================== BENEFICIOS ====================
 
-                <div class="convenios-admin-list">
-                    <!-- Se carga dinámicamente -->
-                </div>
-            </div>
+// Obtener beneficios por funcionario
+async function obtenerBeneficiosFuncionario(funcionarioId) {
+    try {
+        const q = query(
+            collection(db, 'beneficios'),
+            where('funcionarioId', '==', funcionarioId),
+            orderBy('createdAt', 'desc')
+        );
+        
+        const querySnapshot = await getDocs(q);
+        const beneficios = [];
+        
+        querySnapshot.forEach((doc) => {
+            beneficios.push({
+                id: doc.id,
+                ...doc.data()
+            });
+        });
+        
+        return beneficios;
+    } catch (error) {
+        console.error('Error al obtener beneficios:', error);
+        return [];
+    }
+}
 
-            <!-- Tab: Reportes -->
-            <div class="tab-content" id="tab-reportes">
-                <h2>📈 Centro de Reportes</h2>
-                
-                <div class="reportes-grid">
-                    <div class="reporte-card">
-                        <h3>📊 Reporte de Beneficios</h3>
-                        <p>Detalle de beneficios entregados por período</p>
-                        <div class="reporte-form">
-                            <select>
-                                <option>Último mes</option>
-                                <option>Último trimestre</option>
-                                <option>Último año</option>
-                                <option>Personalizado</option>
-                            </select>
-                            <button class="btn btn-primary">Generar</button>
-                        </div>
-                    </div>
+// Calcular total de beneficios por año
+async function calcularTotalBeneficios(funcionarioId, año) {
+    try {
+        const beneficios = await obtenerBeneficiosFuncionario(funcionarioId);
+        
+        const total = beneficios
+            .filter(b => {
+                const fecha = b.createdAt.toDate();
+                return fecha.getFullYear() === año && b.estado === 'pagado';
+            })
+            .reduce((sum, b) => sum + (b.monto || 0), 0);
+        
+        return total;
+    } catch (error) {
+        console.error('Error al calcular total:', error);
+        return 0;
+    }
+}
 
-                    <div class="reporte-card">
-                        <h3>👥 Reporte de Afiliados</h3>
-                        <p>Listado completo de afiliados y su estado</p>
-                        <div class="reporte-form">
-                            <select>
-                                <option>Todos los centros</option>
-                                <option>CESFAM Karol Wojtyla</option>
-                                <option>CESFAM Padre Manuel Villaseca</option>
-                            </select>
-                            <button class="btn btn-primary">Generar</button>
-                        </div>
-                    </div>
+// ==================== CONVENIOS ====================
 
-                    <div class="reporte-card">
-                        <h3>💰 Reporte Financiero</h3>
-                        <p>Resumen de montos entregados y presupuesto</p>
-                        <div class="reporte-form">
-                            <select>
-                                <option>2025</option>
-                                <option>2024</option>
-                                <option>2023</option>
-                            </select>
-                            <button class="btn btn-primary">Generar</button>
-                        </div>
-                    </div>
+// Obtener todos los convenios activos
+async function obtenerConvenios(filtros = {}) {
+    try {
+        let q = collection(db, 'convenios');
+        
+        if (filtros.categoria) {
+            q = query(q, where('categoria', '==', filtros.categoria));
+        }
+        if (filtros.estado) {
+            q = query(q, where('estado', '==', filtros.estado));
+        } else {
+            q = query(q, where('estado', '==', 'activo'));
+        }
+        
+        const querySnapshot = await getDocs(q);
+        const convenios = [];
+        
+        querySnapshot.forEach((doc) => {
+            convenios.push({
+                id: doc.id,
+                ...doc.data()
+            });
+        });
+        
+        return convenios;
+    } catch (error) {
+        console.error('Error al obtener convenios:', error);
+        return [];
+    }
+}
 
-                    <div class="reporte-card">
-                        <h3>🏪 Reporte de Convenios</h3>
-                        <p>Uso y efectividad de convenios activos</p>
-                        <div class="reporte-form">
-                            <select>
-                                <option>Todos los convenios</option>
-                                <option>Salud</option>
-                                <option>Educación</option>
-                            </select>
-                            <button class="btn btn-primary">Generar</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+// Crear nuevo convenio
+async function crearConvenio(datosConvenio) {
+    try {
+        const convenioRef = await addDoc(collection(db, 'convenios'), {
+            ...datosConvenio,
+            estado: 'activo',
+            usosMensual: 0,
+            createdAt: Timestamp.now(),
+            updatedAt: Timestamp.now()
+        });
+        
+        return { 
+            success: true, 
+            id: convenioRef.id 
+        };
+    } catch (error) {
+        console.error('Error al crear convenio:', error);
+        return { success: false, error: error.message };
+    }
+}
 
-        </div>
-    </section>
+// Actualizar convenio
+async function actualizarConvenio(convenioId, datos) {
+    try {
+        const docRef = doc(db, 'convenios', convenioId);
+        await updateDoc(docRef, {
+            ...datos,
+            updatedAt: Timestamp.now()
+        });
+        return { success: true };
+    } catch (error) {
+        console.error('Error al actualizar convenio:', error);
+        return { success: false, error: error.message };
+    }
+}
 
-    <!-- Modal Nuevo Afiliado -->
-    <div id="modal-nuevo-afiliado" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>➕ Nuevo Afiliado</h2>
-                <span class="close" onclick="cerrarModalNuevoAfiliado()">&times;</span>
-            </div>
-            <div class="modal-body">
-                <form id="form-nuevo-afiliado">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="nuevo-rut">RUT *</label>
-                            <input type="text" id="nuevo-rut" required maxlength="12" placeholder="12.345.678-9">
-                            <span class="error-message" id="nuevo-rut-error"></span>
-                        </div>
-                        <div class="form-group">
-                            <label for="nuevo-nombre">Nombre Completo *</label>
-                            <input type="text" id="nuevo-nombre" required placeholder="Juan Pérez Gómez">
-                            <span class="error-message" id="nuevo-nombre-error"></span>
-                        </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="nuevo-email">Correo Electrónico *</label>
-                            <input type="email" id="nuevo-email" required placeholder="juan.perez@salud.cl">
-                            <span class="error-message" id="nuevo-email-error"></span>
-                        </div>
-                        <div class="form-group">
-                            <label for="nuevo-telefono">Número de Teléfono</label>
-                            <input type="tel" id="nuevo-telefono" placeholder="+56 9 1234 5678">
-                        </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="nuevo-centro">Lugar de Trabajo *</label>
-                            <select id="nuevo-centro" required>
-                                <option value="">Seleccione...</option>
-                                <option value="CESFAM Karol Wojtyla">CESFAM Karol Wojtyla</option>
-                                <option value="CESFAM Padre Manuel Villaseca">CESFAM Padre Manuel Villaseca</option>
-                                <option value="CESFAM Alejandro del Rio">CESFAM Alejandro del Rio</option>
-                                <option value="CESFAM Bernardo Leighton">CESFAM Bernardo Leighton</option>
-                                <option value="CESFAM Cardenal Raúl Silva Henríquez">CESFAM Cardenal Raúl Silva Henríquez</option>
-                                <option value="CESFAM Vista Hermosa">CESFAM Vista Hermosa</option>
-                                <option value="CESFAM Laurita Vicuña">CESFAM Laurita Vicuña</option>
-                                <option value="Centro de Imágenes">Centro de Imágenes</option>
-                                <option value="Central de Ambulancia">Central de Ambulancia</option>
-                                <option value="Administración Salud">Administración Salud</option>
-                                <option value="San Lázaro">San Lázaro</option>
-                                <option value="CEIF">CEIF</option>
-                                <option value="Laboratorio Salud">Laboratorio Salud</option>
-                            </select>
-                            <span class="error-message" id="nuevo-centro-error"></span>
-                        </div>
-                        <div class="form-group">
-                            <label for="nuevo-estado-civil">Estado Civil</label>
-                            <select id="nuevo-estado-civil">
-                                <option value="">Seleccione...</option>
-                                <option value="Soltero/a">Soltero/a</option>
-                                <option value="Casado/a">Casado/a</option>
-                                <option value="Divorciado/a">Divorciado/a</option>
-                                <option value="Viudo/a">Viudo/a</option>
-                                <option value="Unión Civil">Unión Civil</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="nuevo-cargo">Cargo</label>
-                            <input type="text" id="nuevo-cargo" placeholder="Ej: Enfermero, Técnico, etc.">
-                        </div>
-                        <div class="form-group">
-                            <label for="nuevo-password">Contraseña Temporal *</label>
-                            <input type="password" id="nuevo-password" required minlength="6" placeholder="Mínimo 6 caracteres">
-                            <span class="error-message" id="nuevo-password-error"></span>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="cerrarModalNuevoAfiliado()">Cancelar</button>
-                <button type="submit" form="form-nuevo-afiliado" class="btn btn-primary" id="btn-crear-afiliado">Crear Afiliado</button>
-            </div>
-        </div>
-    </div>
+// ==================== ESTADÍSTICAS ====================
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; 2025 Servicio Bienestar APS - Panel Administrativo</p>
-        </div>
-    </footer>
+// Obtener estadísticas generales para admin
+async function obtenerEstadisticasGenerales() {
+    try {
+        // Contar funcionarios activos
+        const funcionariosQuery = query(
+            collection(db, 'funcionarios'),
+            where('estado', '==', 'activo')
+        );
+        const funcionariosSnap = await getDocs(funcionariosQuery);
+        const totalFuncionarios = funcionariosSnap.size;
+        
+        // Contar solicitudes pendientes
+        const solicitudesQuery = query(
+            collection(db, 'solicitudes'),
+            where('estado', 'in', ['pendiente', 'en_revision'])
+        );
+        const solicitudesSnap = await getDocs(solicitudesQuery);
+        const solicitudesPendientes = solicitudesSnap.size;
+        
+        // Contar convenios activos
+        const conveniosQuery = query(
+            collection(db, 'convenios'),
+            where('estado', '==', 'activo')
+        );
+        const conveniosSnap = await getDocs(conveniosQuery);
+        const conveniosActivos = conveniosSnap.size;
+        
+        // Calcular total de beneficios entregados
+        const beneficiosQuery = query(
+            collection(db, 'beneficios'),
+            where('estado', '==', 'pagado')
+        );
+        const beneficiosSnap = await getDocs(beneficiosQuery);
+        
+        let totalBeneficios = 0;
+        beneficiosSnap.forEach((doc) => {
+            totalBeneficios += doc.data().monto || 0;
+        });
+        
+        return {
+            totalFuncionarios,
+            solicitudesPendientes,
+            conveniosActivos,
+            totalBeneficios
+        };
+    } catch (error) {
+        console.error('Error al obtener estadísticas:', error);
+        return {
+            totalFuncionarios: 0,
+            solicitudesPendientes: 0,
+            conveniosActivos: 0,
+            totalBeneficios: 0
+        };
+    }
+}
 
-    <script type="module" src="../js/dashboard-admin-firebase.js"></script>
-</body>
-</html>
+// Exportar funciones
+export {
+    // Funcionarios
+    obtenerFuncionarios,
+    obtenerFuncionario,
+    crearFuncionario,
+    actualizarFuncionario,
+    
+    // Solicitudes
+    crearSolicitud,
+    obtenerSolicitudesFuncionario,
+    obtenerTodasSolicitudes,
+    actualizarSolicitud,
+    aprobarSolicitud,
+    rechazarSolicitud,
+    
+    // Beneficios
+    obtenerBeneficiosFuncionario,
+    calcularTotalBeneficios,
+    
+    // Convenios
+    obtenerConvenios,
+    crearConvenio,
+    actualizarConvenio,
+    
+    // Estadísticas
+    obtenerEstadisticasGenerales
+};
