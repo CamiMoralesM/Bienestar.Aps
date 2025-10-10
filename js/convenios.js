@@ -1,1253 +1,397 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Convenios - Bienestar APS</title>
-    <link rel="stylesheet" href="../css/styles.css">
-</head>
-<body>
-    <!-- Header -->
-    <header class="header">
-        <div class="container">
-            <div class="header-content">
-                <div class="logo">
-                    <a href="../index.html">
-                        <img src="../assets/images/logo-bienestar.png" alt="Logo Bienestar APS" style="height:120px; width:auto;">
-                    </a>
+// Filtro de convenios actualizado
+document.addEventListener('DOMContentLoaded', function() {
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    const convenioCards = document.querySelectorAll('.convenio-card');
+
+    // Función para animar la entrada de tarjetas
+    function animateCardIn(card) {
+        card.style.display = 'block';
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, 10);
+    }
+
+    // Función para animar la salida de tarjetas
+    function animateCardOut(card) {
+        card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            card.style.display = 'none';
+        }, 300);
+    }
+
+    // Event listeners para los botones de filtro
+    filterButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Remover clase active de todos los botones
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            // Agregar clase active al botón clickeado
+            this.classList.add('active');
+
+            const category = this.getAttribute('data-category');
+
+            convenioCards.forEach(card => {
+                if (category === 'todos' || card.getAttribute('data-category') === category) {
+                    animateCardIn(card);
+                } else {
+                    animateCardOut(card);
+                }
+            });
+
+            // Actualizar contador después del filtro
+            setTimeout(updateConvenioCount, 350);
+        });
+    });
+
+    // Función para búsqueda en convenios
+    function addSearchFunctionality() {
+        const searchInput = document.createElement('input');
+        searchInput.type = 'text';
+        searchInput.placeholder = 'Buscar convenio o empresa...';
+        searchInput.className = 'search-input';
+        searchInput.style.cssText = `
+            width: 100%;
+            max-width: 300px;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        `;
+        
+        const filtersSection = document.querySelector('.filters-section .container');
+        if (filtersSection) {
+            filtersSection.appendChild(searchInput);
+        }
+
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            
+            convenioCards.forEach(card => {
+                const title = card.querySelector('h3').textContent.toLowerCase();
+                const description = card.querySelector('.convenio-descripcion').textContent.toLowerCase();
+                const info = card.querySelector('.convenio-info') ? 
+                    card.querySelector('.convenio-info').textContent.toLowerCase() : '';
+                
+                if (title.includes(searchTerm) || description.includes(searchTerm) || info.includes(searchTerm)) {
+                    animateCardIn(card);
+                } else {
+                    animateCardOut(card);
+                }
+            });
+
+            setTimeout(updateConvenioCount, 100);
+        });
+    }
+
+    // Función para mostrar detalles de convenio
+    function showConvenioDetails(convenioData) {
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        `;
+
+        modal.innerHTML = `
+            <div class="modal-content" style="
+                background: white;
+                padding: 30px;
+                border-radius: 10px;
+                max-width: 600px;
+                width: 90%;
+                max-height: 80vh;
+                overflow-y: auto;
+                position: relative;
+            ">
+                <div class="modal-header" style="border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
+                    <h3 style="margin: 0; color: #2c5aa0;">${convenioData.title}</h3>
+                    <button class="modal-close" style="
+                        position: absolute;
+                        top: 15px;
+                        right: 20px;
+                        background: none;
+                        border: none;
+                        font-size: 24px;
+                        cursor: pointer;
+                        color: #999;
+                    ">&times;</button>
                 </div>
-                <nav class="nav-buttons">
-                    <button class="btn btn-secondary" onclick="location.href='../index.html'">
-                        Volver al Inicio
-                    </button>
-                    <button class="btn btn-afiliado" onclick="location.href='login.html?tipo=afiliado'">
-                        Acceso Afiliados
-                    </button>
-                </nav>
-            </div>
-        </div>
-    </header>
+                <div class="modal-body">
+                    <div class="convenio-descuento-large" style="
+                        font-size: 24px;
+                        font-weight: bold;
+                        color: #e74c3c;
+                        text-align: center;
+                        margin-bottom: 20px;
+                        padding: 15px;
+                        background: #f8f9fa;
+                        border-radius: 8px;
+                    ">${convenioData.descuento}</div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: #2c5aa0; margin-bottom: 10px;">Descripción:</h4>
+                        <p style="line-height: 1.6;">${convenioData.descripcion}</p>
+                    </div>
 
-    <!-- Hero Convenios -->
-    <section class="page-hero convenios-hero">
-        <div class="container">
-            <h1>Convenios y Descuentos</h1>
-            <p>Accede a descuentos exclusivos en salud, educación, bienestar y más</p>
-            <div class="hero-note">
-                <strong>Importante:</strong> Los convenios pueden usarse después del primer descuento mensual reflejado en tu liquidación de sueldos.
-            </div>
-        </div>
-    </section>
+                    ${convenioData.info ? `
+                        <div style="margin-bottom: 20px;">
+                            <h4 style="color: #2c5aa0; margin-bottom: 10px;">Información de Contacto:</h4>
+                            <div style="
+                                background: #f8f9fa;
+                                padding: 15px;
+                                border-radius: 8px;
+                                border-left: 4px solid #2c5aa0;
+                            ">${convenioData.info}</div>
+                        </div>
+                    ` : ''}
 
-    <!-- Filtros -->
-    <section class="filters-section">
-        <div class="container">
-            <div class="filters">
-                <button class="filter-btn active" data-category="todos">Todos</button>
-                <button class="filter-btn" data-category="dental">Dental</button>
-                <button class="filter-btn" data-category="optica">Óptica</button>
-                <button class="filter-btn" data-category="farmacia">Farmacia</button>
-                <button class="filter-btn" data-category="salud">Salud</button>
-                <button class="filter-btn" data-category="alimentacion">Alimentación</button>
-                <button class="filter-btn" data-category="belleza">Belleza</button>
-                <button class="filter-btn" data-category="educacion">Educación</button>
-                <button class="filter-btn" data-category="servicios">Servicios</button>
-                <button class="filter-btn" data-category="entretenimiento">Entretenimiento</button>
-                <button class="filter-btn" data-category="mascotas">Mascotas</button>
-            </div>
-        </div>
-    </section>
-
-    <!-- Convenios Grid -->
-    <section class="convenios-section">
-        <div class="container">
-            <div class="convenios-grid">
-
-                <!-- SERVICIOS DENTALES -->
-
-                <!-- Clínica Dental PSQ -->
-                <div class="convenio-card" data-category="dental">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">🦷</div>
-                        <h3>Clínica Dental PSQ</h3>
-                    </div>
-                    <div class="convenio-descuento">70% descuento</div>
-                    <p class="convenio-descripcion">
-                        70% de descuento sobre el Arancel Único del Colegio de Dentistas de Chile. Incluye presupuesto-diagnóstico y radiografía sin costo.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Ubicación:</strong> Balmaceda 371, Local 112, Puente Alto</p>
-                        <p><strong>📱 WhatsApp:</strong> +56 9 5310 9576</p>
-                        <p><strong>✉️ Email:</strong> centrodental.psq2@gmail.com</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- Clínica Dental CDF -->
-                <div class="convenio-card" data-category="dental">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">🦷</div>
-                        <h3>Clínica Dental CDF</h3>
-                    </div>
-                    <div class="convenio-descuento">30% descuento</div>
-                    <p class="convenio-descripcion">
-                        30% de descuento en todos los servicios, exceptuando productos en oferta y costos por laboratorio.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Ubicación:</strong> Av. José Manuel Irarrázaval 0180, of 704</p>
-                        <p><strong>📞 Teléfono:</strong> +56 9 5964 3710</p>
-                        <p><strong>🕐 Horario:</strong> L-V 9:00-18:00 / S 9:00-14:00</p>
-                        <p><strong>📱 Instagram:</strong> @cdfdent</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- SERVICIOS ÓPTICOS -->
-
-                <!-- Óptica Imagen Optical -->
-                <div class="convenio-card" data-category="optica">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">👓</div>
-                        <h3>Óptica Imagen Optical</h3>
-                    </div>
-                    <div class="convenio-descuento">10-20% descuento</div>
-                    <p class="convenio-descripcion">
-                        20% dcto en cristales stock + armazón, 15% dcto en cristales laboratorio + armazón, 10% dcto en lentes de contacto y lentes de sol.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Ubicación:</strong> Sergio Roubillard N° 86, Puente Alto</p>
-                        <p><strong>📞 Teléfono:</strong> 22 769 1196</p>
-                        <p><strong>📱 WhatsApp:</strong> +56 9 3113 1761</p>
-                        <p><strong>✉️ Email:</strong> opticaimagenoptical@gmail.com</p>
-                        <p><strong>❌ No aplicable a ofertas</strong></p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- Óptica Boketto -->
-                <div class="convenio-card" data-category="optica">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">👁️</div>
-                        <h3>Óptica Boketto</h3>
-                    </div>
-                    <div class="convenio-descuento">Chequeo gratis</div>
-                    <p class="convenio-descripcion">
-                        Chequeo preventivo gratuito. Consulta oftalmológica $5.000 (costo cero si adquiere lentes en Boketto).
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Ubicación:</strong> Av. Concha y Toro 3093, Local 9, Puente Alto</p>
-                        <p><strong>📱 Teléfono:</strong> +56 9 5741 3172</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- FARMACIAS -->
-
-                <!-- Salcobrand -->
-                <div class="convenio-card" data-category="farmacia">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">💊</div>
-                        <h3>Salcobrand</h3>
-                    </div>
-                    <div class="convenio-descuento">Hasta 25% descuento</div>
-                    <p class="convenio-descripcion">
-                        Hasta 25% dcto en medicamentos (analgésicos, salud respiratoria, cardiovascular, mental y de la piel) y 7% dcto en cuidado personal.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Aplica:</strong> En todas las sucursales Salcobrand</p>
-                        <p><strong>✅ Identificación:</strong> Indicar afiliación a Bienestar APS</p>
-                        <p><strong>🎯 Cuidado personal:</strong> Higiene bucal, barbería, capilar, bebé, piel, belleza</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- Farmacia Estrella -->
-                <div class="convenio-card" data-category="farmacia">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">⭐</div>
-                        <h3>Farmacia Estrella</h3>
-                    </div>
-                    <div class="convenio-descuento">7-18% descuento</div>
-                    <p class="convenio-descripcion">
-                        18% dcto en medicamentos genéricos (todos los días), 12% dcto en suplementos, vitaminas y minerales, 7% dcto en productos veterinarios.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Ubicación:</strong> Concha y Toro 180, Puente Alto</p>
-                        <p><strong>📱 WhatsApp:</strong> +56 9 2096 4044</p>
-                        <p><strong>📞 Teléfono:</strong> 2 2404 8229</p>
-                        <p><strong>🕐 Horario:</strong> L-V 9:00-18:00 / S 10:00-17:00</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- SERVICIOS DE SALUD -->
-
-                <!-- Espacio Sandrino -->
-                <div class="convenio-card" data-category="salud">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">🧠</div>
-                        <h3>Espacio Sandrino - Salud Mental</h3>
-                    </div>
-                    <div class="convenio-descuento">10% descuento</div>
-                    <p class="convenio-descripcion">
-                        10% dcto en atenciones individuales, test ADIR/ADOS 2, talleres grupales. Disciplinas: psicología, fonoaudiología, terapia ocupacional, psicopedagogía.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Ubicación:</strong> Coquimbo N° 2905, Puente Alto</p>
-                        <p><strong>📱 WhatsApp:</strong> +56 9 7454 6089</p>
-                        <p><strong>✉️ Email:</strong> espaciosandrino@gmail.com</p>
-                        <p><strong>🌐 Web:</strong> www.espaciosandrino.com</p>
-                        <p><strong>🎁 Extra:</strong> Facilidades reembolso Isapres, charla gratuita semestral</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- Acupuntura Flor de Loto -->
-                <div class="convenio-card" data-category="salud">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">🌸</div>
-                        <h3>Acupuntura Flor de Loto</h3>
-                    </div>
-                    <div class="convenio-descuento">$25.000/sesión</div>
-                    <p class="convenio-descripcion">
-                        Precio preferencial de $25.000 por sesión (valor normal $35.000).
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Ubicación:</strong> Juan Antonio Ríos N° 0348, Puente Alto</p>
-                        <p><strong>📱 WhatsApp:</strong> +56 9 4930 5213</p>
-                        <p><strong>✉️ Email:</strong> flordeloto.acupuntura@gmail.com</p>
-                        <p><strong>🕐 Horario:</strong> L-V 9:00-18:00 / S 10:00-13:00</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- Atención Quiropráctica -->
-                <div class="convenio-card" data-category="salud">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">🦴</div>
-                        <h3>Atención Quiropráctica</h3>
-                    </div>
-                    <div class="convenio-descuento">20% descuento</div>
-                    <p class="convenio-descripcion">
-                        20% de descuento en las tres primeras sesiones, suficientes para superar la mayoría de dolencias.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>👨‍⚕️ Profesional:</strong> Juan Francisco Díaz</p>
-                        <p><strong>📍 Ubicación:</strong> Pedro Aguirre Cerda 0239, Puente Alto</p>
-                        <p><strong>📱 Teléfono:</strong> +56 9 7667 6040</p>
-                        <p><strong>✉️ Email:</strong> jfranciscodg@gmail.com</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- Alma Terapias Integrales -->
-                <div class="convenio-card" data-category="salud">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">🧘</div>
-                        <h3>Alma Terapias Integrales</h3>
-                    </div>
-                    <div class="convenio-descuento">10% descuento</div>
-                    <p class="convenio-descripcion">
-                        10% dcto en sesiones individuales: Reiki, terapia floral, regresiones, constelaciones familiares, tarot terapéutico, registros akáshicos.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Ubicación:</strong> La Herradura 175, Puente Alto</p>
-                        <p><strong>📱 Teléfono:</strong> +56 9 8683 8587</p>
-                        <p><strong>📱 Instagram:</strong> @alma.terapiasintegrales</p>
-                        <p><strong>🎯 Incluye:</strong> Talleres, círculos de sanación, cursos de Reiki</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- SERVICIOS DE BELLEZA -->
-
-                <!-- Centro de Estética Piel Bella -->
-                <div class="convenio-card" data-category="belleza">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">💅</div>
-                        <h3>Centro de Estética Piel Bella</h3>
-                    </div>
-                    <div class="convenio-descuento">10-15% descuento</div>
-                    <p class="convenio-descripcion">
-                        15% dcto para afiliadas, 10% dcto para madres, hijas y esposas de afiliados. Aplica a todos los servicios: depilación láser, tratamientos corporales y faciales.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Ubicación:</strong> Av. Diego Portales 06382, Puente Alto</p>
-                        <p><strong>📞 Teléfono:</strong> 22 667 377</p>
-                        <p><strong>🕐 Horario:</strong> L-V 14:00-20:00 / M,J,S 9:00-14:00</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- Estética y Spa Daluz -->
-                <div class="convenio-card" data-category="belleza">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">✨</div>
-                        <h3>Estética y Spa "Daluz"</h3>
-                    </div>
-                    <div class="convenio-descuento">15-20% descuento</div>
-                    <p class="convenio-descripcion">
-                        15% dcto en todos los servicios, 20% dcto M-J en corte de cabello para tercera edad, 5% dcto en semana de cumpleaños. Atención preferencial.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Ubicación:</strong> Av. Ejército Libertador 1644, Puente Alto</p>
-                        <p><strong>📱 Contacto:</strong> +56 9 8195 1215</p>
-                        <p><strong>✉️ Email:</strong> daluz.esteticaspa@gmail.com</p>
-                        <p><strong>📱 Instagram:</strong> daluz_esteticayspa</p>
-                        <p><strong>🕐 Horario:</strong> Mar-Sáb 11:00-20:00</p>
-                        <p><strong>🎁 Extra:</strong> Tarjeta de fidelización</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- ALIMENTACIÓN -->
-
-                <!-- Desayunos Divinos -->
-                <div class="convenio-card" data-category="alimentacion">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">🥐</div>
-                        <h3>Desayunos Divinos</h3>
-                    </div>
-                    <div class="convenio-descuento">10% dcto + 50% envío</div>
-                    <p class="convenio-descripcion">
-                        10% descuento en desayunos ($25.000-$42.000) y 50% dcto en despacho. Tablas desde $40.000. Contenido modificable.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📱 WhatsApp:</strong> +56 9 3621 4178</p>
-                        <p><strong>✉️ Email:</strong> desayunos.divinos2020@gmail.com</p>
-                        <p><strong>🛒 Opciones:</strong> 8 tipos de desayunos, 3 tipos de tablas</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- El Mercat -->
-                <div class="convenio-card" data-category="alimentacion">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">🥗</div>
-                        <h3>El Mercat</h3>
-                    </div>
-                    <div class="convenio-descuento">10% dcto + delivery grupal</div>
-                    <p class="convenio-descripcion">
-                        10% dcto en tienda física y web, charla online gratuita sobre alimentación consciente, 30% dcto en delivery grupal (5+ pedidos mismo lugar).
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Ubicación:</strong> Parque Ibérico N° 1330, Puente Alto</p>
-                        <p><strong>📱 Contacto:</strong> +56 9 9544 9743</p>
-                        <p><strong>✉️ Email:</strong> contacto@elmercat.cl</p>
-                        <p><strong>📱 Instagram:</strong> @el_mercat_</p>
-                        <p><strong>🌐 Web:</strong> www.elmercat.cl</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- Bar Restaurante Ruta 78 -->
-                <div class="convenio-card" data-category="alimentacion">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">🍽️</div>
-                        <h3>Bar Restaurante Ruta 78</h3>
-                    </div>
-                    <div class="convenio-descuento">15-20% descuento</div>
-                    <p class="convenio-descripcion">
-                        20% dcto en toda la carta (L-D hasta 22:00), 15% dcto menú ejecutivo (L-S 13:00-17:00), reservas exclusivas, obsequio cumpleañeros.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Ubicación:</strong> Av. Independencia #43, Puente Alto</p>
-                        <p><strong>📱 Instagram:</strong> bar_r78</p>
-                        <p><strong>🎭 Eventos:</strong> Stand up, karaokes, bandas en vivo</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- EDUCACIÓN Y CAPACITACIÓN -->
-
-                <!-- Escuela de Conductores FMC -->
-                <div class="convenio-card" data-category="educacion">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">🚗</div>
-                        <h3>Escuela de Conductores FMC</h3>
-                    </div>
-                    <div class="convenio-descuento">5% descuento</div>
-                    <p class="convenio-descripcion">
-                        5% de descuento en todos los cursos de conducir.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Ubicación:</strong> Gandarillas #68, Puente Alto</p>
-                        <p><strong>📞 Teléfono:</strong> 22 725 5325</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- Escuela de Manejo Punto de Partida -->
-                <div class="convenio-card" data-category="educacion">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">🚙</div>
-                        <h3>Escuela de Manejo Punto de Partida</h3>
-                    </div>
-                    <div class="convenio-descuento">10-15% descuento</div>
-                    <p class="convenio-descripcion">
-                        10% dcto en Curso Diurno, 15% dcto en Curso Diurno Express, Curso Normal y Normal Express.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Ubicación:</strong> Av. Las Nieves Oriente N° 029, Puente Alto</p>
-                        <p><strong>📞 Teléfono:</strong> +56 2 2850 1107</p>
-                        <p><strong>✉️ Email:</strong> contacto@escuelapuntodepartida.cl</p>
-                        <p><strong>🌐 Web:</strong> www.escueladepartida.cl</p>
-                        <p><strong>🕐 Horario:</strong> L-V 9:00-14:00 / 15:30-20:00</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- Librería La Paloma -->
-                <div class="convenio-card" data-category="educacion">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">📚</div>
-                        <h3>Librería La Paloma</h3>
-                    </div>
-                    <div class="convenio-descuento">Valores al por mayor</div>
-                    <p class="convenio-descripcion">
-                        Acceso a valores al por mayor, independiente de la cantidad y tipo de productos que se adquieran.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Ubicación:</strong> José Luis Coo N° 0180 y Clavero N° 18, Puente Alto</p>
-                        <p><strong>📞 Teléfono:</strong> +56 9 5418 6558</p>
-                        <p><strong>✉️ Email:</strong> comlapalomajoseluiscoo@gmail.com</p>
-                        <p><strong>✅ Requisito:</strong> Presentar credencial de APS</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- MASCOTAS -->
-
-                <!-- Hospital Veterinario Nuevo Porvenir -->
-                <div class="convenio-card" data-category="mascotas">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">🐾</div>
-                        <h3>Hospital Veterinario Nuevo Porvenir SPA</h3>
-                    </div>
-                    <div class="convenio-descuento">Descuentos varios</div>
-                    <p class="convenio-descripcion">
-                        Descuentos en consulta veterinaria (mín. 1 vez al año), vacunación completa, desparasitación, esterilización/castración e higiene bucal.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Ubicación:</strong> Av. Eyzaguirre N° 01285, Puente Alto</p>
-                        <p><strong>📞 Teléfono:</strong> 22 850 2417</p>
-                        <p><strong>📱 WhatsApp:</strong> +56 9 8239 6488</p>
-                        <p><strong>✉️ Email:</strong> recepcion@hvnp.cl</p>
-                        <p><strong>📧 Administración:</strong> rgutierrez@hvnp.cl</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- Peluquería Canina Pet Beauty Salón -->
-                <div class="convenio-card" data-category="mascotas">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">🐕</div>
-                        <h3>Peluquería Canina Pet Beauty Salón</h3>
-                    </div>
-                    <div class="convenio-descuento">4to servicio gratis + 31% dcto shampoo</div>
-                    <p class="convenio-descripcion">
-                        Cuarto servicio de peluquería gratuito tras servicios mensuales continuos (4-6 meses). Shampoo premium coreano $21.000 (precio web $30.500).
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Ubicación:</strong> Av. Jorge Ross Ossa N° 1254, Ciudad del Sol, Puente Alto</p>
-                        <p><strong>📞 Teléfono:</strong> +56 9 7764 2646</p>
-                        <p><strong>✉️ Email:</strong> k.saldivia@gmail.com</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- PAWER SPA -->
-                <div class="convenio-card" data-category="mascotas">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">🐶</div>
-                        <h3>PAWER SPA - Planes de Salud para Mascotas</h3>
-                    </div>
-                    <div class="convenio-descuento">20% descuento</div>
-                    <p class="convenio-descripcion">
-                        Planes con reembolso: Esencial $7.920, Premium $15.120, Elite $27.920. Incluye app, tele-veterinaria, chip, vacunas, cobertura accidentes/urgencias.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📱 App:</strong> PAWER en iPhone y Android</p>
-                        <p><strong>📱 Instagram:</strong> @somospawer</p>
-                        <p><strong>🏥 Cobertura:</strong> Hasta $1.000.000 (Premium/Elite)</p>
-                        <p><strong>🚫 Exclusiones:</strong> No cubre preexistencias ni congénitas</p>
-                        <p><strong>📅 Disponible:</strong> Mascotas 6 meses - 10 años</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- SERVICIOS GENERALES -->
-
-                <!-- Funeraria Iván Martínez -->
-                <div class="convenio-card" data-category="servicios">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">🕊️</div>
-                        <h3>Funeraria Iván Martínez</h3>
-                    </div>
-                    <div class="convenio-descuento">Capilla gratuita + descuentos</div>
-                    <p class="convenio-descripcion">
-                        Capillas de velatorio gratuitas, servicio completo con cuota mortuoria, 20% dcto en urnas diferentes, 10-20% dcto traslados regionales.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Ubicación:</strong> Av. Concha y Toro N° 4151, Puente Alto</p>
-                        <p><strong>📞 Teléfono:</strong> 27 597 056</p>
-                        <p><strong>🚨 Urgencias:</strong> 24 547 016 / +56 9 3187 9315</p>
-                        <p><strong>📧 Convenios:</strong> Nathalie.neira@funerariaim.cl / +56 9 7776 1548</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- Lipigas -->
-                <div class="convenio-card" data-category="servicios">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">🔥</div>
-                        <h3>Lipigas</h3>
-                    </div>
-                    <div class="convenio-descuento">Precio especial + 19% subsidio</div>
-                    <p class="convenio-descripcion">
-                        Venta electrónica de vales de gas con precio rebajado más 19% de subsidio adicional del Servicio de Bienestar APS.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>💳 Pago:</strong> Transferencia electrónica</p>
-                        <p><strong>📧 Entrega:</strong> Correo electrónico</p>
-                        <p><strong>⏱️ Tiempo:</strong> 1 día hábil</p>
-                        <p><strong>💰 Subsidio extra:</strong> 19% del Servicio de Bienestar</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- Abastible -->
-                <div class="convenio-card" data-category="servicios">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">⛽</div>
-                        <h3>Abastible</h3>
-                    </div>
-                    <div class="convenio-descuento">Precio especial + 19% subsidio</div>
-                    <p class="convenio-descripcion">
-                        Aviso mensual de disponibilidad. Entrega a través de APP BILLETERA ABASTIBLE más 19% de subsidio adicional.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>💳 Pago:</strong> Transferencia electrónica</p>
-                        <p><strong>📱 Entrega:</strong> APP BILLETERA ABASTIBLE</p>
-                        <p><strong>⏱️ Tiempo:</strong> 1 día hábil</p>
-                        <p><strong>💰 Subsidio extra:</strong> 19% del Servicio de Bienestar</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- ENTRETENIMIENTO -->
-
-                <!-- Cinépolis -->
-                <div class="convenio-card" data-category="entretenimiento">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">🎬</div>
-                        <h3>Cinépolis</h3>
-                    </div>
-                    <div class="convenio-descuento">$6.800 entrada+combo</div>
-                    <p class="convenio-descripcion">
-                        Entrada para cualquier película (incluye estrenos) + Combo de cabritas y bebidas por solo $6.800.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>🎫 Compra:</strong> Directamente en Servicio de Bienestar APS</p>
-                        <p><strong>📍 Válido:</strong> Cualquier complejo Cinépolis o Hoyts</p>
-                        <p><strong>🆕 Incluye:</strong> Películas en estreno</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- Gimnasios Energy -->
-                <div class="convenio-card" data-category="entretenimiento">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">💪</div>
-                        <h3>Gimnasios ENERGY</h3>
-                    </div>
-                    <div class="convenio-descuento">$18.000/mes</div>
-                    <p class="convenio-descripcion">
-                        Ticket mensual full por $18.000. Incluye todos los servicios, cualquier día y horario, más matrícula y enrolamiento.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Aplica:</strong> Todas las sucursales Energy</p>
-                        <p><strong>💳 Compra:</strong> Transferencia a cuenta Bienestar APS</p>
-                        <p><strong>📧 Envío:</strong> Ticket digital por correo</p>
-                        <p><strong>🕐 Horarios:</strong> Sin restricciones</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-            </div>
-        </div>
-    </section>
-
-    <!-- Sección Información Importante -->
-    <section class="info-section">
-        <div class="container">
-            <div class="info-box">
-                <h2>📋 Información Importante sobre Convenios</h2>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <h3>Cómo Acceder</h3>
-                        <ul>
-                            <li>✅ Disponibles después del primer descuento mensual</li>
-                            <li>✅ Indicar afiliación a Bienestar APS en el local</li>
-                            <li>✅ No se requiere certificado</li>
-                            <li>✅ El servicio envía nómina mensual a empresas</li>
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: #2c5aa0; margin-bottom: 10px;">Cómo usar este convenio:</h4>
+                        <ul style="line-height: 1.8;">
+                            <li>Dirígete al establecimiento</li>
+                            <li>Indica que eres afiliado/a al Servicio de Bienestar APS</li>
+                            <li>No necesitas certificado - el servicio envía nómina mensual</li>
+                            <li>Presenta tu cédula de identidad si es solicitada</li>
                         </ul>
                     </div>
-                    <div class="info-item">
-                        <h3>Condiciones Generales</h3>
-                        <ul>
-                            <li>❌ Descuentos no acumulables con otras ofertas</li>
-                            <li>🎯 Válido para afiliados y cargas familiares</li>
-                            <li>📋 Sujeto a términos específicos de cada convenio</li>
-                        </ul>
-                    </div>
-                    <div class="info-item">
-                        <h3>Convenios Especiales</h3>
-                        <ul>
-                            <li>🎬 Cinépolis: Compra directa en Servicio de Bienestar</li>
-                            <li>💪 Energy: Transferencia + ticket digital</li>
-                            <li>🔥 Gas: Venta electrónica + subsidio 19%</li>
-                        </ul>
-                    </div>
+
+                    ${convenioData.extras ? `
+                        <div style="margin-bottom: 20px;">
+                            <h4 style="color: #2c5aa0; margin-bottom: 10px;">Información Adicional:</h4>
+                            <div style="
+                                background: #e8f5e8;
+                                padding: 15px;
+                                border-radius: 8px;
+                                border-left: 4px solid #27ae60;
+                            ">${convenioData.extras}</div>
+                        </div>
+                    ` : ''}
+                </div>
+                <div class="modal-footer" style="text-align: center; margin-top: 30px;">
+                    <button class="btn btn-primary modal-close" style="
+                        background: #2c5aa0;
+                        color: white;
+                        border: none;
+                        padding: 12px 30px;
+                        border-radius: 5px;
+                        cursor: pointer;
+                        font-size: 16px;
+                    ">Entendido</button>
                 </div>
             </div>
-        </div>
-    </section>
+        `;
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; 2025 Servicio Bienestar APS - Corporación Municipal de Puente Alto</p>
-        </div>
-    </footer>
+        document.body.appendChild(modal);
 
-    <script src="../js/main.js"></script>
-    <script src="../js/convenios.js"></script>
-</body>
-</html><!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Convenios - Bienestar APS</title>
-    <link rel="stylesheet" href="../css/styles.css">
-</head>
-<body>
-    <!-- Header -->
-    <header class="header">
-        <div class="container">
-            <div class="header-content">
-                <div class="logo">
-                    <a href="../index.html">
-                        <img src="../assets/images/logo-bienestar.png" alt="Logo Bienestar APS" style="height:120px; width:auto;">
-                    </a>
-                </div>
-                <nav class="nav-buttons">
-                    <button class="btn btn-secondary" onclick="location.href='../index.html'">
-                        Volver al Inicio
-                    </button>
-                    <button class="btn btn-afiliado" onclick="location.href='login.html?tipo=afiliado'">
-                        Acceso Afiliados
-                    </button>
-                </nav>
-            </div>
-        </div>
-    </header>
+        // Event listeners para cerrar modal
+        modal.querySelectorAll('.modal-close').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.body.removeChild(modal);
+            });
+        });
 
-    <!-- Hero Convenios -->
-    <section class="page-hero convenios-hero">
-        <div class="container">
-            <h1>Convenios y Descuentos</h1>
-            <p>Accede a descuentos exclusivos en salud, educación, bienestar y más</p>
-            <div class="hero-note">
-                <strong>Importante:</strong> Los convenios pueden usarse después del primer descuento mensual reflejado en tu liquidación de sueldos.
-            </div>
-        </div>
-    </section>
+        // Cerrar modal al hacer click fuera
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                document.body.removeChild(modal);
+            }
+        });
+    }
 
-    <!-- Filtros -->
-    <section class="filters-section">
-        <div class="container">
-            <div class="filters">
-                <button class="filter-btn active" data-category="todos">Todos</button>
-                <button class="filter-btn" data-category="dental">Dental</button>
-                <button class="filter-btn" data-category="optica">Óptica</button>
-                <button class="filter-btn" data-category="farmacia">Farmacia</button>
-                <button class="filter-btn" data-category="salud">Salud</button>
-                <button class="filter-btn" data-category="alimentacion">Alimentación</button>
-                <button class="filter-btn" data-category="belleza">Belleza</button>
-                <button class="filter-btn" data-category="educacion">Educación</button>
-                <button class="filter-btn" data-category="servicios">Servicios</button>
-                <button class="filter-btn" data-category="entretenimiento">Entretenimiento</button>
-                <button class="filter-btn" data-category="mascotas">Mascotas</button>
-            </div>
-        </div>
-    </section>
+    // Contador de convenios visibles
+    function updateConvenioCount() {
+        const visibleCards = Array.from(convenioCards).filter(card => 
+            card.style.display !== 'none'
+        );
+        
+        const countElement = document.querySelector('.convenios-count');
+        if (countElement) {
+            countElement.textContent = `${visibleCards.length} convenios disponibles`;
+        }
+    }
 
-    <!-- Convenios Grid -->
-    <section class="convenios-section">
-        <div class="container">
-            <div class="convenios-grid">
+    // Agregar contador si no existe
+    const filtersContainer = document.querySelector('.filters-section .container');
+    if (filtersContainer && !document.querySelector('.convenios-count')) {
+        const countElement = document.createElement('div');
+        countElement.className = 'convenios-count';
+        countElement.style.cssText = `
+            text-align: center;
+            margin: 10px 0;
+            font-weight: bold;
+            color: #666;
+        `;
+        countElement.textContent = `${convenioCards.length} convenios disponibles`;
+        filtersContainer.appendChild(countElement);
+    }
 
-                <!-- SERVICIOS DENTALES -->
+    // Inicializar funcionalidades
+    addSearchFunctionality();
+    updateConvenioCount();
 
-                <!-- Clínica Dental PSQ -->
-                <div class="convenio-card" data-category="dental">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">🦷</div>
-                        <h3>Clínica Dental PSQ</h3>
-                    </div>
-                    <div class="convenio-descuento">70% descuento</div>
-                    <p class="convenio-descripcion">
-                        70% de descuento sobre el Arancel Único del Colegio de Dentistas de Chile. Incluye presupuesto-diagnóstico y radiografía sin costo.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Ubicación:</strong> Balmaceda 371, Local 112, Puente Alto</p>
-                        <p><strong>📱 WhatsApp:</strong> +56 9 5310 9576</p>
-                        <p><strong>✉️ Email:</strong> centrodental.psq2@gmail.com</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
+    // Función para obtener información de contacto formateada
+    function formatContactInfo(infoElement) {
+        if (!infoElement) return '';
+        
+        const infoText = infoElement.innerHTML;
+        return infoText.replace(/<p><strong>/g, '<div><strong>')
+                      .replace(/<\/strong>/g, '</strong>')
+                      .replace(/<\/p>/g, '</div>');
+    }
 
-                <!-- Clínica Dental CDF -->
-                <div class="convenio-card" data-category="dental">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">🦷</div>
-                        <h3>Clínica Dental CDF</h3>
-                    </div>
-                    <div class="convenio-descuento">30% descuento</div>
-                    <p class="convenio-descripcion">
-                        30% de descuento en todos los servicios, exceptuando productos en oferta y costos por laboratorio.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Ubicación:</strong> Av. José Manuel Irarrázaval 0180, of 704</p>
-                        <p><strong>📞 Teléfono:</strong> +56 9 5964 3710</p>
-                        <p><strong>🕐 Horario:</strong> L-V 9:00-18:00 / S 9:00-14:00</p>
-                        <p><strong>📱 Instagram:</strong> @cdfdent</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
+    // Manejar clicks en tarjetas para mostrar información rápida
+    convenioCards.forEach(card => {
+        card.style.cursor = 'pointer';
+        card.addEventListener('click', function(e) {
+            // No activar si se hace click en el botón de detalles
+            if (e.target.classList.contains('btn-detail')) return;
+            
+            const title = this.querySelector('h3').textContent;
+            const descuento = this.querySelector('.convenio-descuento').textContent;
+            const descripcion = this.querySelector('.convenio-descripcion').textContent;
+            const infoElement = this.querySelector('.convenio-info');
+            
+            const convenioData = {
+                title,
+                descuento,
+                descripcion,
+                info: infoElement ? formatContactInfo(infoElement) : null
+            };
 
-                <!-- SERVICIOS ÓPTICOS -->
+            showConvenioDetails(convenioData);
+        });
+    });
 
-                <!-- Óptica Imagen Optical -->
-                <div class="convenio-card" data-category="optica">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">👓</div>
-                        <h3>Óptica Imagen Optical</h3>
-                    </div>
-                    <div class="convenio-descuento">10-20% descuento</div>
-                    <p class="convenio-descripcion">
-                        20% dcto en cristales stock + armazón, 15% dcto en cristales laboratorio + armazón, 10% dcto en lentes de contacto y lentes de sol.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Ubicación:</strong> Sergio Roubillard N° 86, Puente Alto</p>
-                        <p><strong>📞 Teléfono:</strong> 22 769 1196</p>
-                        <p><strong>📱 WhatsApp:</strong> +56 9 3113 1761</p>
-                        <p><strong>✉️ Email:</strong> opticaimagenoptical@gmail.com</p>
-                        <p><strong>❌ No aplicable a ofertas</strong></p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
+    // Agregar efecto hover a las tarjetas
+    convenioCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+            this.style.boxShadow = '0 8px 25px rgba(0,0,0,0.1)';
+            this.style.transition = 'transform 0.3s ease, box-shadow 0.3s ease';
+        });
 
-                <!-- Óptica Boketto -->
-                <div class="convenio-card" data-category="optica">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">👁️</div>
-                        <h3>Óptica Boketto</h3>
-                    </div>
-                    <div class="convenio-descuento">Chequeo gratis</div>
-                    <p class="convenio-descripcion">
-                        Chequeo preventivo gratuito. Consulta oftalmológica $5.000 (costo cero si adquiere lentes en Boketto).
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Ubicación:</strong> Av. Concha y Toro 3093, Local 9, Puente Alto</p>
-                        <p><strong>📱 Teléfono:</strong> +56 9 5741 3172</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+        });
+    });
+});
 
-                <!-- FARMACIAS -->
+// Función para toggle de detalles (mantener compatibilidad)
+function toggleDetail(button) {
+    const card = button.closest('.convenio-card');
+    const title = card.querySelector('h3').textContent;
+    const descuento = card.querySelector('.convenio-descuento').textContent;
+    const descripcion = card.querySelector('.convenio-descripcion').textContent;
+    const infoElement = card.querySelector('.convenio-info');
 
-                <!-- Salcobrand -->
-                <div class="convenio-card" data-category="farmacia">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">💊</div>
-                        <h3>Salcobrand</h3>
-                    </div>
-                    <div class="convenio-descuento">Hasta 25% descuento</div>
-                    <p class="convenio-descripcion">
-                        Hasta 25% dcto en medicamentos (analgésicos, salud respiratoria, cardiovascular, mental y de la piel) y 7% dcto en cuidado personal.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Aplica:</strong> En todas las sucursales Salcobrand</p>
-                        <p><strong>✅ Identificación:</strong> Indicar afiliación a Bienestar APS</p>
-                        <p><strong>🎯 Cuidado personal:</strong> Higiene bucal, barbería, capilar, bebé, piel, belleza</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
+    // Datos adicionales específicos por convenio
+    const conveniosExtras = {
+        'Clínica Dental PSQ': {
+            extras: 'Incluye presupuesto-diagnóstico sin costo y una radiografía sin costo para fin diagnóstico.'
+        },
+        'Salcobrand': {
+            extras: 'Descuentos aplicables en todas las sucursales a nivel nacional. Válido para medicamentos de venta libre y con receta médica.'
+        },
+        'Gimnasios ENERGY': {
+            extras: 'El ticket se adquiere mediante transferencia electrónica y se envía por correo. Válido en cualquier sucursal sin restricciones de horario.'
+        },
+        'Cinépolis': {
+            extras: 'Las entradas deben comprarse directamente en el Servicio de Bienestar APS. Incluye películas en estreno y combo completo.'
+        },
+        'PAWER SPA': {
+            extras: 'Disponible para mascotas entre 6 meses y 10 años. No cubre enfermedades preexistentes ni condiciones congénitas.'
+        }
+    };
 
-                <!-- Farmacia Estrella -->
-                <div class="convenio-card" data-category="farmacia">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">⭐</div>
-                        <h3>Farmacia Estrella</h3>
-                    </div>
-                    <div class="convenio-descuento">7-18% descuento</div>
-                    <p class="convenio-descripcion">
-                        18% dcto en medicamentos genéricos (todos los días), 12% dcto en suplementos, vitaminas y minerales, 7% dcto en productos veterinarios.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Ubicación:</strong> Concha y Toro 180, Puente Alto</p>
-                        <p><strong>📱 WhatsApp:</strong> +56 9 2096 4044</p>
-                        <p><strong>📞 Teléfono:</strong> 2 2404 8229</p>
-                        <p><strong>🕐 Horario:</strong> L-V 9:00-18:00 / S 10:00-17:00</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
+    function formatContactInfo(element) {
+        if (!element) return '';
+        return element.innerHTML.replace(/<p><strong>/g, '<div><strong>')
+                               .replace(/<\/strong>/g, '</strong>')
+                               .replace(/<\/p>/g, '</div>');
+    }
 
-                <!-- SERVICIOS DE SALUD -->
+    const convenioData = {
+        title,
+        descuento,
+        descripcion,
+        info: infoElement ? formatContactInfo(infoElement) : null,
+        extras: conveniosExtras[title]?.extras || null
+    };
 
-                <!-- Espacio Sandrino -->
-                <div class="convenio-card" data-category="salud">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">🧠</div>
-                        <h3>Espacio Sandrino - Salud Mental</h3>
-                    </div>
-                    <div class="convenio-descuento">10% descuento</div>
-                    <p class="convenio-descripcion">
-                        10% dcto en atenciones individuales, test ADIR/ADOS 2, talleres grupales. Disciplinas: psicología, fonoaudiología, terapia ocupacional, psicopedagogía.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Ubicación:</strong> Coquimbo N° 2905, Puente Alto</p>
-                        <p><strong>📱 WhatsApp:</strong> +56 9 7454 6089</p>
-                        <p><strong>✉️ Email:</strong> espaciosandrino@gmail.com</p>
-                        <p><strong>🌐 Web:</strong> www.espaciosandrino.com</p>
-                        <p><strong>🎁 Extra:</strong> Facilidades reembolso Isapres, charla gratuita semestral</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
+    // Usar la función de mostrar detalles si está disponible
+    if (typeof showConvenioDetails === 'function') {
+        showConvenioDetails(convenioData);
+    } else {
+        // Fallback para compatibilidad
+        const infoText = infoElement ? infoElement.textContent : 'Información de contacto no disponible';
+        alert(`${title}\n\nDescuento: ${descuento}\n\nDescripción: ${descripcion}\n\nContacto:\n${infoText}`);
+    }
 
-                <!-- Acupuntura Flor de Loto -->
-                <div class="convenio-card" data-category="salud">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">🌸</div>
-                        <h3>Acupuntura Flor de Loto</h3>
-                    </div>
-                    <div class="convenio-descuento">$25.000/sesión</div>
-                    <p class="convenio-descripcion">
-                        Precio preferencial de $25.000 por sesión (valor normal $35.000).
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Ubicación:</strong> Juan Antonio Ríos N° 0348, Puente Alto</p>
-                        <p><strong>📱 WhatsApp:</strong> +56 9 4930 5213</p>
-                        <p><strong>✉️ Email:</strong> flordeloto.acupuntura@gmail.com</p>
-                        <p><strong>🕐 Horario:</strong> L-V 9:00-18:00 / S 10:00-13:00</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
+    // Prevenir propagación del evento
+    event.stopPropagation();
+}
 
-                <!-- Atención Quiropráctica -->
-                <div class="convenio-card" data-category="salud">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">🦴</div>
-                        <h3>Atención Quiropráctica</h3>
-                    </div>
-                    <div class="convenio-descuento">20% descuento</div>
-                    <p class="convenio-descripcion">
-                        20% de descuento en las tres primeras sesiones, suficientes para superar la mayoría de dolencias.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>👨‍⚕️ Profesional:</strong> Juan Francisco Díaz</p>
-                        <p><strong>📍 Ubicación:</strong> Pedro Aguirre Cerda 0239, Puente Alto</p>
-                        <p><strong>📱 Teléfono:</strong> +56 9 7667 6040</p>
-                        <p><strong>✉️ Email:</strong> jfranciscodg@gmail.com</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
+// Función para copiar información de contacto al portapapeles
+function copyContactInfo(button, text) {
+    navigator.clipboard.writeText(text).then(() => {
+        const originalText = button.textContent;
+        button.textContent = '¡Copiado!';
+        button.style.background = '#27ae60';
+        
+        setTimeout(() => {
+            button.textContent = originalText;
+            button.style.background = '';
+        }, 2000);
+    }).catch(() => {
+        // Fallback si no funciona clipboard API
+        alert(`Información de contacto:\n${text}`);
+    });
+}
+document.addEventListener("DOMContentLoaded", function() {
+    // Botones de filtro
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    // Tarjetas de convenio
+    const convenioCards = document.querySelectorAll('.convenio-card');
 
-                <!-- Alma Terapias Integrales -->
-                <div class="convenio-card" data-category="salud">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">🧘</div>
-                        <h3>Alma Terapias Integrales</h3>
-                    </div>
-                    <div class="convenio-descuento">10% descuento</div>
-                    <p class="convenio-descripcion">
-                        10% dcto en sesiones individuales: Reiki, terapia floral, regresiones, constelaciones familiares, tarot terapéutico, registros akáshicos.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Ubicación:</strong> La Herradura 175, Puente Alto</p>
-                        <p><strong>📱 Teléfono:</strong> +56 9 8683 8587</p>
-                        <p><strong>📱 Instagram:</strong> @alma.terapiasintegrales</p>
-                        <p><strong>🎯 Incluye:</strong> Talleres, círculos de sanación, cursos de Reiki</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
+    filterButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Quitar clase "active" a todos los botones
+            filterButtons.forEach(b => b.classList.remove('active'));
+            // Poner clase "active" al botón actual
+            btn.classList.add('active');
 
-                <!-- SERVICIOS DE BELLEZA -->
+            const category = btn.getAttribute('data-category');
 
-                <!-- Centro de Estética Piel Bella -->
-                <div class="convenio-card" data-category="belleza">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">💅</div>
-                        <h3>Centro de Estética Piel Bella</h3>
-                    </div>
-                    <div class="convenio-descuento">10-15% descuento</div>
-                    <p class="convenio-descripcion">
-                        15% dcto para afiliadas, 10% dcto para madres, hijas y esposas de afiliados. Aplica a todos los servicios: depilación láser, tratamientos corporales y faciales.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Ubicación:</strong> Av. Diego Portales 06382, Puente Alto</p>
-                        <p><strong>📞 Teléfono:</strong> 22 667 377</p>
-                        <p><strong>🕐 Horario:</strong> L-V 14:00-20:00 / M,J,S 9:00-14:00</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- Estética y Spa Daluz -->
-                <div class="convenio-card" data-category="belleza">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">✨</div>
-                        <h3>Estética y Spa "Daluz"</h3>
-                    </div>
-                    <div class="convenio-descuento">15-20% descuento</div>
-                    <p class="convenio-descripcion">
-                        15% dcto en todos los servicios, 20% dcto M-J en corte de cabello para tercera edad, 5% dcto en semana de cumpleaños. Atención preferencial.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Ubicación:</strong> Av. Ejército Libertador 1644, Puente Alto</p>
-                        <p><strong>📱 Contacto:</strong> +56 9 8195 1215</p>
-                        <p><strong>✉️ Email:</strong> daluz.esteticaspa@gmail.com</p>
-                        <p><strong>📱 Instagram:</strong> daluz_esteticayspa</p>
-                        <p><strong>🕐 Horario:</strong> Mar-Sáb 11:00-20:00</p>
-                        <p><strong>🎁 Extra:</strong> Tarjeta de fidelización</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- ALIMENTACIÓN -->
-
-                <!-- Desayunos Divinos -->
-                <div class="convenio-card" data-category="alimentacion">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">🥐</div>
-                        <h3>Desayunos Divinos</h3>
-                    </div>
-                    <div class="convenio-descuento">10% dcto + 50% envío</div>
-                    <p class="convenio-descripcion">
-                        10% descuento en desayunos ($25.000-$42.000) y 50% dcto en despacho. Tablas desde $40.000. Contenido modificable.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📱 WhatsApp:</strong> +56 9 3621 4178</p>
-                        <p><strong>✉️ Email:</strong> desayunos.divinos2020@gmail.com</p>
-                        <p><strong>🛒 Opciones:</strong> 8 tipos de desayunos, 3 tipos de tablas</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- El Mercat -->
-                <div class="convenio-card" data-category="alimentacion">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">🥗</div>
-                        <h3>El Mercat</h3>
-                    </div>
-                    <div class="convenio-descuento">10% dcto + delivery grupal</div>
-                    <p class="convenio-descripcion">
-                        10% dcto en tienda física y web, charla online gratuita sobre alimentación consciente, 30% dcto en delivery grupal (5+ pedidos mismo lugar).
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Ubicación:</strong> Parque Ibérico N° 1330, Puente Alto</p>
-                        <p><strong>📱 Contacto:</strong> +56 9 9544 9743</p>
-                        <p><strong>✉️ Email:</strong> contacto@elmercat.cl</p>
-                        <p><strong>📱 Instagram:</strong> @el_mercat_</p>
-                        <p><strong>🌐 Web:</strong> www.elmercat.cl</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- Bar Restaurante Ruta 78 -->
-                <div class="convenio-card" data-category="alimentacion">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">🍽️</div>
-                        <h3>Bar Restaurante Ruta 78</h3>
-                    </div>
-                    <div class="convenio-descuento">15-20% descuento</div>
-                    <p class="convenio-descripcion">
-                        20% dcto en toda la carta (L-D hasta 22:00), 15% dcto menú ejecutivo (L-S 13:00-17:00), reservas exclusivas, obsequio cumpleañeros.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Ubicación:</strong> Av. Independencia #43, Puente Alto</p>
-                        <p><strong>📱 Instagram:</strong> bar_r78</p>
-                        <p><strong>🎭 Eventos:</strong> Stand up, karaokes, bandas en vivo</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- EDUCACIÓN Y CAPACITACIÓN -->
-
-                <!-- Escuela de Conductores FMC -->
-                <div class="convenio-card" data-category="educacion">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">🚗</div>
-                        <h3>Escuela de Conductores FMC</h3>
-                    </div>
-                    <div class="convenio-descuento">5% descuento</div>
-                    <p class="convenio-descripcion">
-                        5% de descuento en todos los cursos de conducir.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Ubicación:</strong> Gandarillas #68, Puente Alto</p>
-                        <p><strong>📞 Teléfono:</strong> 22 725 5325</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- Escuela de Manejo Punto de Partida -->
-                <div class="convenio-card" data-category="educacion">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">🚙</div>
-                        <h3>Escuela de Manejo Punto de Partida</h3>
-                    </div>
-                    <div class="convenio-descuento">10-15% descuento</div>
-                    <p class="convenio-descripcion">
-                        10% dcto en Curso Diurno, 15% dcto en Curso Diurno Express, Curso Normal y Normal Express.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Ubicación:</strong> Av. Las Nieves Oriente N° 029, Puente Alto</p>
-                        <p><strong>📞 Teléfono:</strong> +56 2 2850 1107</p>
-                        <p><strong>✉️ Email:</strong> contacto@escuelapuntodepartida.cl</p>
-                        <p><strong>🌐 Web:</strong> www.escueladepartida.cl</p>
-                        <p><strong>🕐 Horario:</strong> L-V 9:00-14:00 / 15:30-20:00</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- Librería La Paloma -->
-                <div class="convenio-card" data-category="educacion">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">📚</div>
-                        <h3>Librería La Paloma</h3>
-                    </div>
-                    <div class="convenio-descuento">Valores al por mayor</div>
-                    <p class="convenio-descripcion">
-                        Acceso a valores al por mayor, independiente de la cantidad y tipo de productos que se adquieran.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Ubicación:</strong> José Luis Coo N° 0180 y Clavero N° 18, Puente Alto</p>
-                        <p><strong>📞 Teléfono:</strong> +56 9 5418 6558</p>
-                        <p><strong>✉️ Email:</strong> comlapalomajoseluiscoo@gmail.com</p>
-                        <p><strong>✅ Requisito:</strong> Presentar credencial de APS</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- MASCOTAS -->
-
-                <!-- Hospital Veterinario Nuevo Porvenir -->
-                <div class="convenio-card" data-category="mascotas">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">🐾</div>
-                        <h3>Hospital Veterinario Nuevo Porvenir SPA</h3>
-                    </div>
-                    <div class="convenio-descuento">Descuentos varios</div>
-                    <p class="convenio-descripcion">
-                        Descuentos en consulta veterinaria (mín. 1 vez al año), vacunación completa, desparasitación, esterilización/castración e higiene bucal.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Ubicación:</strong> Av. Eyzaguirre N° 01285, Puente Alto</p>
-                        <p><strong>📞 Teléfono:</strong> 22 850 2417</p>
-                        <p><strong>📱 WhatsApp:</strong> +56 9 8239 6488</p>
-                        <p><strong>✉️ Email:</strong> recepcion@hvnp.cl</p>
-                        <p><strong>📧 Administración:</strong> rgutierrez@hvnp.cl</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- Peluquería Canina Pet Beauty Salón -->
-                <div class="convenio-card" data-category="mascotas">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">🐕</div>
-                        <h3>Peluquería Canina Pet Beauty Salón</h3>
-                    </div>
-                    <div class="convenio-descuento">4to servicio gratis + 31% dcto shampoo</div>
-                    <p class="convenio-descripcion">
-                        Cuarto servicio de peluquería gratuito tras servicios mensuales continuos (4-6 meses). Shampoo premium coreano $21.000 (precio web $30.500).
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Ubicación:</strong> Av. Jorge Ross Ossa N° 1254, Ciudad del Sol, Puente Alto</p>
-                        <p><strong>📞 Teléfono:</strong> +56 9 7764 2646</p>
-                        <p><strong>✉️ Email:</strong> k.saldivia@gmail.com</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- PAWER SPA -->
-                <div class="convenio-card" data-category="mascotas">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">🐶</div>
-                        <h3>PAWER SPA - Planes de Salud para Mascotas</h3>
-                    </div>
-                    <div class="convenio-descuento">20% descuento</div>
-                    <p class="convenio-descripcion">
-                        Planes con reembolso: Esencial $7.920, Premium $15.120, Elite $27.920. Incluye app, tele-veterinaria, chip, vacunas, cobertura accidentes/urgencias.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📱 App:</strong> PAWER en iPhone y Android</p>
-                        <p><strong>📱 Instagram:</strong> @somospawer</p>
-                        <p><strong>🏥 Cobertura:</strong> Hasta $1.000.000 (Premium/Elite)</p>
-                        <p><strong>🚫 Exclusiones:</strong> No cubre preexistencias ni congénitas</p>
-                        <p><strong>📅 Disponible:</strong> Mascotas 6 meses - 10 años</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- SERVICIOS GENERALES -->
-
-                <!-- Funeraria Iván Martínez -->
-                <div class="convenio-card" data-category="servicios">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">🕊️</div>
-                        <h3>Funeraria Iván Martínez</h3>
-                    </div>
-                    <div class="convenio-descuento">Capilla gratuita + descuentos</div>
-                    <p class="convenio-descripcion">
-                        Capillas de velatorio gratuitas, servicio completo con cuota mortuoria, 20% dcto en urnas diferentes, 10-20% dcto traslados regionales.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Ubicación:</strong> Av. Concha y Toro N° 4151, Puente Alto</p>
-                        <p><strong>📞 Teléfono:</strong> 27 597 056</p>
-                        <p><strong>🚨 Urgencias:</strong> 24 547 016 / +56 9 3187 9315</p>
-                        <p><strong>📧 Convenios:</strong> Nathalie.neira@funerariaim.cl / +56 9 7776 1548</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- Lipigas -->
-                <div class="convenio-card" data-category="servicios">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">🔥</div>
-                        <h3>Lipigas</h3>
-                    </div>
-                    <div class="convenio-descuento">Precio especial + 19% subsidio</div>
-                    <p class="convenio-descripcion">
-                        Venta electrónica de vales de gas con precio rebajado más 19% de subsidio adicional del Servicio de Bienestar APS.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>💳 Pago:</strong> Transferencia electrónica</p>
-                        <p><strong>📧 Entrega:</strong> Correo electrónico</p>
-                        <p><strong>⏱️ Tiempo:</strong> 1 día hábil</p>
-                        <p><strong>💰 Subsidio extra:</strong> 19% del Servicio de Bienestar</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- Abastible -->
-                <div class="convenio-card" data-category="servicios">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">⛽</div>
-                        <h3>Abastible</h3>
-                    </div>
-                    <div class="convenio-descuento">Precio especial + 19% subsidio</div>
-                    <p class="convenio-descripcion">
-                        Aviso mensual de disponibilidad. Entrega a través de APP BILLETERA ABASTIBLE más 19% de subsidio adicional.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>💳 Pago:</strong> Transferencia electrónica</p>
-                        <p><strong>📱 Entrega:</strong> APP BILLETERA ABASTIBLE</p>
-                        <p><strong>⏱️ Tiempo:</strong> 1 día hábil</p>
-                        <p><strong>💰 Subsidio extra:</strong> 19% del Servicio de Bienestar</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- ENTRETENIMIENTO -->
-
-                <!-- Cinépolis -->
-                <div class="convenio-card" data-category="entretenimiento">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">🎬</div>
-                        <h3>Cinépolis</h3>
-                    </div>
-                    <div class="convenio-descuento">$6.800 entrada+combo</div>
-                    <p class="convenio-descripcion">
-                        Entrada para cualquier película (incluye estrenos) + Combo de cabritas y bebidas por solo $6.800.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>🎫 Compra:</strong> Directamente en Servicio de Bienestar APS</p>
-                        <p><strong>📍 Válido:</strong> Cualquier complejo Cinépolis o Hoyts</p>
-                        <p><strong>🆕 Incluye:</strong> Películas en estreno</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-                <!-- Gimnasios Energy -->
-                <div class="convenio-card" data-category="entretenimiento">
-                    <div class="convenio-header">
-                        <div class="convenio-logo">💪</div>
-                        <h3>Gimnasios ENERGY</h3>
-                    </div>
-                    <div class="convenio-descuento">$18.000/mes</div>
-                    <p class="convenio-descripcion">
-                        Ticket mensual full por $18.000. Incluye todos los servicios, cualquier día y horario, más matrícula y enrolamiento.
-                    </p>
-                    <div class="convenio-info">
-                        <p><strong>📍 Aplica:</strong> Todas las sucursales Energy</p>
-                        <p><strong>💳 Compra:</strong> Transferencia a cuenta Bienestar APS</p>
-                        <p><strong>📧 Envío:</strong> Ticket digital por correo</p>
-                        <p><strong>🕐 Horarios:</strong> Sin restricciones</p>
-                    </div>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-            </div>
-        </div>
-    </section>
-
-    <!-- Sección Información Importante -->
-    <section class="info-section">
-        <div class="container">
-            <div class="info-box">
-                <h2>📋 Información Importante sobre Convenios</h2>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <h3>Cómo Acceder</h3>
-                        <ul>
-                            <li>✅ Disponibles después del primer descuento mensual</li>
-                            <li>✅ Indicar afiliación a Bienestar APS en el local</li>
-                            <li>✅ No se requiere certificado</li>
-                            <li>✅ El servicio envía nómina mensual a empresas</li>
-                        </ul>
-                    </div>
-                    <div class="info-item">
-                        <h3>Condiciones Generales</h3>
-                        <ul>
-                            <li>❌ Descuentos no acumulables con otras ofertas</li>
-                            <li>🎯 Válido para afiliados y cargas familiares</li>
-                            <li>📋 Sujeto a términos específicos de cada convenio</li>
-                        </ul>
-                    </div>
-                    <div class="info-item">
-                        <h3>Convenios Especiales</h3>
-                        <ul>
-                            <li>🎬 Cinépolis: Compra directa en Servicio de Bienestar</li>
-                            <li>💪 Energy: Transferencia + ticket digital</li>
-                            <li>🔥 Gas: Venta electrónica + subsidio 19%</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; 2025 Servicio Bienestar APS - Corporación Municipal de Puente Alto</p>
-        </div>
-    </footer>
-
-    <script src="../js/main.js"></script>
-    <script src="../js/convenios.js"></script>
-</body>
-</html>
+            convenioCards.forEach(card => {
+                // Mostrar todas si se elige "todos"
+                if (category === 'todos') {
+                    card.style.display = '';
+                } else {
+                    // Mostrar solo las que coinciden con la categoría
+                    if (card.getAttribute('data-category') === category) {
+                        card.style.display = '';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                }
+            });
+        });
+    });
+});
