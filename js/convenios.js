@@ -3,12 +3,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const filterButtons = document.querySelectorAll('.filter-btn');
     const convenioCards = document.querySelectorAll('.convenio-card');
 
-    // Función para animar la entrada de tarjetas
+    // Animación de entrada
     function animateCardIn(card) {
         card.style.display = 'block';
         card.style.opacity = '0';
         card.style.transform = 'translateY(20px)';
-        
         setTimeout(() => {
             card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
             card.style.opacity = '1';
@@ -16,28 +15,24 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 10);
     }
 
-    // Función para animar la salida de tarjetas
+    // Animación de salida
     function animateCardOut(card) {
         card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
         card.style.opacity = '0';
         card.style.transform = 'translateY(20px)';
-        
         setTimeout(() => {
             card.style.display = 'none';
         }, 300);
     }
 
-        // Event listeners para los botones de filtro
+    // Filtro por botones con animación
     filterButtons.forEach(button => {
         button.addEventListener('click', function() {
-            // Remover clase active de todos los botones
             filterButtons.forEach(btn => btn.classList.remove('active'));
-            // Agregar clase active al botón clickeado
             this.classList.add('active');
-
             const category = this.getAttribute('data-category');
 
-            beneficioCards.forEach(card => {
+            convenioCards.forEach(card => {
                 if (category === 'todos' || card.getAttribute('data-category') === category) {
                     animateCardIn(card);
                 } else {
@@ -47,7 +42,52 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Función para mostrar detalles de convenio
+    // Contador de convenios visibles
+    function updateConvenioCount() {
+        const visibleCards = Array.from(convenioCards).filter(card => 
+            card.style.display !== 'none'
+        );
+        const countElement = document.querySelector('.convenios-count');
+        if (countElement) {
+            countElement.textContent = `${visibleCards.length} convenios disponibles`;
+        }
+    }
+
+    // Agregar contador si no existe
+    const filtersContainer = document.querySelector('.filters-section .container');
+    if (filtersContainer && !document.querySelector('.convenios-count')) {
+        const countElement = document.createElement('div');
+        countElement.className = 'convenios-count';
+        countElement.style.cssText = `
+            text-align: center;
+            margin: 10px 0;
+            font-weight: bold;
+            color: #666;
+        `;
+        countElement.textContent = `${convenioCards.length} convenios disponibles`;
+        filtersContainer.appendChild(countElement);
+    }
+
+    // Actualizar contador después de cada filtro
+    filterButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            setTimeout(updateConvenioCount, 350);
+        });
+    });
+
+    // Inicializar contador
+    updateConvenioCount();
+
+    // Función para obtener información de contacto formateada
+    function formatContactInfo(infoElement) {
+        if (!infoElement) return '';
+        const infoText = infoElement.innerHTML;
+        return infoText.replace(/<p><strong>/g, '<div><strong>')
+                       .replace(/<\/strong>/g, '</strong>')
+                       .replace(/<\/p>/g, '</div>');
+    }
+
+    // Modal de detalles
     function showConvenioDetails(convenioData) {
         const modal = document.createElement('div');
         modal.className = 'modal-overlay';
@@ -170,20 +210,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Inicializar funcionalidades
-    addSearchFunctionality();
-    updateConvenioCount();
-
-    // Función para obtener información de contacto formateada
-    function formatContactInfo(infoElement) {
-        if (!infoElement) return '';
-        
-        const infoText = infoElement.innerHTML;
-        return infoText.replace(/<p><strong>/g, '<div><strong>')
-                      .replace(/<\/strong>/g, '</strong>')
-                      .replace(/<\/p>/g, '</div>');
-    }
-
     // Manejar clicks en tarjetas para mostrar información rápida
     convenioCards.forEach(card => {
         card.style.cursor = 'pointer';
@@ -272,55 +298,4 @@ function toggleDetail(button) {
         const infoText = infoElement ? infoElement.textContent : 'Información de contacto no disponible';
         alert(`${title}\n\nDescuento: ${descuento}\n\nDescripción: ${descripcion}\n\nContacto:\n${infoText}`);
     }
-
-    // Prevenir propagación del evento
-    event.stopPropagation();
 }
-
-// Función para copiar información de contacto al portapapeles
-function copyContactInfo(button, text) {
-    navigator.clipboard.writeText(text).then(() => {
-        const originalText = button.textContent;
-        button.textContent = '¡Copiado!';
-        button.style.background = '#27ae60';
-        
-        setTimeout(() => {
-            button.textContent = originalText;
-            button.style.background = '';
-        }, 2000);
-    }).catch(() => {
-        // Fallback si no funciona clipboard API
-        alert(`Información de contacto:\n${text}`);
-    });
-}
-document.addEventListener("DOMContentLoaded", function() {
-    // Botones de filtro
-    const filterButtons = document.querySelectorAll('.filter-btn');
-    // Tarjetas de convenio
-    const convenioCards = document.querySelectorAll('.convenio-card');
-
-    filterButtons.forEach(btn => {
-        btn.addEventListener('click', function() {
-            // Quitar clase "active" a todos los botones
-            filterButtons.forEach(b => b.classList.remove('active'));
-            // Poner clase "active" al botón actual
-            btn.classList.add('active');
-
-            const category = btn.getAttribute('data-category');
-
-            convenioCards.forEach(card => {
-                // Mostrar todas si se elige "todos"
-                if (category === 'todos') {
-                    card.style.display = '';
-                } else {
-                    // Mostrar solo las que coinciden con la categoría
-                    if (card.getAttribute('data-category') === category) {
-                        card.style.display = '';
-                    } else {
-                        card.style.display = 'none';
-                    }
-                }
-            });
-        });
-    });
-});
