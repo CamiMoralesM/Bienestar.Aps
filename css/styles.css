@@ -418,6 +418,8 @@ body {
 }
 
 .beneficio-icon {
+     font-family: Arial, 'Segoe UI Emoji', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif;
+  font-size: 2em;
     font-size: 2.5rem;
     width: 60px;
     height: 60px;
