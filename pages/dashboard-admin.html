@@ -148,19 +148,34 @@
                 <!-- Filtros y Búsqueda -->
                 <div class="admin-filters">
                     <input type="text" class="search-input" placeholder="🔍 Buscar por nombre, RUT o centro de salud...">
-                    <select class="filter-select">
-                        <option>Todos los estados</option>
-                        <option>Activos</option>
-                        <option>Inactivos</option>
-                        <option>Pendientes</option>
+                    <select class="filter-select" id="filtroEstado">
+                        <option value="todos">Todos los estados</option>
+                        <option value="activo">Activos</option>
+                        <option value="inactivo">Inactivos</option>
+                        <option value="pendiente">Pendientes</option>
                     </select>
-                    <select class="filter-select">
-                        <option>Todos los centros</option>
-                        <option>CESFAM Padre Hurtado</option>
-                        <option>CESFAM La Faena</option>
-                        <option>CESFAM El Bosque</option>
+                    <select class="filter-select" id="filtroCentro">
+                        <option value="todos">Todos los centros</option>
+                        <option value="CESFAM Karol Wojtyla">CESFAM Karol Wojtyla</option>
+                        <option value="CESFAM Padre Manuel Villaseca">CESFAM Padre Manuel Villaseca</option>
+                        <option value="CESFAM Alejandro del Rio">CESFAM Alejandro del Rio</option>
+                        <option value="CESFAM Bernardo Leighton">CESFAM Bernardo Leighton</option>
+                        <option value="CESFAM Cardenal Raúl Silva Henríquez">CESFAM Cardenal Raúl Silva Henríquez</option>
+                        <option value="CESFAM Vista Hermosa">CESFAM Vista Hermosa</option>
+                        <option value="CESFAM Laurita Vicuña">CESFAM Laurita Vicuña</option>
+                        <option value="Centro de Imágenes">Centro de Imágenes</option>
+                        <option value="Central de Ambulancia">Central de Ambulancia</option>
+                        <option value="Administración Salud">Administración Salud</option>
+                        <option value="San Lázaro">San Lázaro</option>
+                        <option value="CEIF">CEIF</option>
+                        <option value="Laboratorio Salud">Laboratorio Salud</option>
                     </select>
-                    <button class="btn btn-secondary">Exportar Excel</button>
+                    <button class="btn btn-secondary" onclick="exportarAfiliados()">📊 Exportar Excel</button>
+                </div>
+
+                <!-- Contador de resultados -->
+                <div class="results-info">
+                    <span class="afiliados-counter">Cargando afiliados...</span>
                 </div>
 
                 <!-- Tabla de Afiliados -->
@@ -177,42 +192,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>12.345.678-9</td>
-                                <td>Juan Pérez Gómez</td>
-                                <td>CESFAM Padre Hurtado</td>
-                                <td>01/05/2025</td>
-                                <td><span class="badge success">Activo</span></td>
-                                <td>
-                                    <button class="btn-icon" title="Ver perfil">👁️</button>
-                                    <button class="btn-icon" title="Editar">✏️</button>
-                                    <button class="btn-icon danger" title="Desactivar">🚫</button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>23.456.789-0</td>
-                                <td>María González López</td>
-                                <td>CESFAM La Faena</td>
-                                <td>15/03/2025</td>
-                                <td><span class="badge success">Activo</span></td>
-                                <td>
-                                    <button class="btn-icon" title="Ver perfil">👁️</button>
-                                    <button class="btn-icon" title="Editar">✏️</button>
-                                    <button class="btn-icon danger" title="Desactivar">🚫</button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>34.567.890-1</td>
-                                <td>Carlos Soto Muñoz</td>
-                                <td>CESFAM El Bosque</td>
-                                <td>10/01/2025</td>
-                                <td><span class="badge warning">Pendiente</span></td>
-                                <td>
-                                    <button class="btn-icon" title="Ver perfil">👁️</button>
-                                    <button class="btn-icon" title="Editar">✏️</button>
-                                    <button class="btn-icon danger" title="Desactivar">🚫</button>
-                                </td>
-                            </tr>
+                            <!-- Los datos se cargan dinámicamente -->
                         </tbody>
                     </table>
                 </div>
@@ -239,53 +219,7 @@
 
                 <!-- Lista de Solicitudes Admin -->
                 <div class="admin-solicitudes">
-                    <div class="solicitud-admin-card priority-high">
-                        <div class="solicitud-admin-header">
-                            <div class="solicitud-info">
-                                <h3>Préstamo Médico - Urgente</h3>
-                                <p class="solicitud-afiliado">👤 María González López (23.456.789-0)</p>
-                            </div>
-                            <span class="badge warning">Pendiente Evaluación</span>
-                        </div>
-                        <div class="solicitud-admin-body">
-                            <div class="solicitud-details">
-                                <p><strong>Monto solicitado:</strong> $500.000</p>
-                                <p><strong>Motivo:</strong> Cirugía programada</p>
-                                <p><strong>Fecha solicitud:</strong> 09/10/2025</p>
-                                <p><strong>Prioridad:</strong> <span class="priority-badge high">Alta</span></p>
-                            </div>
-                            <div class="solicitud-admin-actions">
-                                <button class="btn btn-success">✓ Aprobar</button>
-                                <button class="btn btn-danger">✗ Rechazar</button>
-                                <button class="btn btn-secondary">👁️ Ver Documentos</button>
-                                <button class="btn btn-secondary">💬 Comentar</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="solicitud-admin-card priority-normal">
-                        <div class="solicitud-admin-header">
-                            <div class="solicitud-info">
-                                <h3>Asignación por Matrimonio</h3>
-                                <p class="solicitud-afiliado">👤 Carlos Soto Muñoz (34.567.890-1)</p>
-                            </div>
-                            <span class="badge info">En Revisión</span>
-                        </div>
-                        <div class="solicitud-admin-body">
-                            <div class="solicitud-details">
-                                <p><strong>Monto:</strong> $100.000</p>
-                                <p><strong>Fecha solicitud:</strong> 08/10/2025</p>
-                                <p><strong>Documentos:</strong> Certificado de matrimonio adjunto</p>
-                                <p><strong>Prioridad:</strong> <span class="priority-badge normal">Normal</span></p>
-                            </div>
-                            <div class="solicitud-admin-actions">
-                                <button class="btn btn-success">✓ Aprobar</button>
-                                <button class="btn btn-danger">✗ Rechazar</button>
-                                <button class="btn btn-secondary">👁️ Ver Documentos</button>
-                                <button class="btn btn-secondary">💬 Comentar</button>
-                            </div>
-                        </div>
-                    </div>
+                    <!-- Las solicitudes se cargan dinámicamente -->
                 </div>
             </div>
 
@@ -359,47 +293,7 @@
                 </div>
 
                 <div class="convenios-admin-list">
-                    <div class="convenio-admin-item">
-                        <div class="convenio-admin-header">
-                            <div>
-                                <h3>Clínica Dental PSQ</h3>
-                                <p>Categoría: Salud Dental</p>
-                            </div>
-                            <span class="badge success">Activo</span>
-                        </div>
-                        <div class="convenio-admin-body">
-                            <p><strong>Descuento:</strong> 70% sobre arancel</p>
-                            <p><strong>Vigencia:</strong> 01/01/2025 - 31/12/2025</p>
-                            <p><strong>Contacto:</strong> +56 9 5310 9576</p>
-                            <p><strong>Uso este mes:</strong> 45 afiliados</p>
-                        </div>
-                        <div class="convenio-admin-actions">
-                            <button class="btn btn-small">Editar</button>
-                            <button class="btn btn-small">Ver Estadísticas</button>
-                            <button class="btn btn-small btn-warning">Renovar</button>
-                        </div>
-                    </div>
-
-                    <div class="convenio-admin-item">
-                        <div class="convenio-admin-header">
-                            <div>
-                                <h3>Gimnasios Energy</h3>
-                                <p>Categoría: Deportes</p>
-                            </div>
-                            <span class="badge warning">Por Renovar</span>
-                        </div>
-                        <div class="convenio-admin-body">
-                            <p><strong>Precio:</strong> $18.000/mes</p>
-                            <p><strong>Vigencia:</strong> 01/01/2025 - 30/11/2025</p>
-                            <p><strong>Contacto:</strong> convenios@energy.cl</p>
-                            <p><strong>Uso este mes:</strong> 89 afiliados</p>
-                        </div>
-                        <div class="convenio-admin-actions">
-                            <button class="btn btn-small">Editar</button>
-                            <button class="btn btn-small">Ver Estadísticas</button>
-                            <button class="btn btn-small btn-primary">Renovar Ahora</button>
-                        </div>
-                    </div>
+                    <!-- Los convenios se cargan dinámicamente -->
                 </div>
             </div>
 
@@ -428,8 +322,9 @@
                         <div class="reporte-form">
                             <select>
                                 <option>Todos los centros</option>
-                                <option>CESFAM Padre Hurtado</option>
-                                <option>CESFAM La Faena</option>
+                                <option>CESFAM Karol Wojtyla</option>
+                                <option>CESFAM Padre Manuel Villaseca</option>
+                                <option>CESFAM Alejandro del Rio</option>
                             </select>
                             <button class="btn btn-primary">Generar</button>
                         </div>
@@ -465,6 +360,88 @@
 
         </div>
     </section>
+
+    <!-- Modal Nuevo Afiliado -->
+    <div id="modalNuevoAfiliado" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>➕ Nuevo Afiliado</h2>
+                <span class="close" onclick="cerrarModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="formNuevoAfiliado" onsubmit="crearNuevoAfiliado(event)">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="nombre">Nombre Completo *</label>
+                            <input type="text" name="nombre" id="nombre" required placeholder="Juan Pérez Gómez">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="rut">RUT *</label>
+                            <input type="text" name="rut" id="rut" required placeholder="12.345.678-9" maxlength="12">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">Correo Electrónico *</label>
+                            <input type="email" name="email" id="email" required placeholder="juan.perez@salud.cl">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="telefono">Número de Teléfono</label>
+                            <input type="tel" name="telefono" id="telefono" placeholder="+56 9 1234 5678">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="centroSalud">Lugar de Trabajo *</label>
+                            <select name="centroSalud" id="centroSalud" required>
+                                <option value="">Seleccione...</option>
+                                <option value="CESFAM Karol Wojtyla">CESFAM Karol Wojtyla</option>
+                                <option value="CESFAM Padre Manuel Villaseca">CESFAM Padre Manuel Villaseca</option>
+                                <option value="CESFAM Alejandro del Rio">CESFAM Alejandro del Rio</option>
+                                <option value="CESFAM Bernardo Leighton">CESFAM Bernardo Leighton</option>
+                                <option value="CESFAM Cardenal Raúl Silva Henríquez">CESFAM Cardenal Raúl Silva Henríquez</option>
+                                <option value="CESFAM Vista Hermosa">CESFAM Vista Hermosa</option>
+                                <option value="CESFAM Laurita Vicuña">CESFAM Laurita Vicuña</option>
+                                <option value="Centro de Imágenes">Centro de Imágenes</option>
+                                <option value="Central de Ambulancia">Central de Ambulancia</option>
+                                <option value="Administración Salud">Administración Salud</option>
+                                <option value="San Lázaro">San Lázaro</option>
+                                <option value="CEIF">CEIF</option>
+                                <option value="Laboratorio Salud">Laboratorio Salud</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="cargo">Cargo *</label>
+                            <input type="text" name="cargo" id="cargo" required placeholder="Enfermero, Técnico, etc.">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="estadoCivil">Estado Civil</label>
+                            <select name="estadoCivil" id="estadoCivil">
+                                <option value="">Seleccione...</option>
+                                <option value="Soltero/a">Soltero/a</option>
+                                <option value="Casado/a">Casado/a</option>
+                                <option value="Divorciado/a">Divorciado/a</option>
+                                <option value="Viudo/a">Viudo/a</option>
+                                <option value="Unión Civil">Unión Civil</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="password">Contraseña Temporal *</label>
+                            <input type="password" name="password" id="password" required placeholder="Mínimo 6 caracteres" minlength="6">
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Crear Afiliado</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <!-- Footer -->
     <footer class="footer">
