@@ -164,7 +164,7 @@ window.aprobarAfiliado = async function(funcionarioId) {
     }
 }
 
-// Exportar a Excel
+// Exportar a Excel - VERSIÓN CORREGIDA
 window.exportarAfiliados = function() {
     try {
         // Obtener datos filtrados actuales
@@ -178,44 +178,149 @@ window.exportarAfiliados = function() {
             datosExportar = datosExportar.filter(func => func.centroSalud === filtroCentroActual);
         }
         
-        // Crear CSV
-        const headers = ['RUT', 'Nombre', 'Fecha Afiliación', 'Lugar de Trabajo', 'Estado Civil', 'Correo Electrónico', 'Número de Teléfono'];
-        let csvContent = headers.join(',') + '\n';
+        // Crear archivo Excel usando SheetJS
+        const workbook = XLSX.utils.book_new();
+        
+        // Preparar datos para Excel
+        const excelData = datosExportar.map(func => {
+            const fecha = func.fechaAfiliacion?.toDate().toLocaleDateString('es-CL') || 'N/A';
+            
+            return {
+                'RUT': func.rut || 'N/A',
+                'Nombre': func.nombre || 'N/A',
+                'Fecha Afiliación': fecha,
+                'Lugar de Trabajo': func.centroSalud || 'N/A',
+                'Estado Civil': func.estadoCivil || 'No especificado',
+                'Correo Electrónico': func.email || 'N/A',
+                'Número de Teléfono': func.telefono || 'N/A',
+                'Estado': func.estado || 'N/A',
+                'Cargo': func.cargo || 'N/A'
+            };
+        });
+        
+        // Crear hoja de cálculo
+        const worksheet = XLSX.utils.json_to_sheet(excelData);
+        
+        // Ajustar ancho de columnas
+        const columnWidths = [
+            { wch: 15 }, // RUT
+            { wch: 30 }, // Nombre
+            { wch: 15 }, // Fecha Afiliación
+            { wch: 35 }, // Lugar de Trabajo
+            { wch: 15 }, // Estado Civil
+            { wch: 30 }, // Correo Electrónico
+            { wch: 18 }, // Número de Teléfono
+            { wch: 12 }, // Estado
+            { wch: 20 }  // Cargo
+        ];
+        
+        worksheet['!cols'] = columnWidths;
+        
+        // Agregar hoja al libro
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Afiliados');
+        
+        // Generar nombre de archivo con fecha
+        const fechaActual = new Date().toISOString().split('T')[0];
+        const nombreArchivo = `afiliados_bienestar_aps_${fechaActual}.xlsx`;
+        
+        // Descargar archivo
+        XLSX.writeFile(workbook, nombreArchivo);
+        
+        alert(`✓ Archivo Excel exportado exitosamente: ${nombreArchivo}\n\nSe exportaron ${excelData.length} registros.`);
+        
+    } catch (error) {
+        console.error('Error al exportar:', error);
+        
+        // Fallback a CSV si falla Excel
+        console.log('Intentando exportar como CSV...');
+        exportarCSV();
+    }
+}
+
+// Función de respaldo para CSV
+function exportarCSV() {
+    try {
+        // Obtener datos filtrados actuales
+        let datosExportar = funcionariosData;
+        
+        if (filtroEstadoActual && filtroEstadoActual !== 'todos') {
+            datosExportar = datosExportar.filter(func => func.estado === filtroEstadoActual);
+        }
+        
+        if (filtroCentroActual && filtroCentroActual !== 'todos') {
+            datosExportar = datosExportar.filter(func => func.centroSalud === filtroCentroActual);
+        }
+        
+        // Headers sin comillas para CSV
+        const headers = [
+            'RUT',
+            'Nombre',
+            'Fecha Afiliación',
+            'Lugar de Trabajo',
+            'Estado Civil',
+            'Correo Electrónico',
+            'Número de Teléfono',
+            'Estado',
+            'Cargo'
+        ];
+        
+        // Crear contenido CSV
+        let csvContent = '\uFEFF'; // BOM para UTF-8
+        csvContent += headers.join(',') + '\n';
         
         datosExportar.forEach(func => {
             const fecha = func.fechaAfiliacion?.toDate().toLocaleDateString('es-CL') || 'N/A';
-            const estadoCivil = func.estadoCivil || 'No especificado';
             
             const row = [
-                `"${func.rut}"`,
-                `"${func.nombre}"`,
-                `"${fecha}"`,
-                `"${func.centroSalud}"`,
-                `"${estadoCivil}"`,
-                `"${func.email}"`,
-                `"${func.telefono || 'N/A'}"`
+                escaparCSV(func.rut || 'N/A'),
+                escaparCSV(func.nombre || 'N/A'),
+                escaparCSV(fecha),
+                escaparCSV(func.centroSalud || 'N/A'),
+                escaparCSV(func.estadoCivil || 'No especificado'),
+                escaparCSV(func.email || 'N/A'),
+                escaparCSV(func.telefono || 'N/A'),
+                escaparCSV(func.estado || 'N/A'),
+                escaparCSV(func.cargo || 'N/A')
             ];
+            
             csvContent += row.join(',') + '\n';
         });
         
-        // Descargar archivo
+        // Descargar archivo CSV
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
         link.setAttribute('href', url);
-        link.setAttribute('download', `afiliados_${new Date().toISOString().split('T')[0]}.csv`);
+        link.setAttribute('download', `afiliados_bienestar_aps_${new Date().toISOString().split('T')[0]}.csv`);
         link.style.visibility = 'hidden';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         
-        alert('✓ Archivo Excel exportado exitosamente');
+        alert('✓ Archivo CSV exportado exitosamente (formato de respaldo)');
         
     } catch (error) {
-        console.error('Error al exportar:', error);
-        alert('Error al exportar archivo');
+        console.error('Error al exportar CSV:', error);
+        alert('Error al exportar archivo. Intente nuevamente.');
     }
 }
+
+// Función para escapar valores CSV
+function escaparCSV(valor) {
+    if (typeof valor !== 'string') {
+        valor = String(valor);
+    }
+    
+    // Si contiene coma, comilla o salto de línea, envolver en comillas
+    if (valor.includes(',') || valor.includes('"') || valor.includes('\n')) {
+        // Escapar comillas duplicándolas
+        valor = valor.replace(/"/g, '""');
+        return `"${valor}"`;
+    }
+    
+    return valor;
+}
+
 
 // Cargar solicitudes para admin
 async function cargarSolicitudesAdmin() {
