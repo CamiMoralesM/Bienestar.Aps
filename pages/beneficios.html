@@ -33,6 +33,9 @@
         <div class="container">
             <h1>Beneficios para Afiliados</h1>
             <p>Conoce todos los beneficios económicos y asignaciones disponibles para ti y tu familia</p>
+            <div class="hero-note">
+                <strong>Requisito importante:</strong> Para acceder a los beneficios, los afiliados deben tener un mínimo de 3 descuentos de sus remuneraciones del Servicio de Bienestar APS.
+            </div>
         </div>
     </section>
 
@@ -45,6 +48,7 @@
                 <button class="filter-btn" data-category="educacion">Educación</button>
                 <button class="filter-btn" data-category="salud">Salud</button>
                 <button class="filter-btn" data-category="economico">Económico</button>
+                <button class="filter-btn" data-category="prestamos">Préstamos</button>
             </div>
         </div>
     </section>
@@ -53,6 +57,8 @@
     <section class="beneficios-section">
         <div class="container">
             <div class="beneficios-grid">
+                
+                <!-- ASIGNACIONES FAMILIARES -->
                 
                 <!-- Asignación por Natalidad -->
                 <div class="beneficio-card" data-category="familia">
@@ -66,10 +72,9 @@
                     </p>
                     <ul class="beneficio-requisitos">
                         <li><strong>Plazo:</strong> 90 días desde el nacimiento</li>
-                        <li><strong>Requisito:</strong> Certificado de nacimiento</li>
+                        <li><strong>Requisito:</strong> Certificado de nacimiento para asignación familiar</li>
                         <li><strong>Mínimo:</strong> 3 descuentos de remuneración</li>
                     </ul>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
                 </div>
 
                 <!-- Asignación por Matrimonio -->
@@ -84,16 +89,100 @@
                     </p>
                     <ul class="beneficio-requisitos">
                         <li><strong>Plazo:</strong> 90 días desde el matrimonio</li>
-                        <li><strong>Requisito:</strong> Certificado de matrimonio</li>
+                        <li><strong>Requisito:</strong> Certificado de matrimonio o unión civil</li>
                         <li><strong>Nota:</strong> Si ambos cónyuges son afiliados, se entrega a ambos</li>
                     </ul>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
                 </div>
+
+                <!-- Asignación de Aniversario de Matrimonio -->
+                <div class="beneficio-card" data-category="familia">
+                    <div class="beneficio-header">
+                        <div class="beneficio-icon familia-icon">💎</div>
+                        <h3>Asignación Aniversario Matrimonio</h3>
+                    </div>
+                    <div class="beneficio-monto">$50.000</div>
+                    <p class="beneficio-descripcion">
+                        Asignación en dinero que se entrega a los afiliados por cumplir 25, 30, 35 y 40 años de casados.
+                    </p>
+                    <ul class="beneficio-requisitos">
+                        <li><strong>Aniversarios:</strong> 25, 30, 35 y 40 años</li>
+                        <li><strong>Plazo:</strong> 90 días desde la fecha de aniversario</li>
+                        <li><strong>Requisito:</strong> Certificado de matrimonio</li>
+                    </ul>
+                </div>
+
+                <!-- Asignación Fallecimiento Hijo o Carga Legal -->
+                <div class="beneficio-card" data-category="familia">
+                    <div class="beneficio-header">
+                        <div class="beneficio-icon familia-icon">🕊️</div>
+                        <h3>Asignación Fallecimiento Hijo</h3>
+                    </div>
+                    <div class="beneficio-monto">$200.000</div>
+                    <p class="beneficio-descripcion">
+                        Asignación que se entrega al afiliado en caso de fallecimiento de hijo o carga legal. Incluye pérdida perinatal (Ley Dominga).
+                    </p>
+                    <ul class="beneficio-requisitos">
+                        <li><strong>Plazo:</strong> 90 días desde el fallecimiento</li>
+                        <li><strong>Requisito:</strong> Certificado de defunción</li>
+                        <li><strong>Incluye:</strong> Periodo perinatal según Ley 21.371</li>
+                    </ul>
+                </div>
+
+                <!-- Asignación Fallecimiento Cónyuge -->
+                <div class="beneficio-card" data-category="familia">
+                    <div class="beneficio-header">
+                        <div class="beneficio-icon familia-icon">💔</div>
+                        <h3>Asignación Fallecimiento Cónyuge</h3>
+                    </div>
+                    <div class="beneficio-monto">$200.000</div>
+                    <p class="beneficio-descripcion">
+                        Asignación que se entrega al afiliado en caso de fallecimiento de cónyuge o conviviente civil.
+                    </p>
+                    <ul class="beneficio-requisitos">
+                        <li><strong>Plazo:</strong> 90 días desde el fallecimiento</li>
+                        <li><strong>Requisito:</strong> Certificado de defunción y matrimonio/unión civil</li>
+                    </ul>
+                </div>
+
+                <!-- Asignación Fallecimiento Padres -->
+                <div class="beneficio-card" data-category="familia">
+                    <div class="beneficio-header">
+                        <div class="beneficio-icon familia-icon">🌟</div>
+                        <h3>Asignación Fallecimiento Padres</h3>
+                    </div>
+                    <div class="beneficio-monto">$100.000</div>
+                    <p class="beneficio-descripcion">
+                        Asignación que se entrega al afiliado en caso de fallecimiento de padre o madre.
+                    </p>
+                    <ul class="beneficio-requisitos">
+                        <li><strong>Plazo:</strong> 90 días desde el fallecimiento</li>
+                        <li><strong>Requisito:</strong> Certificado de defunción y nacimiento del afiliado</li>
+                    </ul>
+                </div>
+
+                <!-- Asignación Fallecimiento de Afiliado -->
+                <div class="beneficio-card" data-category="familia">
+                    <div class="beneficio-header">
+                        <div class="beneficio-icon familia-icon">⚰️</div>
+                        <h3>Asignación Fallecimiento Afiliado</h3>
+                    </div>
+                    <div class="beneficio-monto">$300.000 - $1.000.000</div>
+                    <p class="beneficio-descripcion">
+                        Asignación para familiares directos del afiliado fallecido. Monto varía según antigüedad.
+                    </p>
+                    <ul class="beneficio-requisitos">
+                        <li><strong>+5 años antigüedad:</strong> $1.000.000</li>
+                        <li><strong>-5 años antigüedad:</strong> $300.000</li>
+                        <li><strong>Plazo:</strong> 90 días desde defunción</li>
+                    </ul>
+                </div>
+
+                <!-- BONOS ANUALES -->
 
                 <!-- Bono Marzo -->
                 <div class="beneficio-card" data-category="economico">
                     <div class="beneficio-header">
-                        <div class="beneficio-icon economico-icon">💰</div>
+                        <div class="beneficio-icon economico-icon">🌸</div>
                         <h3>Bono Marzo</h3>
                     </div>
                     <div class="beneficio-monto">$35.000</div>
@@ -105,7 +194,6 @@
                         <li><strong>Requisito:</strong> Más de 3 descuentos consecutivos</li>
                         <li><strong>Método:</strong> Depósito directo a cuenta</li>
                     </ul>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
                 </div>
 
                 <!-- Bono Fiestas Patrias -->
@@ -123,7 +211,6 @@
                         <li><strong>Requisito:</strong> Más de 3 descuentos consecutivos</li>
                         <li><strong>Método:</strong> Depósito directo a cuenta</li>
                     </ul>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
                 </div>
 
                 <!-- Bono Navidad -->
@@ -141,7 +228,146 @@
                         <li><strong>Requisito:</strong> Más de 3 descuentos consecutivos</li>
                         <li><strong>Método:</strong> Depósito directo a cuenta</li>
                     </ul>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
+                </div>
+
+                <!-- ASIGNACIONES DE DISCAPACIDAD -->
+
+                <!-- Asignación Discapacidad Afiliados -->
+                <div class="beneficio-card" data-category="salud">
+                    <div class="beneficio-header">
+                        <div class="beneficio-icon salud-icon">♿</div>
+                        <h3>Asignación Discapacidad Afiliados</h3>
+                    </div>
+                    <div class="beneficio-monto">$40.000/mes</div>
+                    <p class="beneficio-descripcion">
+                        Asignación mensual para afiliados con discapacidad acreditada por COMPIN.
+                    </p>
+                    <ul class="beneficio-requisitos">
+                        <li><strong>Mensual:</strong> $40.000</li>
+                        <li><strong>Requisito:</strong> Credencial de discapacidad COMPIN</li>
+                        <li><strong>Mínimo:</strong> 3 descuentos al servicio</li>
+                    </ul>
+                </div>
+
+                <!-- Asignación Discapacidad Cargas -->
+                <div class="beneficio-card" data-category="salud">
+                    <div class="beneficio-header">
+                        <div class="beneficio-icon salud-icon">👨‍👩‍👧‍👦</div>
+                        <h3>Asignación Discapacidad Cargas</h3>
+                    </div>
+                    <div class="beneficio-monto">$40.000/mes</div>
+                    <p class="beneficio-descripcion">
+                        Asignación mensual para cargas familiares (hijo, cónyuge, pareja o carga legal) con discapacidad.
+                    </p>
+                    <ul class="beneficio-requisitos">
+                        <li><strong>Mensual:</strong> $40.000</li>
+                        <li><strong>Requisito:</strong> Credencial de discapacidad COMPIN</li>
+                        <li><strong>Mínimo:</strong> 3 descuentos al servicio</li>
+                    </ul>
+                </div>
+
+                <!-- Asignación Enfermedad Catastrófica -->
+                <div class="beneficio-card" data-category="salud">
+                    <div class="beneficio-header">
+                        <div class="beneficio-icon salud-icon">🏥</div>
+                        <h3>Asignación Enfermedad Catastrófica</h3>
+                    </div>
+                    <div class="beneficio-monto">$70.000/mes</div>
+                    <p class="beneficio-descripcion">
+                        Bono mensual para afiliados con enfermedad catastrófica o invalidante que implique disminución de ingresos.
+                    </p>
+                    <ul class="beneficio-requisitos">
+                        <li><strong>Evaluación:</strong> Por Trabajador Social</li>
+                        <li><strong>Criterio:</strong> Disminución ingresos o gastos extraordinarios</li>
+                    </ul>
+                </div>
+
+                <!-- PRÉSTAMOS -->
+
+                <!-- Préstamos Médicos -->
+                <div class="beneficio-card" data-category="prestamos">
+                    <div class="beneficio-header">
+                        <div class="beneficio-icon salud-icon">💊</div>
+                        <h3>Préstamos Médicos</h3>
+                    </div>
+                    <div class="beneficio-monto">Hasta $500.000</div>
+                    <p class="beneficio-descripcion">
+                        Préstamo para gastos médicos en un máximo de 12 cuotas, sujeto a evaluación social.
+                    </p>
+                    <ul class="beneficio-requisitos">
+                        <li><strong>Monto máximo:</strong> $500.000</li>
+                        <li><strong>Cuotas:</strong> Hasta 12 meses</li>
+                        <li><strong>Requisito:</strong> 3 descuentos mínimo</li>
+                    </ul>
+                </div>
+
+                <!-- Préstamos de Emergencia -->
+                <div class="beneficio-card" data-category="prestamos">
+                    <div class="beneficio-header">
+                        <div class="beneficio-icon economico-icon">🚨</div>
+                        <h3>Préstamos de Emergencia</h3>
+                    </div>
+                    <div class="beneficio-monto">Hasta $500.000</div>
+                    <p class="beneficio-descripcion">
+                        Préstamo para situaciones de emergencia, evaluado por Trabajador Social.
+                    </p>
+                    <ul class="beneficio-requisitos">
+                        <li><strong>Evaluación:</strong> Por Trabajador Social</li>
+                        <li><strong>Descuento:</strong> Vía liquidación de sueldo</li>
+                        <li><strong>Requisito:</strong> 3 descuentos mínimo</li>
+                    </ul>
+                </div>
+
+                <!-- Préstamos Libre Disposición -->
+                <div class="beneficio-card" data-category="prestamos">
+                    <div class="beneficio-header">
+                        <div class="beneficio-icon economico-icon">💳</div>
+                        <h3>Préstamos Libre Disposición</h3>
+                    </div>
+                    <div class="beneficio-monto">Hasta $300.000</div>
+                    <p class="beneficio-descripcion">
+                        Préstamo con tope de $300.000 en máximo 6 cuotas.
+                    </p>
+                    <ul class="beneficio-requisitos">
+                        <li><strong>Requisitos:</strong> Últimas 3 liquidaciones</li>
+                        <li><strong>Cuotas:</strong> Máximo 6</li>
+                        <li><strong>Mínimo:</strong> 3 descuentos al servicio</li>
+                    </ul>
+                </div>
+
+                <!-- Fondos Solidarios -->
+                <div class="beneficio-card" data-category="prestamos">
+                    <div class="beneficio-header">
+                        <div class="beneficio-icon economico-icon">🤝</div>
+                        <h3>Fondos Solidarios</h3>
+                    </div>
+                    <div class="beneficio-monto">Sin retorno</div>
+                    <p class="beneficio-descripcion">
+                        Ayudas sin retorno para situaciones de emergencia, enfermedad o situaciones familiares complejas.
+                    </p>
+                    <ul class="beneficio-requisitos">
+                        <li><strong>Evaluación:</strong> Trabajador Social + Comité</li>
+                        <li><strong>Tipo:</strong> Sin retorno</li>
+                    </ul>
+                </div>
+
+                <!-- EDUCACIÓN -->
+
+                <!-- Asignación Jardín Infantil -->
+                <div class="beneficio-card" data-category="educacion">
+                    <div class="beneficio-header">
+                        <div class="beneficio-icon educacion-icon">🧸</div>
+                        <h3>Asignación Jardín Infantil</h3>
+                    </div>
+                    <div class="beneficio-monto">$40.000/mes</div>
+                    <p class="beneficio-descripcion">
+                        Asignación mensual para hijos entre 2 y 4 años 11 meses que asistan a jardín infantil particular.
+                    </p>
+                    <ul class="beneficio-requisitos">
+                        <li><strong>Edad:</strong> 2 a 4 años 11 meses</li>
+                        <li><strong>Requisito:</strong> Boleta mensual del jardín</li>
+                        <li><strong>Entrega:</strong> Primeros 5 días hábiles</li>
+                    </ul>
                 </div>
 
                 <!-- Estímulo Enseñanza Básica -->
@@ -159,7 +385,6 @@
                         <li><strong>Entrega:</strong> Mes de abril</li>
                         <li><strong>Postulación:</strong> Publicada primer trimestre</li>
                     </ul>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
                 </div>
 
                 <!-- Estímulo Enseñanza Media -->
@@ -177,7 +402,6 @@
                         <li><strong>Entrega:</strong> Mes de abril</li>
                         <li><strong>Postulación:</strong> Publicada primer trimestre</li>
                     </ul>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
                 </div>
 
                 <!-- Estímulo Educación Superior -->
@@ -195,44 +419,108 @@
                         <li><strong>Entrega:</strong> Mes de abril</li>
                         <li><strong>Postulación:</strong> Publicada primer trimestre</li>
                     </ul>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
                 </div>
 
-                <!-- Préstamos Médicos -->
-                <div class="beneficio-card" data-category="salud">
+                <!-- Estímulo de Talentos -->
+                <div class="beneficio-card" data-category="educacion">
                     <div class="beneficio-header">
-                        <div class="beneficio-icon salud-icon">🏥</div>
-                        <h3>Préstamos Médicos</h3>
+                        <div class="beneficio-icon educacion-icon">🌟</div>
+                        <h3>Estímulo de Talentos</h3>
                     </div>
-                    <div class="beneficio-monto">Hasta $500.000</div>
+                    <div class="beneficio-monto">$50.000</div>
                     <p class="beneficio-descripcion">
-                        Préstamo para gastos médicos en un máximo de 12 cuotas, sujeto a evaluación social.
+                        Asignación para hijos que cursen básica y media con talentos artísticos, deportivos, científicos.
                     </p>
                     <ul class="beneficio-requisitos">
-                        <li><strong>Monto máximo:</strong> $500.000</li>
-                        <li><strong>Cuotas:</strong> Hasta 12 meses</li>
+                        <li><strong>Entrega:</strong> Segundo semestre</li>
+                        <li><strong>Talentos:</strong> Artísticos, deportivos, científicos</li>
+                        <li><strong>Postulación:</strong> Bases publicadas en el periodo</li>
+                    </ul>
+                </div>
+
+                <!-- Asignación Matrícula Superior Hijos -->
+                <div class="beneficio-card" data-category="educacion">
+                    <div class="beneficio-header">
+                        <div class="beneficio-icon educacion-icon">🎓</div>
+                        <h3>Asignación Matrícula Superior Hijos</h3>
+                    </div>
+                    <div class="beneficio-monto">$40.000</div>
+                    <p class="beneficio-descripcion">
+                        Asignación para hijos que se matriculen en Universidad, IP o CFT.
+                    </p>
+                    <ul class="beneficio-requisitos">
+                        <li><strong>Plazo:</strong> 90 días desde matrícula</li>
+                        <li><strong>Requisito:</strong> Comprobante original de matrícula</li>
+                    </ul>
+                </div>
+
+                <!-- Asignación Matrícula Superior Afiliados -->
+                <div class="beneficio-card" data-category="educacion">
+                    <div class="beneficio-header">
+                        <div class="beneficio-icon educacion-icon">📖</div>
+                        <h3>Asignación Matrícula Superior Afiliados</h3>
+                    </div>
+                    <div class="beneficio-monto">$40.000</div>
+                    <p class="beneficio-descripcion">
+                        Asignación para afiliados que se matriculen en Universidad, IP o CFT.
+                    </p>
+                    <ul class="beneficio-requisitos">
+                        <li><strong>Plazo:</strong> 90 días desde matrícula</li>
+                        <li><strong>Requisito:</strong> Comprobante original de matrícula</li>
+                    </ul>
+                </div>
+
+                <!-- BECAS -->
+
+                <!-- Becas Estudios Superiores Hijos -->
+                <div class="beneficio-card" data-category="educacion">
+                    <div class="beneficio-header">
+                        <div class="beneficio-icon educacion-icon">🏆</div>
+                        <h3>Becas Estudios Superiores Hijos</h3>
+                    </div>
+                    <div class="beneficio-monto">30 de $60.000 + 20 de $30.000</div>
+                    <p class="beneficio-descripcion">
+                        30 becas de $60.000 mensuales y 20 becas de $30.000 mensuales para hijos con rendimiento destacado.
+                    </p>
+                    <ul class="beneficio-requisitos">
+                        <li><strong>Periodo:</strong> Marzo a diciembre</li>
+                        <li><strong>Renovación:</strong> Julio (certificado alumno regular)</li>
                         <li><strong>Requisito:</strong> 3 descuentos mínimo</li>
                     </ul>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
                 </div>
 
-                <!-- Asignación Discapacidad -->
-                <div class="beneficio-card" data-category="salud">
+                <!-- Becas Educación Superior Afiliados -->
+                <div class="beneficio-card" data-category="educacion">
                     <div class="beneficio-header">
-                        <div class="beneficio-icon salud-icon">♿</div>
-                        <h3>Asignación de Discapacidad</h3>
+                        <div class="beneficio-icon educacion-icon">🎯</div>
+                        <h3>Becas Educación Superior Afiliados</h3>
                     </div>
-                    <div class="beneficio-monto">$40.000/mes</div>
+                    <div class="beneficio-monto">10 de $50.000</div>
                     <p class="beneficio-descripcion">
-                        Asignación mensual para afiliados o cargas familiares con discapacidad acreditada por COMPIN.
+                        10 becas de $50.000 mensuales para funcionarios que cursen enseñanza superior.
                     </p>
                     <ul class="beneficio-requisitos">
-                        <li><strong>Mensual:</strong> $40.000</li>
-                        <li><strong>Requisito:</strong> Credencial de discapacidad</li>
-                        <li><strong>Aplicable:</strong> Afiliado o carga familiar</li>
+                        <li><strong>Renovación:</strong> Julio (certificado alumno regular)</li>
+                        <li><strong>Requisito:</strong> 3 descuentos mínimo</li>
                     </ul>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
                 </div>
+
+                <!-- Becas Post Grado Afiliados -->
+                <div class="beneficio-card" data-category="educacion">
+                    <div class="beneficio-header">
+                        <div class="beneficio-icon educacion-icon">🔬</div>
+                        <h3>Becas Post Grado Afiliados</h3>
+                    </div>
+                    <div class="beneficio-monto">10 de $60.000</div>
+                    <p class="beneficio-descripcion">
+                        10 becas de $60.000 mensuales para afiliados que cursen Post Grado con rendimiento destacado.
+                    </p>
+                    <ul class="beneficio-requisitos">
+                        <li><strong>Requisito:</strong> 3 descuentos mínimo</li>
+                    </ul>
+                </div>
+
+                <!-- OTROS BENEFICIOS -->
 
                 <!-- Seguro Vida Cámara -->
                 <div class="beneficio-card" data-category="salud">
@@ -249,39 +537,9 @@
                         <li><strong>Beneficio:</strong> Reembolso gastos médicos</li>
                         <li><strong>Acceso:</strong> Desde el 3er descuento</li>
                     </ul>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
                 </div>
 
-                <!-- Asignación Jardín Infantil -->
-                <div class="beneficio-card" data-category="educacion">
+                <!-- Fondos Concursables -->
+                <div class="beneficio-card" data-category="economico">
                     <div class="beneficio-header">
-                        <div class="beneficio-icon educacion-icon">🧸</div>
-                        <h3>Asignación Jardín Infantil</h3>
-                    </div>
-                    <div class="beneficio-monto">$40.000/mes</div>
-                    <p class="beneficio-descripcion">
-                        Asignación mensual para hijos entre 2 y 4 años 11 meses que asistan a jardín infantil particular.
-                    </p>
-                    <ul class="beneficio-requisitos">
-                        <li><strong>Edad:</strong> 2 a 4 años 11 meses</li>
-                        <li><strong>Requisito:</strong> Boleta mensual del jardín</li>
-                        <li><strong>Entrega:</strong> Primeros 5 días hábiles</li>
-                    </ul>
-                    <button class="btn btn-detail" onclick="toggleDetail(this)">Ver Detalles</button>
-                </div>
-
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; 2025 Servicio Bienestar APS - Corporación Municipal de Puente Alto</p>
-        </div>
-    </footer>
-
-    <script src="../js/main.js"></script>
-    <script src="../js/beneficios.js"></script>
-</body>
-</html>
+                        <div class="beneficio-icon economico-icon">💡
