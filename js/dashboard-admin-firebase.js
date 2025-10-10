@@ -9,7 +9,12 @@ import {
     actualizarFuncionario,
     obtenerConvenios
 } from './firestore-operations.js';
-import { cerrarSesion } from './auth.js';
+import { cerrarSesion, registrarFuncionario } from './auth.js';
+
+// Variables globales para filtros
+let funcionariosData = [];
+let filtroEstadoActual = '';
+let filtroCentroActual = '';
 
 // Verificar autenticación al cargar
 onAuthStateChanged(auth, async (user) => {
@@ -66,24 +71,40 @@ async function cargarEstadisticasGenerales() {
     }
 }
 
-// Cargar tabla de afiliados
-async function cargarAfiliados() {
+// Cargar tabla de afiliados con filtros
+async function cargarAfiliados(filtroEstado = '', filtroCentro = '') {
     try {
         const funcionarios = await obtenerFuncionarios();
+        funcionariosData = funcionarios; // Guardar para filtros
+        
+        // Aplicar filtros
+        let funcionariosFiltrados = funcionarios;
+        
+        if (filtroEstado && filtroEstado !== 'todos') {
+            funcionariosFiltrados = funcionariosFiltrados.filter(func => func.estado === filtroEstado);
+        }
+        
+        if (filtroCentro && filtroCentro !== 'todos') {
+            funcionariosFiltrados = funcionariosFiltrados.filter(func => func.centroSalud === filtroCentro);
+        }
+        
         const tbody = document.querySelector('#tab-afiliados tbody');
         
         if (!tbody) return;
         
         tbody.innerHTML = '';
         
-        funcionarios.forEach(func => {
+        funcionariosFiltrados.forEach(func => {
             const fecha = func.fechaAfiliacion?.toDate().toLocaleDateString('es-CL') || 'N/A';
             
             let estadoBadge = '';
+            let accionesEspeciales = '';
+            
             if (func.estado === 'activo') {
                 estadoBadge = '<span class="badge success">Activo</span>';
             } else if (func.estado === 'pendiente') {
                 estadoBadge = '<span class="badge warning">Pendiente</span>';
+                accionesEspeciales = `<button class="btn-icon success" title="Aprobar Afiliado" onclick="aprobarAfiliado('${func.id}')">✓</button>`;
             } else {
                 estadoBadge = '<span class="badge">Inactivo</span>';
             }
@@ -96,6 +117,7 @@ async function cargarAfiliados() {
                     <td>${fecha}</td>
                     <td>${estadoBadge}</td>
                     <td>
+                        ${accionesEspeciales}
                         <button class="btn-icon" title="Ver perfil" onclick="verPerfilFuncionario('${func.id}')">👁️</button>
                         <button class="btn-icon" title="Editar" onclick="editarFuncionario('${func.id}')">✏️</button>
                         <button class="btn-icon danger" title="Desactivar" onclick="desactivarFuncionario('${func.id}')">🚫</button>
@@ -106,8 +128,92 @@ async function cargarAfiliados() {
             tbody.innerHTML += row;
         });
         
+        // Actualizar contador
+        actualizarContadorAfiliados(funcionariosFiltrados.length, funcionarios.length);
+        
     } catch (error) {
         console.error('Error al cargar afiliados:', error);
+    }
+}
+
+// Actualizar contador de afiliados
+function actualizarContadorAfiliados(mostrados, total) {
+    const contador = document.querySelector('.afiliados-counter');
+    if (contador) {
+        contador.textContent = `Mostrando ${mostrados} de ${total} afiliados`;
+    }
+}
+
+// Aprobar nuevo afiliado
+window.aprobarAfiliado = async function(funcionarioId) {
+    if (!confirm('¿Está seguro de que desea aprobar este afiliado?')) return;
+    
+    try {
+        const resultado = await actualizarFuncionario(funcionarioId, { estado: 'activo' });
+        
+        if (resultado.success) {
+            alert('✓ Afiliado aprobado exitosamente');
+            await cargarAfiliados(filtroEstadoActual, filtroCentroActual);
+            await cargarEstadisticasGenerales();
+        } else {
+            alert('Error al aprobar afiliado: ' + resultado.error);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al procesar la solicitud');
+    }
+}
+
+// Exportar a Excel
+window.exportarAfiliados = function() {
+    try {
+        // Obtener datos filtrados actuales
+        let datosExportar = funcionariosData;
+        
+        if (filtroEstadoActual && filtroEstadoActual !== 'todos') {
+            datosExportar = datosExportar.filter(func => func.estado === filtroEstadoActual);
+        }
+        
+        if (filtroCentroActual && filtroCentroActual !== 'todos') {
+            datosExportar = datosExportar.filter(func => func.centroSalud === filtroCentroActual);
+        }
+        
+        // Crear CSV
+        const headers = ['RUT', 'Nombre', 'Fecha Afiliación', 'Lugar de Trabajo', 'Estado Civil', 'Correo Electrónico', 'Número de Teléfono'];
+        let csvContent = headers.join(',') + '\n';
+        
+        datosExportar.forEach(func => {
+            const fecha = func.fechaAfiliacion?.toDate().toLocaleDateString('es-CL') || 'N/A';
+            const estadoCivil = func.estadoCivil || 'No especificado';
+            
+            const row = [
+                `"${func.rut}"`,
+                `"${func.nombre}"`,
+                `"${fecha}"`,
+                `"${func.centroSalud}"`,
+                `"${estadoCivil}"`,
+                `"${func.email}"`,
+                `"${func.telefono || 'N/A'}"`
+            ];
+            csvContent += row.join(',') + '\n';
+        });
+        
+        // Descargar archivo
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `afiliados_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        alert('✓ Archivo Excel exportado exitosamente');
+        
+    } catch (error) {
+        console.error('Error al exportar:', error);
+        alert('Error al exportar archivo');
     }
 }
 
@@ -230,6 +336,71 @@ async function cargarConveniosAdmin() {
     }
 }
 
+// Modal para nuevo afiliado
+window.nuevoAfiliado = function() {
+    const modal = document.getElementById('modalNuevoAfiliado');
+    if (modal) {
+        modal.style.display = 'block';
+        // Limpiar formulario
+        document.getElementById('formNuevoAfiliado').reset();
+    }
+}
+
+// Cerrar modal
+window.cerrarModal = function() {
+    const modal = document.getElementById('modalNuevoAfiliado');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// Crear nuevo afiliado desde modal
+window.crearNuevoAfiliado = async function(event) {
+    event.preventDefault();
+    
+    const formData = new FormData(event.target);
+    const datos = {
+        nombre: formData.get('nombre'),
+        rut: formData.get('rut'),
+        email: formData.get('email'),
+        telefono: formData.get('telefono'),
+        centroSalud: formData.get('centroSalud'),
+        cargo: formData.get('cargo'),
+        estadoCivil: formData.get('estadoCivil'),
+        password: formData.get('password')
+    };
+    
+    // Validaciones básicas
+    if (!datos.nombre || !datos.rut || !datos.email || !datos.password) {
+        alert('Todos los campos marcados con * son obligatorios');
+        return;
+    }
+    
+    try {
+        const btnCrear = document.querySelector('#formNuevoAfiliado button[type="submit"]');
+        btnCrear.textContent = 'Creando...';
+        btnCrear.disabled = true;
+        
+        const resultado = await registrarFuncionario(datos);
+        
+        if (resultado.success) {
+            alert('✓ Afiliado creado exitosamente');
+            cerrarModal();
+            await cargarAfiliados(filtroEstadoActual, filtroCentroActual);
+            await cargarEstadisticasGenerales();
+        } else {
+            alert('Error al crear afiliado: ' + resultado.error);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al procesar la solicitud');
+    } finally {
+        const btnCrear = document.querySelector('#formNuevoAfiliado button[type="submit"]');
+        btnCrear.textContent = 'Crear Afiliado';
+        btnCrear.disabled = false;
+    }
+}
+
 // Funciones de administración de solicitudes
 window.aprobarSolicitudAdmin = async function(solicitudId) {
     if (!confirm('¿Está seguro de que desea aprobar esta solicitud?')) return;
@@ -290,7 +461,7 @@ window.desactivarFuncionario = async function(funcionarioId) {
         
         if (resultado.success) {
             alert('Funcionario desactivado');
-            await cargarAfiliados();
+            await cargarAfiliados(filtroEstadoActual, filtroCentroActual);
         } else {
             alert('Error al desactivar funcionario');
         }
@@ -328,11 +499,6 @@ window.logout = async function() {
     }
 }
 
-// Función para nuevo afiliado
-window.nuevoAfiliado = function() {
-    alert('Función para crear nuevo afiliado en desarrollo');
-}
-
 // Sistema de búsqueda en tiempo real
 function initSearch() {
     const searchInput = document.querySelector('.search-input');
@@ -349,6 +515,27 @@ function initSearch() {
                     row.style.display = 'none';
                 }
             });
+        });
+    }
+}
+
+// Inicializar filtros
+function initFilters() {
+    // Filtro de estado
+    const estadoSelect = document.querySelector('#filtroEstado');
+    if (estadoSelect) {
+        estadoSelect.addEventListener('change', async function() {
+            filtroEstadoActual = this.value;
+            await cargarAfiliados(filtroEstadoActual, filtroCentroActual);
+        });
+    }
+    
+    // Filtro de centro
+    const centroSelect = document.querySelector('#filtroCentro');
+    if (centroSelect) {
+        centroSelect.addEventListener('change', async function() {
+            filtroCentroActual = this.value;
+            await cargarAfiliados(filtroEstadoActual, filtroCentroActual);
         });
     }
 }
@@ -378,6 +565,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Inicializar búsqueda
+    // Inicializar funcionalidades
     initSearch();
+    initFilters();
+    
+    // Cerrar modal al hacer click fuera
+    window.addEventListener('click', function(event) {
+        const modal = document.getElementById('modalNuevoAfiliado');
+        if (event.target === modal) {
+            cerrarModal();
+        }
+    });
 });
