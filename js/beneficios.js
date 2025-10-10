@@ -159,14 +159,6 @@ document.addEventListener('DOMContentLoaded', function() {
     updateBeneficioCount();
 });
 
-// Función para toggle de detalles (mantener compatibilidad)
-function toggleDetail(button) {
-    const card = button.closest('.beneficio-card');
-    const title = card.querySelector('h3').textContent;
-    const monto = card.querySelector('.beneficio-monto').textContent;
-    const descripcion = card.querySelector('.beneficio-descripcion').textContent;
-    const requisitos = Array.from(card.querySelectorAll('.beneficio-requisitos li')).map(li => li.textContent);
-
     // Datos específicos por beneficio (se pueden expandir)
     const beneficiosData = {
         'Asignación por Natalidad': {
