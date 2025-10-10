@@ -26,8 +26,8 @@
             <div class="login-container">
                 <div class="login-box">
                     <div class="login-header">
-                        <h2 id="login-title">Acceso Administrativo</h2>
-                        <p id="login-subtitle">Panel de administración del sistema</p>
+                        <h2 id="login-title">Acceso Afiliados</h2>
+                        <p id="login-subtitle">Ingresa tus credenciales para acceder</p>
                     </div>
 
                     <form id="loginForm" class="login-form">
@@ -37,7 +37,7 @@
                                 type="text" 
                                 id="rut" 
                                 name="rut" 
-                                placeholder="7.085.640-1"
+                                placeholder="12.345.678-9"
                                 required
                                 maxlength="12"
                             >
@@ -61,12 +61,18 @@
                                 <input type="checkbox" id="remember">
                                 <span>Recordar sesión</span>
                             </label>
-                            <a href="#" class="forgot-password">¿Olvidaste tu contraseña?</a>
+                            <!-- Solo mostrar "Olvidaste contraseña" para afiliados -->
+                            <a href="#" class="forgot-password" id="forgot-link">¿Olvidaste tu contraseña?</a>
                         </div>
 
                         <button type="submit" class="btn btn-login" id="btn-submit">
                             Iniciar Sesión
                         </button>
+
+                        <!-- Solo mostrar link de registro para afiliados -->
+                        <div class="login-footer" id="register-section">
+                            <p>¿No tienes cuenta? <a href="#" id="register-link">Regístrate aquí</a></p>
+                        </div>
                     </form>
 
                     <div class="login-divider">
@@ -76,6 +82,24 @@
                     <button class="btn btn-secondary btn-back" onclick="location.href='../index.html'">
                         Volver al Inicio
                     </button>
+                </div>
+
+                <!-- Información adicional - Solo para afiliados -->
+                <div class="login-info" id="info-section">
+                    <div class="info-card">
+                        <h3>🔐 Acceso Seguro</h3>
+                        <p>Tu información está protegida con los más altos estándares de seguridad.</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>📱 Contacto</h3>
+                        <p>¿Problemas para acceder?</p>
+                        <p><strong>Email:</strong> contacto@bienestaraps.cl</p>
+                        <p><strong>Teléfono:</strong> 22 XXX XXXX</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>⏰ Horario de Atención</h3>
+                        <p>Lunes a Viernes: 8:30 - 17:00 hrs</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -89,5 +113,45 @@
     </footer>
 
     <script type="module" src="../js/auth.js"></script>
+    
+    <script>
+        // Script para manejar la interfaz según el tipo de acceso
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tipo = urlParams.get('tipo');
+            
+            const loginTitle = document.getElementById('login-title');
+            const loginSubtitle = document.getElementById('login-subtitle');
+            const btnSubmit = document.getElementById('btn-submit');
+            const registerSection = document.getElementById('register-section');
+            const infoSection = document.getElementById('info-section');
+            const forgotLink = document.getElementById('forgot-link');
+            
+            if (tipo === 'admin') {
+                // Configuración para administradores
+                if (loginTitle) loginTitle.textContent = 'Acceso Administrativo';
+                if (loginSubtitle) loginSubtitle.textContent = 'Panel de administración del sistema';
+                
+                if (btnSubmit) {
+                    btnSubmit.style.background = 'linear-gradient(135deg, var(--azul-principal) 0%, var(--morado) 100%)';
+                }
+                
+                // Ocultar elementos que no queremos en admin
+                if (registerSection) registerSection.style.display = 'none';
+                if (infoSection) infoSection.style.display = 'none';
+                if (forgotLink) forgotLink.style.display = 'none';
+                
+            } else {
+                // Configuración para afiliados (por defecto)
+                if (loginTitle) loginTitle.textContent = 'Acceso Afiliados';
+                if (loginSubtitle) loginSubtitle.textContent = 'Ingresa tus credenciales para acceder';
+                
+                // Mostrar todos los elementos para afiliados
+                if (registerSection) registerSection.style.display = 'block';
+                if (infoSection) infoSection.style.display = 'flex';
+                if (forgotLink) forgotLink.style.display = 'inline';
+            }
+        });
+    </script>
 </body>
 </html>
