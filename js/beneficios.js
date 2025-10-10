@@ -27,41 +27,53 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 300);
     }
 
-// Contador de beneficios visibles
-function updateBeneficioCount() {
-    const visibleCards = Array.from(beneficioCards).filter(card =>
-        card.style.display !== 'none'
-    );
-    const countElement = document.querySelector('.beneficios-count');
-    if (countElement) {
-        countElement.textContent = `${visibleCards.length} beneficios disponibles`;
-    }
-}
+    // Event listeners para los botones de filtro
+    filterButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Remover clase active de todos los botones
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            // Agregar clase active al botón clickeado
+            this.classList.add('active');
 
-// Agregar contador si no existe
-const filtersContainer = document.querySelector('.filters-section .container');
-if (filtersContainer && !document.querySelector('.beneficios-count')) {
-    const countElement = document.createElement('div');
-    countElement.className = 'beneficios-count';
-    countElement.style.cssText = `
-        text-align: center;
-        margin: 10px 0;
-        font-weight: bold;
-        color: #666;
-    `;
-    countElement.textContent = `${beneficioCards.length} beneficios disponibles`;
-    filtersContainer.appendChild(countElement);
-}
+            const category = this.getAttribute('data-category');
 
-// Actualizar contador después de cada filtro
-filterButtons.forEach(button => {
-    button.addEventListener('click', () => {
-        setTimeout(updateBeneficioCount, 350);
+            beneficioCards.forEach(card => {
+                if (category === 'todos' || card.getAttribute('data-category') === category) {
+                    animateCardIn(card);
+                } else {
+                    animateCardOut(card);
+                }
+            });
+        });
     });
-});
 
-// Inicializar contador
-updateBeneficioCount();
+    // Función para búsqueda (opcional)
+    function addSearchFunctionality() {
+        const searchInput = document.createElement('input');
+        searchInput.type = 'text';
+        searchInput.placeholder = 'Buscar beneficio...';
+        searchInput.className = 'search-input';
+        
+        const filtersSection = document.querySelector('.filters-section .container');
+        if (filtersSection) {
+            filtersSection.appendChild(searchInput);
+        }
+
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            
+            beneficioCards.forEach(card => {
+                const title = card.querySelector('h3').textContent.toLowerCase();
+                const description = card.querySelector('.beneficio-descripcion').textContent.toLowerCase();
+                
+                if (title.includes(searchTerm) || description.includes(searchTerm)) {
+                    animateCardIn(card);
+                } else {
+                    animateCardOut(card);
+                }
+            });
+        });
+    }
 
     // Función para mostrar detalles de beneficio
     function showBeneficioDetails(beneficioData) {
