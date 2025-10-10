@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 300);
     }
 
-    // Event listeners para los botones de filtro
+        // Event listeners para los botones de filtro
     filterButtons.forEach(button => {
         button.addEventListener('click', function() {
             // Remover clase active de todos los botones
@@ -37,58 +37,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const category = this.getAttribute('data-category');
 
-            convenioCards.forEach(card => {
+            beneficioCards.forEach(card => {
                 if (category === 'todos' || card.getAttribute('data-category') === category) {
                     animateCardIn(card);
                 } else {
                     animateCardOut(card);
                 }
             });
-
-            // Actualizar contador después del filtro
-            setTimeout(updateConvenioCount, 350);
         });
     });
-
-    // Función para búsqueda en convenios
-        const searchInput = document.createElement('input');
-        searchInput.type = 'text';
-        searchInput.placeholder = 'Buscar convenio o empresa...';
-        searchInput.className = 'search-input';
-        searchInput.style.cssText = `
-            width: 100%;
-            max-width: 300px;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
-        `;
-        
-        const filtersSection = document.querySelector('.filters-section .container');
-        if (filtersSection) {
-            filtersSection.appendChild(searchInput);
-        }
-
-        searchInput.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase();
-            
-            convenioCards.forEach(card => {
-                const title = card.querySelector('h3').textContent.toLowerCase();
-                const description = card.querySelector('.convenio-descripcion').textContent.toLowerCase();
-                const info = card.querySelector('.convenio-info') ? 
-                    card.querySelector('.convenio-info').textContent.toLowerCase() : '';
-                
-                if (title.includes(searchTerm) || description.includes(searchTerm) || info.includes(searchTerm)) {
-                    animateCardIn(card);
-                } else {
-                    animateCardOut(card);
-                }
-            });
-
-            setTimeout(updateConvenioCount, 100);
-        });
-    }
 
     // Función para mostrar detalles de convenio
     function showConvenioDetails(convenioData) {
