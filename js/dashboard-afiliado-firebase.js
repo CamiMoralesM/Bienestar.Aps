@@ -1,3 +1,6 @@
+// El código completo ya está en tu repo y vincula todos los datos del afiliado de Firebase al HTML.
+// ¡Sólo asegúrate que los IDs del HTML coincidan y el JS se cargue bien!
+
 import { auth } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { 
@@ -39,9 +42,10 @@ async function cargarDatosUsuario(uid) {
         // Actualizar información en la UI
         document.querySelector('.user-name').textContent = `👤 ${funcionario.nombre}`;
         document.querySelector('.user-rut').textContent = `RUT: ${funcionario.rut}`;
-        
+        document.getElementById('bienvenida-usuario').textContent = funcionario.genero === 'F' ? `¡Bienvenida, ${funcionario.nombre.split(" ")[0]}!` : `¡Bienvenido, ${funcionario.nombre.split(" ")[0]}!`;
+
         // Cargar estadísticas
-        await cargarEstadisticas(uid);
+        await cargarEstadisticas(uid, funcionario.fechaAfiliacion);
         
         // Cargar beneficios
         await cargarBeneficios(uid);
@@ -58,7 +62,7 @@ async function cargarDatosUsuario(uid) {
 }
 
 // Cargar estadísticas del dashboard
-async function cargarEstadisticas(uid) {
+async function cargarEstadisticas(uid, fechaAfiliacion) {
     try {
         const beneficios = await obtenerBeneficiosFuncionario(uid);
         const solicitudes = await obtenerSolicitudesFuncionario(uid);
@@ -67,14 +71,20 @@ async function cargarEstadisticas(uid) {
         const solicitudesPendientes = solicitudes.filter(s => 
             s.estado === 'pendiente' || s.estado === 'en_revision'
         ).length;
-        
+
         // Actualizar cards de estadísticas
-        const statCards = document.querySelectorAll('.stat-card');
-        if (statCards.length >= 3) {
-            statCards[0].querySelector('h3').textContent = `$${totalBeneficios2025.toLocaleString('es-CL')}`;
-            statCards[2].querySelector('h3').textContent = solicitudesPendientes;
+        document.getElementById('beneficios-recibidos').textContent = `$${totalBeneficios2025.toLocaleString('es-CL')}`;
+        document.getElementById('solicitudes-pendientes').textContent = solicitudesPendientes;
+        document.getElementById('convenios-disponibles').textContent = "12"; // Si tienes convenios dinámicos, cámbialo aquí
+
+        // Tiempo de afiliación
+        if (fechaAfiliacion && fechaAfiliacion.toDate) {
+            const fecha = fechaAfiliacion.toDate();
+            const hoy = new Date();
+            const msPorMes = 1000 * 60 * 60 * 24 * 30.44;
+            const meses = Math.floor((hoy - fecha) / msPorMes);
+            document.getElementById('tiempo-afiliacion').textContent = meses + (meses === 1 ? " mes" : " meses");
         }
-        
     } catch (error) {
         console.error('Error al cargar estadísticas:', error);
     }
@@ -183,9 +193,9 @@ async function cargarSolicitudes(uid) {
 async function cargarPerfil(funcionario) {
     try {
         // Llenar formulario de información personal
-        const nombreInput = document.querySelector('#tab-perfil input[value]');
+        const nombreInput = document.querySelector('#tab-perfil input[type="text"]');
         if (nombreInput) {
-            document.querySelector('#tab-perfil input[type="text"]').value = funcionario.nombre || '';
+            nombreInput.value = funcionario.nombre || '';
             document.querySelectorAll('#tab-perfil input[type="text"]')[1].value = funcionario.rut || '';
             document.querySelector('#tab-perfil input[type="email"]').value = funcionario.email || '';
             document.querySelector('#tab-perfil input[type="tel"]').value = funcionario.telefono || '';
@@ -199,7 +209,10 @@ async function cargarPerfil(funcionario) {
             infoItems[1].textContent = funcionario.centroSalud || 'N/A';
             infoItems[2].textContent = funcionario.cargasFamiliares?.length || '0';
         }
-        
+        const estadoBadge = document.querySelector('.info-item .badge.success');
+        if (estadoBadge) {
+            estadoBadge.textContent = funcionario.estado || '';
+        }
     } catch (error) {
         console.error('Error al cargar perfil:', error);
     }
@@ -240,7 +253,6 @@ window.logout = async function() {
 
 // Función para nueva solicitud
 window.nuevaSolicitud = function() {
-    // Aquí se abriría un modal o formulario para nueva solicitud
     alert('Función de nueva solicitud en desarrollo.\nPróximamente podrás crear solicitudes desde aquí.');
 }
 
