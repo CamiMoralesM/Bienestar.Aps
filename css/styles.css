@@ -2514,3 +2514,91 @@ body.modal-open {
         padding: 20px;
     }
 }
+/* MODAL GENERAL */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.5);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeInModal 0.2s;
+}
+@keyframes fadeInModal {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+.modal-content {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 10px 32px rgba(44,90,160,0.08), 0 2px 8px rgba(0,0,0,0.05);
+    max-width: 500px;
+    width: 95vw;
+    padding: 30px 24px 24px 24px;
+    position: relative;
+    animation: dropInModal 0.3s cubic-bezier(.4,1.7,.5,1.1);
+}
+@keyframes dropInModal {
+    from { transform: translateY(-30px); opacity: 0; }
+    to   { transform: translateY(0); opacity: 1; }
+}
+.modal-content h2 {
+    margin-top: 0;
+    font-size: 1.7rem;
+    color: #2c5aa0;
+    margin-bottom: 18px;
+}
+.modal-content ul {
+    padding-left: 0;
+    list-style: none;
+}
+.modal-content li {
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
+.modal-content label {
+    display: block;
+    margin: 10px 0 5px 0;
+    font-weight: 600;
+    color: #444;
+}
+.modal-content input[type="text"],
+.modal-content input[type="email"],
+.modal-content input[type="tel"],
+.modal-content input[type="date"] {
+    width: 100%;
+    padding: 7px 9px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+}
+.modal-content .btn {
+    margin-left: 7px;
+    min-width: 100px;
+}
+.modal-content .btn-primary {
+    background: linear-gradient(135deg, var(--azul-principal, #2c5aa0) 0%, var(--morado, #6c63ff) 100%);
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-weight: 600;
+    padding: 9px 20px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.modal-content .btn-secondary {
+    background: #eee;
+    color: #555;
+    border: none;
+    border-radius: 5px;
+    font-weight: 600;
+    padding: 9px 20px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+@media (max-width:600px) {
+    .modal-content { padding: 18px 7px; }
+}
