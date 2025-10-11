@@ -104,11 +104,15 @@ async function cargarAfiliados(filtroEstado = '', filtroCentro = '') {
             
             if (func.estado === 'activo') {
                 estadoBadge = '<span class="badge success">Activo</span>';
+                // Botón desactivar solo si está activo
+                accionesEspeciales = `<button class="btn-icon danger" title="Desactivar" onclick="desactivarFuncionario('${func.id}')">🚫</button>`;
             } else if (func.estado === 'pendiente') {
                 estadoBadge = '<span class="badge warning">Pendiente</span>';
                 accionesEspeciales = `<button class="btn-icon success" title="Aprobar Afiliado" onclick="aprobarAfiliado('${func.id}')">✓</button>`;
             } else {
                 estadoBadge = '<span class="badge">Inactivo</span>';
+                // Botón activar si está inactivo
+                accionesEspeciales = `<button class="btn-icon success" title="Activar" onclick="activarFuncionario('${func.id}')">✔️</button>`;
             }
             
             const row = `
@@ -159,6 +163,24 @@ window.aprobarAfiliado = async function(funcionarioId) {
             await cargarEstadisticasGenerales();
         } else {
             alert('Error al aprobar afiliado: ' + resultado.error);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al procesar la solicitud');
+    }
+}
+
+// Activar afiliado inactivo
+window.activarFuncionario = async function(funcionarioId) {
+    if (!confirm('¿Está seguro de que desea activar este funcionario?')) return;
+    try {
+        const resultado = await actualizarFuncionario(funcionarioId, { estado: 'activo' });
+        if (resultado.success) {
+            alert('Funcionario activado correctamente');
+            await cargarAfiliados(filtroEstadoActual, filtroCentroActual);
+            await cargarEstadisticasGenerales();
+        } else {
+            alert('Error al activar funcionario: ' + resultado.error);
         }
     } catch (error) {
         console.error('Error:', error);
@@ -660,6 +682,24 @@ window.eliminarFuncionario = async function(funcionarioId) {
         await cargarEstadisticasGenerales();
     } catch (err) {
         alert('Error al eliminar funcionario: ' + err.message);
+    }
+}
+
+// DESACTIVAR FUNCIONARIO
+window.desactivarFuncionario = async function(funcionarioId) {
+    if (!confirm('¿Está seguro de que desea desactivar este funcionario?')) return;
+    try {
+        const resultado = await actualizarFuncionario(funcionarioId, { estado: 'inactivo' });
+        if (resultado.success) {
+            alert('Funcionario desactivado');
+            await cargarAfiliados(filtroEstadoActual, filtroCentroActual);
+            await cargarEstadisticasGenerales();
+        } else {
+            alert('Error al desactivar funcionario');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al procesar la solicitud');
     }
 }
 
