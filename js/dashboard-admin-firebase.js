@@ -1,7 +1,8 @@
-import { auth } from './firebase-config.js';
+import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { 
     obtenerFuncionarios,
+    obtenerFuncionario,
     obtenerTodasSolicitudes,
     obtenerEstadisticasGenerales,
     aprobarSolicitud,
@@ -10,6 +11,7 @@ import {
     obtenerConvenios
 } from './firestore-operations.js';
 import { cerrarSesion, registrarFuncionario } from './auth.js';
+import { doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // Variables globales para filtros
 let funcionariosData = [];
@@ -120,7 +122,7 @@ async function cargarAfiliados(filtroEstado = '', filtroCentro = '') {
                         ${accionesEspeciales}
                         <button class="btn-icon" title="Ver perfil" onclick="verPerfilFuncionario('${func.id}')">👁️</button>
                         <button class="btn-icon" title="Editar" onclick="editarFuncionario('${func.id}')">✏️</button>
-                        <button class="btn-icon danger" title="Desactivar" onclick="desactivarFuncionario('${func.id}')">🚫</button>
+                        <button class="btn-icon danger" title="Eliminar" onclick="eliminarFuncionario('${func.id}')">🗑️</button>
                     </td>
                 </tr>
             `;
@@ -320,7 +322,6 @@ function escaparCSV(valor) {
     
     return valor;
 }
-
 
 // Cargar solicitudes para admin
 async function cargarSolicitudesAdmin() {
@@ -549,32 +550,120 @@ window.rechazarSolicitudAdmin = async function(solicitudId) {
     }
 }
 
-// Funciones de administración de funcionarios
-window.verPerfilFuncionario = function(funcionarioId) {
-    alert(`Ver perfil del funcionario: ${funcionarioId}\n(Función en desarrollo)`);
+// ==================== NUEVAS FUNCIONES MODAL VER, EDITAR, ELIMINAR FUNCIONARIO ====================
+
+// Modal VER perfil funcionario
+window.verPerfilFuncionario = async function(funcionarioId) {
+    const funcionario = await obtenerFuncionario(funcionarioId);
+    if (!funcionario) {
+        alert('Funcionario no encontrado');
+        return;
+    }
+    // Crear modal dinámico
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.style.cssText = `
+        position: fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); z-index:9999; display:flex; align-items:center; justify-content:center;
+    `;
+    modal.innerHTML = `
+        <div class="modal-content" style="background:white; padding:30px; border-radius:10px; max-width:500px; width:95%;">
+            <h2>👁️ Perfil del Afiliado</h2>
+            <ul style="list-style:none; padding:0;">
+                <li><strong>Nombre:</strong> ${funcionario.nombre}</li>
+                <li><strong>RUT:</strong> ${funcionario.rut}</li>
+                <li><strong>Correo:</strong> ${funcionario.email}</li>
+                <li><strong>Teléfono:</strong> ${funcionario.telefono}</li>
+                <li><strong>Centro de Salud:</strong> ${funcionario.centroSalud}</li>
+                <li><strong>Cargo:</strong> ${funcionario.cargo}</li>
+                <li><strong>Fecha Afiliación:</strong> ${funcionario.fechaAfiliacion?.toDate().toLocaleDateString('es-CL') || 'N/A'}</li>
+                <li><strong>Cargas Familiares:</strong> ${(funcionario.cargasFamiliares && funcionario.cargasFamiliares.length) ? funcionario.cargasFamiliares.join(', ') : 'Ninguna'}</li>
+            </ul>
+            <div style="text-align:right; margin-top:25px;">
+                <button class="btn btn-primary modal-close">Cerrar</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    modal.querySelector('.modal-close').onclick = () => document.body.removeChild(modal);
+    modal.onclick = (e) => { if (e.target === modal) document.body.removeChild(modal); };
 }
 
-window.editarFuncionario = function(funcionarioId) {
-    alert(`Editar funcionario: ${funcionarioId}\n(Función en desarrollo)`);
-}
+// Modal EDITAR perfil funcionario
+window.editarFuncionario = async function(funcionarioId) {
+    const funcionario = await obtenerFuncionario(funcionarioId);
+    if (!funcionario) {
+        alert('Funcionario no encontrado');
+        return;
+    }
+    // Crear modal de edición
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.style.cssText = `
+        position: fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); z-index:9999; display:flex; align-items:center; justify-content:center;
+    `;
+    modal.innerHTML = `
+        <div class="modal-content" style="background:white; padding:30px; border-radius:10px; max-width:500px; width:95%;">
+            <h2>✏️ Editar Afiliado</h2>
+            <form id="formEditarFuncionario">
+                <label>Nombre Completo:<input type="text" name="nombre" value="${funcionario.nombre || ''}" required></label><br>
+                <label>RUT:<input type="text" name="rut" value="${funcionario.rut || ''}" required></label><br>
+                <label>Correo:<input type="email" name="email" value="${funcionario.email || ''}" required></label><br>
+                <label>Teléfono:<input type="tel" name="telefono" value="${funcionario.telefono || ''}"></label><br>
+                <label>Centro de Salud:<input type="text" name="centroSalud" value="${funcionario.centroSalud || ''}" required></label><br>
+                <label>Cargo:<input type="text" name="cargo" value="${funcionario.cargo || ''}" required></label><br>
+                <label>Fecha Afiliación:<input type="date" name="fechaAfiliacion" value="${funcionario.fechaAfiliacion?.toDate().toISOString().substr(0,10) || ''}" required></label><br>
+                <label>Cargas Familiares:<input type="text" name="cargasFamiliares" value="${(funcionario.cargasFamiliares && funcionario.cargasFamiliares.length) ? funcionario.cargasFamiliares.join(', ') : ''}" placeholder="Separar por coma"></label>
+                <div style="text-align:right; margin-top:20px;">
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                    <button type="button" class="btn btn-secondary modal-close">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    modal.querySelector('.modal-close').onclick = () => document.body.removeChild(modal);
+    modal.onclick = (e) => { if (e.target === modal) document.body.removeChild(modal); };
 
-window.desactivarFuncionario = async function(funcionarioId) {
-    if (!confirm('¿Está seguro de que desea desactivar este funcionario?')) return;
-    
-    try {
-        const resultado = await actualizarFuncionario(funcionarioId, { estado: 'inactivo' });
-        
+    // Guardar cambios
+    modal.querySelector('#formEditarFuncionario').onsubmit = async (e) => {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        const datosEditados = {
+            nombre: fd.get('nombre').trim(),
+            rut: fd.get('rut').trim(),
+            email: fd.get('email').trim(),
+            telefono: fd.get('telefono').trim(),
+            centroSalud: fd.get('centroSalud').trim(),
+            cargo: fd.get('cargo').trim(),
+            fechaAfiliacion: fd.get('fechaAfiliacion') ? new Date(fd.get('fechaAfiliacion')) : funcionario.fechaAfiliacion,
+            cargasFamiliares: fd.get('cargasFamiliares').split(',').map(x => x.trim()).filter(Boolean)
+        };
+        // Actualizar en Firebase
+        const resultado = await actualizarFuncionario(funcionarioId, datosEditados);
         if (resultado.success) {
-            alert('Funcionario desactivado');
+            alert('Cambios guardados exitosamente');
+            document.body.removeChild(modal);
             await cargarAfiliados(filtroEstadoActual, filtroCentroActual);
         } else {
-            alert('Error al desactivar funcionario');
+            alert('Error al guardar: ' + resultado.error);
         }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Error al procesar la solicitud');
+    };
+}
+
+// ELIMINAR FUNCIONARIO
+window.eliminarFuncionario = async function(funcionarioId) {
+    if (!confirm('¿Está seguro que desea eliminar este funcionario? Esta acción no se puede deshacer.')) return;
+    try {
+        await deleteDoc(doc(db, "funcionarios", funcionarioId));
+        alert('Funcionario eliminado correctamente');
+        await cargarAfiliados(filtroEstadoActual, filtroCentroActual);
+        await cargarEstadisticasGenerales();
+    } catch (err) {
+        alert('Error al eliminar funcionario: ' + err.message);
     }
 }
+
+// ==================== FIN NUEVAS FUNCIONES ====================
 
 // Funciones de convenios
 window.editarConvenio = function(convenioId) {
@@ -675,34 +764,37 @@ document.addEventListener('DOMContentLoaded', function() {
     initFilters();
 
     // Ejemplo básico de almacenamiento en localStorage (adáptalo a Firebase en producción)
-function guardarCompraGas(compra) {
-    const fechaHoy = new Date().toISOString().slice(0, 10);
-    let compras = JSON.parse(localStorage.getItem('comprasGas_' + fechaHoy)) || [];
-    compras.push(compra);
-    localStorage.setItem('comprasGas_' + fechaHoy, JSON.stringify(compras));
-}
+    function guardarCompraGas(compra) {
+        const fechaHoy = new Date().toISOString().slice(0, 10);
+        let compras = JSON.parse(localStorage.getItem('comprasGas_' + fechaHoy)) || [];
+        compras.push(compra);
+        localStorage.setItem('comprasGas_' + fechaHoy, JSON.stringify(compras));
+    }
 
-// Al enviar el formulario
-document.getElementById('formCompraGas').addEventListener('submit', function(e) {
-    e.preventDefault();
-    // Obtén todos los datos del formulario
-    // ...
-    // Llama a guardarCompraGas(compra)
-    // ...
-    alert('Compra registrada correctamente');
-});
+    // Al enviar el formulario
+    const formCompraGas = document.getElementById('formCompraGas');
+    if(formCompraGas) {
+        formCompraGas.addEventListener('submit', function(e) {
+            e.preventDefault();
+            // Obtén todos los datos del formulario
+            // ...
+            // Llama a guardarCompraGas(compra)
+            // ...
+            alert('Compra registrada correctamente');
+        });
+    }
 
-// Para exportar Lipigas, Abastible, General, usa la librería XLSX y las funciones que te di antes.
-// Ejemplo:
-function exportarLipigasExcel() {
-    // Filtra las compras de Lipigas y genera el Excel con el formato especial
-}
-function exportarAbastibleExcel() {
-    // Filtra las compras de Abastible y genera el Excel con el formato especial
-}
-function exportarGeneralExcel() {
-    // Junta todas las compras y exporta el respaldo
-}
+    // Para exportar Lipigas, Abastible, General, usa la librería XLSX y las funciones que te di antes.
+    // Ejemplo:
+    function exportarLipigasExcel() {
+        // Filtra las compras de Lipigas y genera el Excel con el formato especial
+    }
+    function exportarAbastibleExcel() {
+        // Filtra las compras de Abastible y genera el Excel con el formato especial
+    }
+    function exportarGeneralExcel() {
+        // Junta todas las compras y exporta el respaldo
+    }
     // Cerrar modal al hacer click fuera
     window.addEventListener('click', function(event) {
         const modal = document.getElementById('modalNuevoAfiliado');
