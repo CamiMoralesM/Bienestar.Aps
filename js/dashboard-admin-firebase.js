@@ -40,16 +40,12 @@ async function cargarDashboardAdmin() {
     try {
         // Cargar estadísticas generales
         await cargarEstadisticasGenerales();
-        
         // Cargar afiliados
         await cargarAfiliados();
-        
         // Cargar solicitudes
         await cargarSolicitudesAdmin();
-        
         // Cargar convenios
         await cargarConveniosAdmin();
-        
     } catch (error) {
         console.error('Error al cargar dashboard admin:', error);
     }
@@ -59,7 +55,6 @@ async function cargarDashboardAdmin() {
 async function cargarEstadisticasGenerales() {
     try {
         const stats = await obtenerEstadisticasGenerales();
-        
         const statCards = document.querySelectorAll('.admin-stat-card');
         if (statCards.length >= 4) {
             statCards[0].querySelector('h3').textContent = stats.totalFuncionarios.toLocaleString('es-CL');
@@ -67,7 +62,6 @@ async function cargarEstadisticasGenerales() {
             statCards[2].querySelector('h3').textContent = stats.solicitudesPendientes;
             statCards[3].querySelector('h3').textContent = stats.conveniosActivos;
         }
-        
     } catch (error) {
         console.error('Error al cargar estadísticas:', error);
     }
@@ -78,43 +72,31 @@ async function cargarAfiliados(filtroEstado = '', filtroCentro = '') {
     try {
         const funcionarios = await obtenerFuncionarios();
         funcionariosData = funcionarios; // Guardar para filtros
-        
         // Aplicar filtros
         let funcionariosFiltrados = funcionarios;
-        
         if (filtroEstado && filtroEstado !== 'todos') {
             funcionariosFiltrados = funcionariosFiltrados.filter(func => func.estado === filtroEstado);
         }
-        
         if (filtroCentro && filtroCentro !== 'todos') {
             funcionariosFiltrados = funcionariosFiltrados.filter(func => func.centroSalud === filtroCentro);
         }
-        
         const tbody = document.querySelector('#tab-afiliados tbody');
-        
         if (!tbody) return;
-        
         tbody.innerHTML = '';
-        
         funcionariosFiltrados.forEach(func => {
             const fecha = func.fechaAfiliacion?.toDate().toLocaleDateString('es-CL') || 'N/A';
-            
             let estadoBadge = '';
             let accionesEspeciales = '';
-            
             if (func.estado === 'activo') {
                 estadoBadge = '<span class="badge success">Activo</span>';
-                // Botón desactivar solo si está activo
                 accionesEspeciales = `<button class="btn-icon danger" title="Desactivar" onclick="desactivarFuncionario('${func.id}')">🚫</button>`;
             } else if (func.estado === 'pendiente') {
                 estadoBadge = '<span class="badge warning">Pendiente</span>';
                 accionesEspeciales = `<button class="btn-icon success" title="Aprobar Afiliado" onclick="aprobarAfiliado('${func.id}')">✓</button>`;
             } else {
                 estadoBadge = '<span class="badge">Inactivo</span>';
-                // Botón activar si está inactivo
                 accionesEspeciales = `<button class="btn-icon success" title="Activar" onclick="activarFuncionario('${func.id}')">✔️</button>`;
             }
-            
             const row = `
                 <tr>
                     <td>${func.rut}</td>
@@ -130,13 +112,10 @@ async function cargarAfiliados(filtroEstado = '', filtroCentro = '') {
                     </td>
                 </tr>
             `;
-            
             tbody.innerHTML += row;
         });
-        
         // Actualizar contador
         actualizarContadorAfiliados(funcionariosFiltrados.length, funcionarios.length);
-        
     } catch (error) {
         console.error('Error al cargar afiliados:', error);
     }
@@ -153,10 +132,8 @@ function actualizarContadorAfiliados(mostrados, total) {
 // Aprobar nuevo afiliado
 window.aprobarAfiliado = async function(funcionarioId) {
     if (!confirm('¿Está seguro de que desea aprobar este afiliado?')) return;
-    
     try {
         const resultado = await actualizarFuncionario(funcionarioId, { estado: 'activo' });
-        
         if (resultado.success) {
             alert('✓ Afiliado aprobado exitosamente');
             await cargarAfiliados(filtroEstadoActual, filtroCentroActual);
@@ -191,24 +168,16 @@ window.activarFuncionario = async function(funcionarioId) {
 // Exportar a Excel - VERSIÓN CORREGIDA
 window.exportarAfiliados = function() {
     try {
-        // Obtener datos filtrados actuales
         let datosExportar = funcionariosData;
-        
         if (filtroEstadoActual && filtroEstadoActual !== 'todos') {
             datosExportar = datosExportar.filter(func => func.estado === filtroEstadoActual);
         }
-        
         if (filtroCentroActual && filtroCentroActual !== 'todos') {
             datosExportar = datosExportar.filter(func => func.centroSalud === filtroCentroActual);
         }
-        
-        // Crear archivo Excel usando SheetJS
         const workbook = XLSX.utils.book_new();
-        
-        // Preparar datos para Excel
         const excelData = datosExportar.map(func => {
             const fecha = func.fechaAfiliacion?.toDate().toLocaleDateString('es-CL') || 'N/A';
-            
             return {
                 'RUT': func.rut || 'N/A',
                 'Nombre': func.nombre || 'N/A',
@@ -221,42 +190,25 @@ window.exportarAfiliados = function() {
                 'Cargo': func.cargo || 'N/A'
             };
         });
-        
-        // Crear hoja de cálculo
         const worksheet = XLSX.utils.json_to_sheet(excelData);
-        
-        // Ajustar ancho de columnas
-        const columnWidths = [
-            { wch: 15 }, // RUT
-            { wch: 30 }, // Nombre
-            { wch: 15 }, // Fecha Afiliación
-            { wch: 35 }, // Lugar de Trabajo
-            { wch: 15 }, // Estado Civil
-            { wch: 30 }, // Correo Electrónico
-            { wch: 18 }, // Número de Teléfono
-            { wch: 12 }, // Estado
-            { wch: 20 }  // Cargo
+        worksheet['!cols'] = [
+            { wch: 15 },
+            { wch: 30 },
+            { wch: 15 },
+            { wch: 35 },
+            { wch: 15 },
+            { wch: 30 },
+            { wch: 18 },
+            { wch: 12 },
+            { wch: 20 }
         ];
-        
-        worksheet['!cols'] = columnWidths;
-        
-        // Agregar hoja al libro
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Afiliados');
-        
-        // Generar nombre de archivo con fecha
         const fechaActual = new Date().toISOString().split('T')[0];
         const nombreArchivo = `afiliados_bienestar_aps_${fechaActual}.xlsx`;
-        
-        // Descargar archivo
         XLSX.writeFile(workbook, nombreArchivo);
-        
         alert(`✓ Archivo Excel exportado exitosamente: ${nombreArchivo}\n\nSe exportaron ${excelData.length} registros.`);
-        
     } catch (error) {
         console.error('Error al exportar:', error);
-        
-        // Fallback a CSV si falla Excel
-        console.log('Intentando exportar como CSV...');
         exportarCSV();
     }
 }
@@ -264,18 +216,13 @@ window.exportarAfiliados = function() {
 // Función de respaldo para CSV
 function exportarCSV() {
     try {
-        // Obtener datos filtrados actuales
         let datosExportar = funcionariosData;
-        
         if (filtroEstadoActual && filtroEstadoActual !== 'todos') {
             datosExportar = datosExportar.filter(func => func.estado === filtroEstadoActual);
         }
-        
         if (filtroCentroActual && filtroCentroActual !== 'todos') {
             datosExportar = datosExportar.filter(func => func.centroSalud === filtroCentroActual);
         }
-        
-        // Headers sin comillas para CSV
         const headers = [
             'RUT',
             'Nombre',
@@ -287,14 +234,10 @@ function exportarCSV() {
             'Estado',
             'Cargo'
         ];
-        
-        // Crear contenido CSV
-        let csvContent = '\uFEFF'; // BOM para UTF-8
+        let csvContent = '\uFEFF';
         csvContent += headers.join(',') + '\n';
-        
         datosExportar.forEach(func => {
             const fecha = func.fechaAfiliacion?.toDate().toLocaleDateString('es-CL') || 'N/A';
-            
             const row = [
                 escaparCSV(func.rut || 'N/A'),
                 escaparCSV(func.nombre || 'N/A'),
@@ -306,11 +249,8 @@ function exportarCSV() {
                 escaparCSV(func.estado || 'N/A'),
                 escaparCSV(func.cargo || 'N/A')
             ];
-            
             csvContent += row.join(',') + '\n';
         });
-        
-        // Descargar archivo CSV
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
@@ -320,9 +260,7 @@ function exportarCSV() {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        
         alert('✓ Archivo CSV exportado exitosamente (formato de respaldo)');
-        
     } catch (error) {
         console.error('Error al exportar CSV:', error);
         alert('Error al exportar archivo. Intente nuevamente.');
@@ -334,14 +272,10 @@ function escaparCSV(valor) {
     if (typeof valor !== 'string') {
         valor = String(valor);
     }
-    
-    // Si contiene coma, comilla o salto de línea, envolver en comillas
     if (valor.includes(',') || valor.includes('"') || valor.includes('\n')) {
-        // Escapar comillas duplicándolas
         valor = valor.replace(/"/g, '""');
         return `"${valor}"`;
     }
-    
     return valor;
 }
 
@@ -350,22 +284,16 @@ async function cargarSolicitudesAdmin() {
     try {
         const solicitudes = await obtenerTodasSolicitudes();
         const container = document.querySelector('.admin-solicitudes');
-        
         if (!container) return;
-        
         container.innerHTML = '';
-        
         if (solicitudes.length === 0) {
             container.innerHTML = '<p>No hay solicitudes pendientes.</p>';
             return;
         }
-        
         solicitudes.forEach(solicitud => {
             const fecha = solicitud.createdAt?.toDate().toLocaleDateString('es-CL') || 'N/A';
-            
             let estadoBadge = '';
             let prioridadClass = 'priority-normal';
-            
             if (solicitud.estado === 'pendiente') {
                 estadoBadge = '<span class="badge warning">Pendiente Evaluación</span>';
             } else if (solicitud.estado === 'en_revision') {
@@ -373,11 +301,9 @@ async function cargarSolicitudesAdmin() {
             } else if (solicitud.estado === 'aprobada') {
                 estadoBadge = '<span class="badge success">Aprobada</span>';
             }
-            
             if (solicitud.prioridad === 'alta') {
                 prioridadClass = 'priority-high';
             }
-            
             const solicitudHTML = `
                 <div class="solicitud-admin-card ${prioridadClass}">
                     <div class="solicitud-admin-header">
@@ -401,10 +327,8 @@ async function cargarSolicitudesAdmin() {
                     </div>
                 </div>
             `;
-            
             container.innerHTML += solicitudHTML;
         });
-        
     } catch (error) {
         console.error('Error al cargar solicitudes:', error);
     }
@@ -415,11 +339,8 @@ async function cargarConveniosAdmin() {
     try {
         const convenios = await obtenerConvenios({ estado: '' }); // Todos los convenios
         const container = document.querySelector('.convenios-admin-list');
-        
         if (!container) return;
-        
         container.innerHTML = '';
-        
         convenios.forEach(convenio => {
             let estadoBadge = '';
             if (convenio.estado === 'activo') {
@@ -429,7 +350,6 @@ async function cargarConveniosAdmin() {
             } else {
                 estadoBadge = '<span class="badge">Inactivo</span>';
             }
-            
             const convenioHTML = `
                 <div class="convenio-admin-item">
                     <div class="convenio-admin-header">
@@ -455,10 +375,8 @@ async function cargarConveniosAdmin() {
                     </div>
                 </div>
             `;
-            
             container.innerHTML += convenioHTML;
         });
-        
     } catch (error) {
         console.error('Error al cargar convenios:', error);
     }
@@ -469,7 +387,6 @@ window.nuevoAfiliado = function() {
     const modal = document.getElementById('modalNuevoAfiliado');
     if (modal) {
         modal.style.display = 'block';
-        // Limpiar formulario
         document.getElementById('formNuevoAfiliado').reset();
     }
 }
@@ -485,7 +402,6 @@ window.cerrarModal = function() {
 // Crear nuevo afiliado desde modal
 window.crearNuevoAfiliado = async function(event) {
     event.preventDefault();
-    
     const formData = new FormData(event.target);
     const datos = {
         nombre: formData.get('nombre'),
@@ -497,20 +413,15 @@ window.crearNuevoAfiliado = async function(event) {
         estadoCivil: formData.get('estadoCivil'),
         password: formData.get('password')
     };
-    
-    // Validaciones básicas
     if (!datos.nombre || !datos.rut || !datos.email || !datos.password) {
         alert('Todos los campos marcados con * son obligatorios');
         return;
     }
-    
     try {
         const btnCrear = document.querySelector('#formNuevoAfiliado button[type="submit"]');
         btnCrear.textContent = 'Creando...';
         btnCrear.disabled = true;
-        
         const resultado = await registrarFuncionario(datos);
-        
         if (resultado.success) {
             alert('✓ Afiliado creado exitosamente');
             cerrarModal();
@@ -532,10 +443,8 @@ window.crearNuevoAfiliado = async function(event) {
 // Funciones de administración de solicitudes
 window.aprobarSolicitudAdmin = async function(solicitudId) {
     if (!confirm('¿Está seguro de que desea aprobar esta solicitud?')) return;
-    
     try {
         const resultado = await aprobarSolicitud(solicitudId);
-        
         if (resultado.success) {
             alert('✓ Solicitud aprobada exitosamente');
             await cargarSolicitudesAdmin();
@@ -551,15 +460,12 @@ window.aprobarSolicitudAdmin = async function(solicitudId) {
 
 window.rechazarSolicitudAdmin = async function(solicitudId) {
     const motivo = prompt('Ingrese el motivo del rechazo:');
-    
     if (!motivo) {
         alert('Debe ingresar un motivo para rechazar');
         return;
     }
-    
     try {
         const resultado = await rechazarSolicitud(solicitudId, motivo);
-        
         if (resultado.success) {
             alert('Solicitud rechazada');
             await cargarSolicitudesAdmin();
@@ -572,9 +478,9 @@ window.rechazarSolicitudAdmin = async function(solicitudId) {
     }
 }
 
-// ==================== NUEVAS FUNCIONES MODAL VER, EDITAR, ELIMINAR FUNCIONARIO ====================
+// ==================== MODALES VER, EDITAR, ELIMINAR FUNCIONARIO ====================
 
-// Modal VER perfil funcionario
+// Modal VER perfil funcionario (incluye estado civil)
 window.verPerfilFuncionario = async function(funcionarioId) {
     const funcionario = await obtenerFuncionario(funcionarioId);
     if (!funcionario) {
@@ -597,6 +503,7 @@ window.verPerfilFuncionario = async function(funcionarioId) {
                 <li><strong>Teléfono:</strong> ${funcionario.telefono}</li>
                 <li><strong>Centro de Salud:</strong> ${funcionario.centroSalud}</li>
                 <li><strong>Cargo:</strong> ${funcionario.cargo}</li>
+                <li><strong>Estado Civil:</strong> ${funcionario.estadoCivil || 'No especificado'}</li>
                 <li><strong>Fecha Afiliación:</strong> ${funcionario.fechaAfiliacion?.toDate().toLocaleDateString('es-CL') || 'N/A'}</li>
                 <li><strong>Cargas Familiares:</strong> ${(funcionario.cargasFamiliares && funcionario.cargasFamiliares.length) ? funcionario.cargasFamiliares.join(', ') : 'Ninguna'}</li>
             </ul>
@@ -610,14 +517,13 @@ window.verPerfilFuncionario = async function(funcionarioId) {
     modal.onclick = (e) => { if (e.target === modal) document.body.removeChild(modal); };
 }
 
-// Modal EDITAR perfil funcionario
+// Modal EDITAR perfil funcionario (incluye estado civil)
 window.editarFuncionario = async function(funcionarioId) {
     const funcionario = await obtenerFuncionario(funcionarioId);
     if (!funcionario) {
         alert('Funcionario no encontrado');
         return;
     }
-    // Crear modal de edición
     const modal = document.createElement('div');
     modal.className = 'modal-overlay';
     modal.style.cssText = `
@@ -633,6 +539,16 @@ window.editarFuncionario = async function(funcionarioId) {
                 <label>Teléfono:<input type="tel" name="telefono" value="${funcionario.telefono || ''}"></label><br>
                 <label>Centro de Salud:<input type="text" name="centroSalud" value="${funcionario.centroSalud || ''}" required></label><br>
                 <label>Cargo:<input type="text" name="cargo" value="${funcionario.cargo || ''}" required></label><br>
+                <label>Estado Civil:
+                    <select name="estadoCivil">
+                        <option value="">No especificado</option>
+                        <option value="Soltero/a" ${funcionario.estadoCivil==="Soltero/a"?"selected":""}>Soltero/a</option>
+                        <option value="Casado/a" ${funcionario.estadoCivil==="Casado/a"?"selected":""}>Casado/a</option>
+                        <option value="Divorciado/a" ${funcionario.estadoCivil==="Divorciado/a"?"selected":""}>Divorciado/a</option>
+                        <option value="Viudo/a" ${funcionario.estadoCivil==="Viudo/a"?"selected":""}>Viudo/a</option>
+                        <option value="Unión Civil" ${funcionario.estadoCivil==="Unión Civil"?"selected":""}>Unión Civil</option>
+                    </select>
+                </label><br>
                 <label>Fecha Afiliación:<input type="date" name="fechaAfiliacion" value="${funcionario.fechaAfiliacion?.toDate().toISOString().substr(0,10) || ''}" required></label><br>
                 <label>Cargas Familiares:<input type="text" name="cargasFamiliares" value="${(funcionario.cargasFamiliares && funcionario.cargasFamiliares.length) ? funcionario.cargasFamiliares.join(', ') : ''}" placeholder="Separar por coma"></label>
                 <div style="text-align:right; margin-top:20px;">
@@ -645,8 +561,6 @@ window.editarFuncionario = async function(funcionarioId) {
     document.body.appendChild(modal);
     modal.querySelector('.modal-close').onclick = () => document.body.removeChild(modal);
     modal.onclick = (e) => { if (e.target === modal) document.body.removeChild(modal); };
-
-    // Guardar cambios
     modal.querySelector('#formEditarFuncionario').onsubmit = async (e) => {
         e.preventDefault();
         const fd = new FormData(e.target);
@@ -657,10 +571,10 @@ window.editarFuncionario = async function(funcionarioId) {
             telefono: fd.get('telefono').trim(),
             centroSalud: fd.get('centroSalud').trim(),
             cargo: fd.get('cargo').trim(),
+            estadoCivil: fd.get('estadoCivil') || '',
             fechaAfiliacion: fd.get('fechaAfiliacion') ? new Date(fd.get('fechaAfiliacion')) : funcionario.fechaAfiliacion,
             cargasFamiliares: fd.get('cargasFamiliares').split(',').map(x => x.trim()).filter(Boolean)
         };
-        // Actualizar en Firebase
         const resultado = await actualizarFuncionario(funcionarioId, datosEditados);
         if (resultado.success) {
             alert('Cambios guardados exitosamente');
@@ -703,25 +617,21 @@ window.desactivarFuncionario = async function(funcionarioId) {
     }
 }
 
-// ==================== FIN NUEVAS FUNCIONES ====================
+// ==================== FIN MODALES ====================
 
 // Funciones de convenios
 window.editarConvenio = function(convenioId) {
     alert(`Editar convenio: ${convenioId}\n(Función en desarrollo)`);
 }
-
 window.verEstadisticasConvenio = function(convenioId) {
     alert(`Ver estadísticas del convenio: ${convenioId}\n(Función en desarrollo)`);
 }
-
 window.renovarConvenio = function(convenioId) {
     alert(`Renovar convenio: ${convenioId}\n(Función en desarrollo)`);
 }
-
 window.marcarRenovacion = function(convenioId) {
     alert(`Marcar para renovación: ${convenioId}\n(Función en desarrollo)`);
 }
-
 window.verDocumentosSolicitud = function(solicitudId) {
     alert(`Ver documentos de solicitud: ${solicitudId}\n(Función en desarrollo)`);
 }
@@ -740,7 +650,6 @@ function initSearch() {
         searchInput.addEventListener('input', function(e) {
             const searchTerm = e.target.value.toLowerCase();
             const tableRows = document.querySelectorAll('.admin-table tbody tr');
-            
             tableRows.forEach(row => {
                 const text = row.textContent.toLowerCase();
                 if (text.includes(searchTerm)) {
@@ -755,7 +664,6 @@ function initSearch() {
 
 // Inicializar filtros
 function initFilters() {
-    // Filtro de estado
     const estadoSelect = document.querySelector('#filtroEstado');
     if (estadoSelect) {
         estadoSelect.addEventListener('change', async function() {
@@ -763,8 +671,6 @@ function initFilters() {
             await cargarAfiliados(filtroEstadoActual, filtroCentroActual);
         });
     }
-    
-    // Filtro de centro
     const centroSelect = document.querySelector('#filtroCentro');
     if (centroSelect) {
         centroSelect.addEventListener('change', async function() {
@@ -778,31 +684,25 @@ function initFilters() {
 document.addEventListener('DOMContentLoaded', function() {
     const navTabs = document.querySelectorAll('.nav-tab');
     const tabContents = document.querySelectorAll('.tab-content');
-
     navTabs.forEach(tab => {
         tab.addEventListener('click', function() {
             navTabs.forEach(t => t.classList.remove('active'));
             tabContents.forEach(c => c.classList.remove('active'));
-
             this.classList.add('active');
-
             const tabId = this.getAttribute('data-tab');
             const targetContent = document.getElementById(`tab-${tabId}`);
             if (targetContent) {
                 targetContent.classList.add('active');
             }
-
             window.scrollTo({
                 top: document.querySelector('.dashboard-content').offsetTop - 100,
                 behavior: 'smooth'
             });
         });
     });
-    
     // Inicializar funcionalidades
     initSearch();
     initFilters();
-
     // Ejemplo básico de almacenamiento en localStorage (adáptalo a Firebase en producción)
     function guardarCompraGas(compra) {
         const fechaHoy = new Date().toISOString().slice(0, 10);
@@ -810,32 +710,16 @@ document.addEventListener('DOMContentLoaded', function() {
         compras.push(compra);
         localStorage.setItem('comprasGas_' + fechaHoy, JSON.stringify(compras));
     }
-
-    // Al enviar el formulario
     const formCompraGas = document.getElementById('formCompraGas');
     if(formCompraGas) {
         formCompraGas.addEventListener('submit', function(e) {
             e.preventDefault();
-            // Obtén todos los datos del formulario
-            // ...
-            // Llama a guardarCompraGas(compra)
-            // ...
             alert('Compra registrada correctamente');
         });
     }
-
-    // Para exportar Lipigas, Abastible, General, usa la librería XLSX y las funciones que te di antes.
-    // Ejemplo:
-    function exportarLipigasExcel() {
-        // Filtra las compras de Lipigas y genera el Excel con el formato especial
-    }
-    function exportarAbastibleExcel() {
-        // Filtra las compras de Abastible y genera el Excel con el formato especial
-    }
-    function exportarGeneralExcel() {
-        // Junta todas las compras y exporta el respaldo
-    }
-    // Cerrar modal al hacer click fuera
+    function exportarLipigasExcel() {}
+    function exportarAbastibleExcel() {}
+    function exportarGeneralExcel() {}
     window.addEventListener('click', function(event) {
         const modal = document.getElementById('modalNuevoAfiliado');
         if (event.target === modal) {
