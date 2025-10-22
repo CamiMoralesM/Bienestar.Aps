@@ -1,3 +1,4 @@
+
 document.addEventListener('DOMContentLoaded', function() {
     // Obtener referencias a los elementos
     const compraLipigas = document.getElementById('compraLipigas');
@@ -102,6 +103,4 @@ document.addEventListener('DOMContentLoaded', function() {
         fechaInput.value = today;
         fechaInput.max = today;
     }
-});
-    });
 });
