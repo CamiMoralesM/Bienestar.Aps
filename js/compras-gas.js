@@ -1,7 +1,6 @@
 // ========================================
-// SISTEMA DE COMPRAS DE GAS - VERSIÓN COMPLETA
-// Versión: 3.1 Final
-// Fecha: Octubre 2025
+// SISTEMA DE COMPRAS DE GAS - VERSIÓN 3.2 FINAL
+// Con validación de límite por tipo de carga
 // ========================================
 
 import { db, auth } from './firebase-config.js';
@@ -13,12 +12,6 @@ import {
     getDocs, 
     Timestamp 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { 
-    getStorage, 
-    ref, 
-    uploadBytes, 
-    getDownloadURL 
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 // ========================================
 // VARIABLES GLOBALES
@@ -31,7 +24,6 @@ let compraLipigas, compraAbastible, lipigasOpciones, abastibleOpciones, rutInput
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🔄 Inicializando sistema de compras de gas...');
     
-    // Obtener referencias a los elementos del DOM
     compraLipigas = document.getElementById('compraLipigas');
     compraAbastible = document.getElementById('compraAbastible');
     lipigasOpciones = document.getElementById('lipigasOpciones');
@@ -44,7 +36,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
 
-    // Inicializar componentes
     inicializarEventListeners();
     inicializarFecha();
     inicializarValidacionCupo();
@@ -56,18 +47,12 @@ document.addEventListener('DOMContentLoaded', function() {
 // FUNCIONES DE TEMPORADA
 // ========================================
 
-/**
- * Determina si estamos en temporada alta (Junio-Septiembre)
- */
 function esTemporadaAlta() {
     const fecha = new Date();
-    const mes = fecha.getMonth() + 1; // 1-12
+    const mes = fecha.getMonth() + 1;
     return mes >= 6 && mes <= 9;
 }
 
-/**
- * Obtiene el límite máximo de cargas según la temporada
- */
 function obtenerLimiteMaximo() {
     return esTemporadaAlta() ? 6 : 4;
 }
@@ -77,7 +62,8 @@ function obtenerLimiteMaximo() {
 // ========================================
 
 /**
- * Genera las opciones de cantidad según el tipo de carga y temporada
+ * Genera las opciones según tipo de carga y temporada
+ * MEJORADO: Limita correctamente cada tipo
  */
 function generarOpcionesPorCarga(tipoCarga, selectElement) {
     const temporadaAlta = esTemporadaAlta();
@@ -94,11 +80,14 @@ function generarOpcionesPorCarga(tipoCarga, selectElement) {
     for (let i = 1; i <= maxOpciones; i++) {
         selectElement.innerHTML += `<option value="${i}">${i}</option>`;
     }
+    
+    // Asegurar que el valor actual no exceda
+    const valorActual = parseInt(selectElement.value) || 0;
+    if (valorActual > maxOpciones) {
+        selectElement.value = maxOpciones.toString();
+    }
 }
 
-/**
- * Actualiza las opciones de gas para una empresa
- */
 function actualizarOpcionesGas(contenedor, empresa) {
     if (!contenedor) return;
 
@@ -106,10 +95,9 @@ function actualizarOpcionesGas(contenedor, empresa) {
     const limiteTotal = obtenerLimiteMaximo();
     
     const temporadaMsg = temporadaAlta ? 
-        '🔥 Temporada Alta (Junio-Septiembre): Máximo 3 por carga (2 para 45kg). TOTAL MENSUAL ENTRE AMBAS MARCAS: 6 cargas' :
-        '❄️ Temporada Normal (Octubre-Mayo): Máximo 2 por carga. TOTAL MENSUAL ENTRE AMBAS MARCAS: 4 cargas';
+        '🔥 Temporada Alta (Junio-Septiembre): Máximo 3 por tipo (2 para 45kg). TOTAL MENSUAL: 6 cargas' :
+        '❄️ Temporada Normal (Octubre-Mayo): Máximo 2 por tipo. TOTAL MENSUAL: 4 cargas';
 
-    // Crear o actualizar mensaje de límites
     let limiteInfo = contenedor.querySelector('.limites-info');
     if (!limiteInfo) {
         limiteInfo = document.createElement('div');
@@ -128,7 +116,6 @@ function actualizarOpcionesGas(contenedor, empresa) {
     }
     limiteInfo.textContent = temporadaMsg;
 
-    // Actualizar opciones de cada select
     const select5kg = contenedor.querySelector(`#${empresa}5`);
     const select11kg = contenedor.querySelector(`#${empresa}11`);
     const select15kg = contenedor.querySelector(`#${empresa}15`);
@@ -143,16 +130,12 @@ function actualizarOpcionesGas(contenedor, empresa) {
 }
 
 // ========================================
-// FUNCIONES DE CÁLCULO
+// FUNCIONES DE CÁLCULO Y VALIDACIÓN
 // ========================================
 
-/**
- * Calcula el total global de cargas (Lipigas + Abastible)
- */
 function calcularTotalGlobal() {
     let totalGlobal = 0;
     
-    // Sumar cargas de Lipigas
     if (lipigasOpciones && lipigasOpciones.style.display !== 'none') {
         const selectsLipigas = lipigasOpciones.querySelectorAll('.gas-select');
         selectsLipigas.forEach(select => {
@@ -160,7 +143,6 @@ function calcularTotalGlobal() {
         });
     }
     
-    // Sumar cargas de Abastible
     if (abastibleOpciones && abastibleOpciones.style.display !== 'none') {
         const selectsAbastible = abastibleOpciones.querySelectorAll('.gas-select');
         selectsAbastible.forEach(select => {
@@ -172,7 +154,7 @@ function calcularTotalGlobal() {
 }
 
 /**
- * Actualiza el contador de total de cargas
+ * FUNCIÓN MEJORADA: Valida límite por tipo Y total global
  */
 function actualizarTotal(contenedor) {
     if (!contenedor) return;
@@ -184,21 +166,43 @@ function actualizarTotal(contenedor) {
         totalLocal += parseInt(select.value) || 0;
     });
     
-    // Actualizar contador local del contenedor
     const totalElement = contenedor.querySelector('.total-count');
     if (totalElement) {
         totalElement.textContent = totalLocal;
     }
     
-    // Validar límite GLOBAL (Lipigas + Abastible)
+    // VALIDACIÓN 1: Límite por tipo de carga
+    const temporadaAlta = esTemporadaAlta();
+    let excesoEncontrado = false;
+    
+    selects.forEach(select => {
+        const valor = parseInt(select.value) || 0;
+        const esGrande = select.id.includes('45');
+        const maxPermitido = temporadaAlta ? (esGrande ? 2 : 3) : 2;
+        
+        if (valor > maxPermitido) {
+            const nombreCarga = select.id.replace('lipigas', '').replace('abastible', '') + 'kg';
+            const marca = select.id.includes('lipigas') ? 'Lipigas' : 'Abastible';
+            
+            alert(`⚠️ Límite por tipo excedido\n\n${marca} ${nombreCarga}: Máximo ${maxPermitido} cargas\nIntentó seleccionar: ${valor} cargas\n\nEl valor se ajustará automáticamente.`);
+            
+            select.value = maxPermitido.toString();
+            excesoEncontrado = true;
+        }
+    });
+    
+    if (excesoEncontrado) {
+        actualizarTotal(contenedor);
+        return;
+    }
+    
+    // VALIDACIÓN 2: Límite global
     const totalGlobal = calcularTotalGlobal();
     const limiteTotal = obtenerLimiteMaximo();
-    const temporadaAlta = esTemporadaAlta();
     
     if (totalGlobal > limiteTotal) {
-        alert(`⚠️ El total de cargas entre LIPIGAS y ABASTIBLE no puede superar ${limiteTotal} en este período.\n\n${temporadaAlta ? 'Temporada Alta: Máximo 6 cargas mensuales (sumando ambas marcas)' : 'Temporada Normal: Máximo 4 cargas mensuales (sumando ambas marcas)'}\n\nTotal actual: ${totalGlobal} cargas`);
+        alert(`⚠️ Total de cargas excedido\n\nLímite total (Lipigas + Abastible): ${limiteTotal} cargas\nTotal actual: ${totalGlobal} cargas\n\n${temporadaAlta ? 'Temporada Alta: Máximo 6 cargas mensuales' : 'Temporada Normal: Máximo 4 cargas mensuales'}\n\nEl valor se ajustará automáticamente.`);
         
-        // Resetear el último select que causó el exceso
         const lastChanged = Array.from(selects).reverse().find(s => parseInt(s.value) > 0);
         if (lastChanged) {
             lastChanged.value = '0';
@@ -207,13 +211,62 @@ function actualizarTotal(contenedor) {
     }
 }
 
+/**
+ * NUEVA FUNCIÓN: Valida todos los límites antes de enviar
+ */
+function validarLimitesFormulario() {
+    const temporadaAlta = esTemporadaAlta();
+    const limiteTotal = obtenerLimiteMaximo();
+    const maxPorTipo = temporadaAlta ? 3 : 2;
+    const max45kg = 2;
+    
+    let errores = [];
+    
+    // Validar Lipigas
+    if (lipigasOpciones && lipigasOpciones.style.display !== 'none') {
+        const l5 = parseInt(document.getElementById('lipigas5')?.value || 0);
+        const l11 = parseInt(document.getElementById('lipigas11')?.value || 0);
+        const l15 = parseInt(document.getElementById('lipigas15')?.value || 0);
+        const l45 = parseInt(document.getElementById('lipigas45')?.value || 0);
+        
+        if (l5 > maxPorTipo) errores.push(`❌ Lipigas 5kg: ${l5} cargas (máximo ${maxPorTipo})`);
+        if (l11 > maxPorTipo) errores.push(`❌ Lipigas 11kg: ${l11} cargas (máximo ${maxPorTipo})`);
+        if (l15 > maxPorTipo) errores.push(`❌ Lipigas 15kg: ${l15} cargas (máximo ${maxPorTipo})`);
+        if (l45 > max45kg) errores.push(`❌ Lipigas 45kg: ${l45} cargas (máximo ${max45kg})`);
+    }
+    
+    // Validar Abastible
+    if (abastibleOpciones && abastibleOpciones.style.display !== 'none') {
+        const a5 = parseInt(document.getElementById('abastible5')?.value || 0);
+        const a11 = parseInt(document.getElementById('abastible11')?.value || 0);
+        const a15 = parseInt(document.getElementById('abastible15')?.value || 0);
+        const a45 = parseInt(document.getElementById('abastible45')?.value || 0);
+        
+        if (a5 > maxPorTipo) errores.push(`❌ Abastible 5kg: ${a5} cargas (máximo ${maxPorTipo})`);
+        if (a11 > maxPorTipo) errores.push(`❌ Abastible 11kg: ${a11} cargas (máximo ${maxPorTipo})`);
+        if (a15 > maxPorTipo) errores.push(`❌ Abastible 15kg: ${a15} cargas (máximo ${maxPorTipo})`);
+        if (a45 > max45kg) errores.push(`❌ Abastible 45kg: ${a45} cargas (máximo ${max45kg})`);
+    }
+    
+    // Validar total global
+    const totalGlobal = calcularTotalGlobal();
+    if (totalGlobal > limiteTotal) {
+        errores.push(`❌ Total: ${totalGlobal} cargas (máximo ${limiteTotal})`);
+    }
+    
+    if (errores.length > 0) {
+        const mensaje = `⚠️ LÍMITES EXCEDIDOS\n\n${errores.join('\n')}\n\n📋 Límites ${temporadaAlta ? 'Temporada Alta' : 'Temporada Normal'}:\n• Por tipo: ${maxPorTipo} cargas (45kg: ${max45kg})\n• Total global: ${limiteTotal} cargas\n\nPor favor, ajuste las cantidades.`;
+        alert(mensaje);
+        return false;
+    }
+    
+    return true;
+}
+
 // ========================================
 // VALIDACIÓN DE CUPO MENSUAL
 // ========================================
 
-/**
- * Obtiene el rango de fechas del mes actual
- */
 function obtenerRangoMesActual() {
     const ahora = new Date();
     const primerDia = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
@@ -225,9 +278,6 @@ function obtenerRangoMesActual() {
     };
 }
 
-/**
- * Obtiene las compras del mes actual para un usuario
- */
 async function obtenerComprasMesActual(rut) {
     try {
         const rango = obtenerRangoMesActual();
@@ -245,10 +295,7 @@ async function obtenerComprasMesActual(rut) {
         const compras = [];
         
         querySnapshot.forEach((doc) => {
-            compras.push({
-                id: doc.id,
-                ...doc.data()
-            });
+            compras.push({ id: doc.id, ...doc.data() });
         });
         
         return compras;
@@ -258,9 +305,6 @@ async function obtenerComprasMesActual(rut) {
     }
 }
 
-/**
- * Calcula el total de cargas de un array de compras
- */
 function calcularTotalCargasMes(compras) {
     let total = 0;
     
@@ -283,9 +327,6 @@ function calcularTotalCargasMes(compras) {
     return total;
 }
 
-/**
- * Valida si el usuario tiene cupo disponible
- */
 async function validarCupoDisponible(rut) {
     try {
         const comprasMes = await obtenerComprasMesActual(rut);
@@ -308,17 +349,10 @@ async function validarCupoDisponible(rut) {
         };
     } catch (error) {
         console.error("Error en validación de cupo:", error);
-        return {
-            success: false,
-            error: error.message,
-            puedeComprar: false
-        };
+        return { success: false, error: error.message, puedeComprar: false };
     }
 }
 
-/**
- * Muestra información del cupo al usuario
- */
 function mostrarInfoCupo(validacion) {
     let infoContainer = document.getElementById('info-cupo-mensual');
     
@@ -359,14 +393,11 @@ function mostrarInfoCupo(validacion) {
         infoContainer.innerHTML = `
             <strong>${emoji} Sin Cupo Disponible</strong><br>
             ${temporadaNombre}: Ha usado ${validacion.totalUsado} de ${validacion.limiteMaximo} cargas mensuales<br>
-            <strong>Ha alcanzado el límite mensual. No puede realizar más compras este mes.</strong>
+            <strong>Ha alcanzado el límite mensual.</strong>
         `;
     }
 }
 
-/**
- * Deshabilita el formulario cuando no hay cupo
- */
 function deshabilitarFormulario() {
     if (compraLipigas) compraLipigas.disabled = true;
     if (compraAbastible) compraAbastible.disabled = true;
@@ -376,16 +407,12 @@ function deshabilitarFormulario() {
         btnSubmit.disabled = true;
         btnSubmit.textContent = '❌ Sin Cupo Disponible';
         btnSubmit.style.opacity = '0.5';
-        btnSubmit.style.cursor = 'not-allowed';
     }
 
     if (lipigasOpciones) lipigasOpciones.style.display = 'none';
     if (abastibleOpciones) abastibleOpciones.style.display = 'none';
 }
 
-/**
- * Habilita el formulario cuando hay cupo
- */
 function habilitarFormulario() {
     if (compraLipigas) compraLipigas.disabled = false;
     if (compraAbastible) compraAbastible.disabled = false;
@@ -395,16 +422,11 @@ function habilitarFormulario() {
         btnSubmit.disabled = false;
         btnSubmit.textContent = 'Enviar Compra';
         btnSubmit.style.opacity = '1';
-        btnSubmit.style.cursor = 'pointer';
     }
 }
 
-/**
- * Verifica el cupo cuando el usuario ingresa su RUT
- */
 async function verificarCupoUsuario() {
     const rut = rutInput.value.trim();
-    
     if (!rut) return;
 
     try {
@@ -422,24 +444,19 @@ async function verificarCupoUsuario() {
         } else {
             habilitarFormulario();
         }
-
     } catch (error) {
         console.error('Error al verificar cupo:', error);
     }
 }
 
 // ========================================
-// FUNCIÓN DE GUARDADO EN FIREBASE
+// FUNCIÓN DE GUARDADO (SIN STORAGE)
 // ========================================
 
-/**
- * Guarda la compra en Firebase (Firestore + Storage)
- */
 async function guardarCompraEnFirebase(formData, comprobanteFile) {
     console.log('💾 Guardando en Firebase (sin subir archivo físico)...');
     
     try {
-        // Solo guardamos info del archivo, no lo subimos
         const compraLipigasValue = formData.get('compraLipigas') === 'si';
         const compraAbastibleValue = formData.get('compraAbastible') === 'si';
 
@@ -468,8 +485,6 @@ async function guardarCompraEnFirebase(formData, comprobanteFile) {
             } : null,
             
             saldoFavor: formData.get('saldoFavor') || null,
-            
-            // Info del comprobante
             comprobanteNombre: comprobanteFile ? comprobanteFile.name : null,
             comprobanteTamaño: comprobanteFile ? comprobanteFile.size : null,
             comprobanteNota: 'Usuario debe enviar por email',
@@ -492,15 +507,12 @@ async function guardarCompraEnFirebase(formData, comprobanteFile) {
         throw error;
     }
 }
+
 // ========================================
 // EVENT LISTENERS
 // ========================================
 
-/**
- * Inicializa todos los event listeners
- */
 function inicializarEventListeners() {
-    // Selector de Lipigas
     if (compraLipigas) {
         compraLipigas.addEventListener('change', function() {
             if (this.value === 'si') {
@@ -508,16 +520,13 @@ function inicializarEventListeners() {
             } else {
                 if (lipigasOpciones) {
                     lipigasOpciones.style.display = 'none';
-                    lipigasOpciones.querySelectorAll('select').forEach(select => {
-                        select.value = '0';
-                    });
+                    lipigasOpciones.querySelectorAll('select').forEach(s => s.value = '0');
                     actualizarTotal(lipigasOpciones);
                 }
             }
         });
     }
 
-    // Selector de Abastible
     if (compraAbastible) {
         compraAbastible.addEventListener('change', function() {
             if (this.value === 'si') {
@@ -525,45 +534,34 @@ function inicializarEventListeners() {
             } else {
                 if (abastibleOpciones) {
                     abastibleOpciones.style.display = 'none';
-                    abastibleOpciones.querySelectorAll('select').forEach(select => {
-                        select.value = '0';
-                    });
+                    abastibleOpciones.querySelectorAll('select').forEach(s => s.value = '0');
                     actualizarTotal(abastibleOpciones);
                 }
             }
         });
     }
 
-    // Listeners para actualizar totales en Lipigas
     if (lipigasOpciones) {
-        const selectsLipigas = lipigasOpciones.querySelectorAll('.gas-select');
-        selectsLipigas.forEach(select => {
+        lipigasOpciones.querySelectorAll('.gas-select').forEach(select => {
             select.addEventListener('change', () => actualizarTotal(lipigasOpciones));
         });
     }
 
-    // Listeners para actualizar totales en Abastible
     if (abastibleOpciones) {
-        const selectsAbastible = abastibleOpciones.querySelectorAll('.gas-select');
-        selectsAbastible.forEach(select => {
+        abastibleOpciones.querySelectorAll('.gas-select').forEach(select => {
             select.addEventListener('change', () => actualizarTotal(abastibleOpciones));
         });
     }
 
-    // Verificar cupo al perder foco del RUT
     if (rutInput) {
         rutInput.addEventListener('blur', verificarCupoUsuario);
     }
 
-    // Submit del formulario
     if (formCompraGas) {
         formCompraGas.addEventListener('submit', handleFormSubmit);
     }
 }
 
-/**
- * Inicializa el campo de fecha
- */
 function inicializarFecha() {
     const fechaInput = document.getElementById('fechaCompraGas');
     if (fechaInput) {
@@ -573,11 +571,7 @@ function inicializarFecha() {
     }
 }
 
-/**
- * Inicializa la validación de cupo
- */
 function inicializarValidacionCupo() {
-    // Si el RUT ya tiene valor al cargar, verificar cupo
     if (rutInput && rutInput.value.trim()) {
         verificarCupoUsuario();
     }
@@ -587,125 +581,80 @@ function inicializarValidacionCupo() {
 // MANEJADOR DEL SUBMIT
 // ========================================
 
-/**
- * Maneja el envío del formulario
- */
 async function handleFormSubmit(e) {
     e.preventDefault();
     console.log('🔍 Iniciando envío del formulario');
 
     try {
-        // ===== VALIDACIONES BÁSICAS =====
         const comprandoLipigas = compraLipigas.value === 'si';
         const comprandoAbastible = compraAbastible.value === 'si';
 
         if (!comprandoLipigas && !comprandoAbastible) {
-            alert('⚠️ Debe seleccionar al menos una empresa (Lipigas o Abastible)');
+            alert('⚠️ Debe seleccionar al menos una empresa');
             return false;
         }
 
         const totalCargas = calcularTotalGlobal();
 
         if (totalCargas === 0) {
-            alert('⚠️ Debe seleccionar al menos una carga de gas');
+            alert('⚠️ Debe seleccionar al menos una carga');
             return false;
         }
 
-        // Validar límite global
-        const limiteTotal = obtenerLimiteMaximo();
-
-        if (totalCargas > limiteTotal) {
-            alert(`⚠️ El total de cargas (Lipigas + Abastible) no puede superar ${limiteTotal} en este período.\n\nTotal seleccionado: ${totalCargas} cargas\nLímite permitido: ${limiteTotal} cargas`);
+        // VALIDACIÓN MEJORADA: Por tipo y total
+        if (!validarLimitesFormulario()) {
             return false;
         }
 
-        // ===== VALIDACIÓN DE CUPO MENSUAL =====
+        // Validación de cupo mensual
         const rut = rutInput.value.trim();
-
         if (!rut) {
             alert('⚠️ Debe ingresar su RUT');
             return false;
         }
 
-        // Preparar cargas solicitadas
-        const cargasSolicitadas = { lipigas: {}, abastible: {} };
-
-        if (comprandoLipigas) {
-            cargasSolicitadas.lipigas = {
-                kg5: parseInt(document.getElementById('lipigas5').value) || 0,
-                kg11: parseInt(document.getElementById('lipigas11').value) || 0,
-                kg15: parseInt(document.getElementById('lipigas15').value) || 0,
-                kg45: parseInt(document.getElementById('lipigas45').value) || 0
-            };
-        }
-
-        if (comprandoAbastible) {
-            cargasSolicitadas.abastible = {
-                kg5: parseInt(document.getElementById('abastible5').value) || 0,
-                kg11: parseInt(document.getElementById('abastible11').value) || 0,
-                kg15: parseInt(document.getElementById('abastible15').value) || 0,
-                kg45: parseInt(document.getElementById('abastible45').value) || 0
-            };
-        }
-
-        // Validar cupo disponible
         const validacion = await validarCupoDisponible(rut);
 
-        if (!validacion.success) {
-            alert('❌ Error al validar cupo: ' + validacion.error);
-            return false;
-        }
-
-        if (!validacion.puedeComprar) {
+        if (!validacion.success || !validacion.puedeComprar) {
             alert(`❌ ${validacion.mensaje}\n\nNo puede realizar más compras este mes.`);
             return false;
         }
 
-        // Verificar que las cargas solicitadas no excedan el cupo disponible
         if (totalCargas > validacion.cupoDisponible) {
-            alert(`❌ La compra excede su cupo disponible.\n\nTiene: ${validacion.cupoDisponible} cargas disponibles\nIntenta comprar: ${totalCargas} cargas`);
+            alert(`❌ La compra excede su cupo disponible.\n\nDisponible: ${validacion.cupoDisponible} cargas\nIntenta comprar: ${totalCargas} cargas`);
             return false;
         }
 
-        // ===== VALIDAR COMPROBANTE =====
         const formData = new FormData(formCompraGas);
         const comprobanteFile = document.getElementById('comprobanteGas').files[0];
 
         if (!comprobanteFile) {
-            alert('⚠️ Debe adjuntar el comprobante de transferencia');
+            alert('⚠️ Debe adjuntar el comprobante');
             return false;
         }
 
-        // ===== DESHABILITAR BOTÓN =====
         const btnSubmit = formCompraGas.querySelector('button[type="submit"]');
-        const textoOriginal = btnSubmit ? btnSubmit.textContent : '';
         if (btnSubmit) {
             btnSubmit.disabled = true;
             btnSubmit.textContent = '⏳ Guardando...';
         }
 
-        // ===== GUARDAR EN FIREBASE =====
         const resultado = await guardarCompraEnFirebase(formData, comprobanteFile);
 
         if (resultado.success) {
-            alert(`✅ ${resultado.message}\n\nID de compra: ${resultado.id}\n\nSu compra ha sido registrada y será procesada a la brevedad.`);
+            alert(`✅ ${resultado.message}\n\nID: ${resultado.id}\n\n⚠️ Envíe el comprobante por email mencionando este ID.`);
             
-            // Limpiar formulario
             formCompraGas.reset();
             if (lipigasOpciones) lipigasOpciones.style.display = 'none';
             if (abastibleOpciones) abastibleOpciones.style.display = 'none';
             
-            // Recargar página
-            setTimeout(() => {
-                window.location.reload();
-            }, 2000);
+            setTimeout(() => window.location.reload(), 2000);
         }
 
     } catch (error) {
-        console.error('❌ Error al procesar:', error);
-        alert(`❌ Error al guardar la compra: ${error.message}\n\nPor favor, intente nuevamente o contacte al administrador.`);
+        console.error('❌ Error:', error);
+        alert(`❌ Error: ${error.message}`);
     } finally {
-        // Rehabilitar botón
         const btnSubmit = formCompraGas.querySelector('button[type="submit"]');
         if (btnSubmit) {
             btnSubmit.disabled = false;
@@ -715,12 +664,13 @@ async function handleFormSubmit(e) {
 }
 
 // ========================================
-// EXPORTAR FUNCIONES (si se necesita usar en otros módulos)
+// EXPORTAR
 // ========================================
 export {
     esTemporadaAlta,
     obtenerLimiteMaximo,
     calcularTotalGlobal,
     validarCupoDisponible,
-    guardarCompraEnFirebase
+    guardarCompraEnFirebase,
+    validarLimitesFormulario
 };
