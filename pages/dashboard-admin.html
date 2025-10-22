@@ -3,355 +3,467 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Panel - Bienestar APS</title>
+    <title>Panel Administrativo - Bienestar APS</title>
     <link rel="stylesheet" href="../css/styles.css">
+    <!-- Agregar esta línea en el <head> de dashboard-admin.html -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
-    <!-- Header con usuario logueado -->
-    <header class="header">
+    <!-- Header Admin -->
+    <header class="header admin-header">
         <div class="container">
             <div class="header-content">
                 <div class="logo">
                     <a href="../index.html">
                       <img src="../assets/images/logo-bienestar.png" alt="Logo Bienestar APS" style="height:120px; width:auto;">
                     </a>
+                    <span class="admin-badge">ADMIN</span>
                 </div>
                 <nav class="user-nav">
                     <div class="user-info">
-                        <span class="user-name"></span>
-                        <span class="user-rut"></span>
+                        <span class="user-name">🔐 Administrador</span>
+                        <span class="user-rut">Panel de Control</span>
                     </div>
                     <button class="btn btn-logout" onclick="logout()">Cerrar Sesión</button>
                 </nav>
             </div>
         </div>
     </header>
-    <!-- Navegación Dashboard -->
-    <nav class="dashboard-nav">
+
+    <!-- Navegación Admin -->
+    <nav class="dashboard-nav admin-nav">
         <div class="container">
             <ul class="nav-tabs">
-                <li class="nav-tab active" data-tab="resumen">📊 Resumen</li>
-                <li class="nav-tab" data-tab="beneficios">💰 Mis Beneficios</li>
-                <li class="nav-tab" data-tab="convenios">🏪 Mis Convenios</li>
-                <li class="nav-tab" data-tab="compras-gas">🛒 Compra de Gas</li>
+                <li class="nav-tab active" data-tab="dashboard">📊 Dashboard</li>
+                <li class="nav-tab" data-tab="afiliados">👥 Afiliados</li>
                 <li class="nav-tab" data-tab="solicitudes">📝 Solicitudes</li>
-                <li class="nav-tab" data-tab="perfil">⚙️ Mi Perfil</li>
+                <li class="nav-tab" data-tab="beneficios">💰 Beneficios</li>
+                <li class="nav-tab" data-tab="convenios">🏪 Convenios</li>
+                <li class="nav-tab" data-tab="compras-gas-admin">🛒 Compras Gas</li>
+                <li class="nav-tab" data-tab="reportes">📈 Reportes</li>
             </ul>
         </div>
     </nav>
-    <!-- Contenido del Dashboard -->
-    <section class="dashboard-content">
+
+    <!-- Contenido Admin -->
+    <section class="dashboard-content admin-content">
         <div class="container">
-            <!-- Tab: Resumen -->
-            <div class="tab-content active" id="tab-resumen">
-                <div class="welcome-banner">
-                    <h1 id="bienvenida-usuario"></h1>
-                    <p>Aquí puedes gestionar tus beneficios y convenios</p>
-                </div>
-                <div class="stats-grid">
-                    <div class="stat-card">
+            
+            <!-- Tab: Dashboard -->
+            <div class="tab-content active" id="tab-dashboard">
+                <h1 class="page-title">Panel de Control Administrativo</h1>
+                
+                <!-- Estadísticas Principales -->
+                <div class="admin-stats-grid">
+                    <div class="admin-stat-card card-primary">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-info">
+                            <h3>1,247</h3>
+                            <p>Afiliados Activos</p>
+                            <span class="stat-trend positive">+5% este mes</span>
+                        </div>
+                    </div>
+                    <div class="admin-stat-card card-success">
                         <div class="stat-icon">💰</div>
                         <div class="stat-info">
-                            <h3 id="beneficios-recibidos"></h3>
-                            <p>Beneficios recibidos 2025</p>
+                            <h3>$156.8M</h3>
+                            <p>Beneficios Entregados 2025</p>
+                            <span class="stat-trend positive">+12% vs 2024</span>
                         </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🏪</div>
-                        <div class="stat-info">
-                            <h3 id="convenios-disponibles"></h3>
-                            <p>Convenios disponibles</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
+                    <div class="admin-stat-card card-warning">
                         <div class="stat-icon">📝</div>
                         <div class="stat-info">
-                            <h3 id="solicitudes-pendientes"></h3>
-                            <p>Solicitudes pendientes</p>
+                            <h3>23</h3>
+                            <p>Solicitudes Pendientes</p>
+                            <span class="stat-trend negative">Requiere atención</span>
                         </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">✅</div>
+                    <div class="admin-stat-card card-info">
+                        <div class="stat-icon">🏪</div>
                         <div class="stat-info">
-                            <h3 id="tiempo-afiliacion"></h3>
-                            <p>Tiempo de afiliación</p>
+                            <h3>24</h3>
+                            <p>Convenios Activos</p>
+                            <span class="stat-trend neutral">2 por renovar</span>
                         </div>
                     </div>
                 </div>
-                <!-- Próximos Beneficios -->
-                <div class="section-card">
-                    <h2>📅 Próximos Beneficios</h2>
-                    <div class="timeline" id="proximos-beneficios"></div>
+
+                <!-- Actividad Reciente -->
+                <div class="admin-section">
+                    <div class="section-header">
+                        <h2>📋 Actividad Reciente</h2>
+                        <button class="btn btn-small btn-secondary">Ver Todo</button>
+                    </div>
+                    <div class="activity-list">
+                        <div class="activity-item">
+                            <div class="activity-icon success">✓</div>
+                            <div class="activity-content">
+                                <p><strong>Solicitud Aprobada:</strong> Asignación por Natalidad - María González</p>
+                                <span class="activity-time">Hace 10 minutos</span>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon info">📄</div>
+                            <div class="activity-content">
+                                <p><strong>Nueva Solicitud:</strong> Préstamo Médico - Carlos Soto</p>
+                                <span class="activity-time">Hace 25 minutos</span>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon warning">⚠️</div>
+                            <div class="activity-content">
+                                <p><strong>Alerta:</strong> Convenio por renovar - Gimnasios Energy</p>
+                                <span class="activity-time">Hace 1 hora</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <!-- Notificaciones -->
-                <div class="section-card">
-                    <h2>🔔 Notificaciones Recientes</h2>
-                    <div class="notifications" id="notificaciones-recientes"></div>
+
+                <!-- Gráficos -->
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h3>📊 Beneficios por Mes (2025)</h3>
+                        <div class="chart-placeholder">
+                            <p>Gráfico de barras - Beneficios entregados mensualmente</p>
+                            <small>Se integraría Chart.js aquí</small>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h3>📈 Crecimiento de Afiliados</h3>
+                        <div class="chart-placeholder">
+                            <p>Gráfico de líneas - Evolución de afiliados</p>
+                            <small>Se integraría Chart.js aquí</small>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <!-- Tab: Mis Beneficios -->
-            <div class="tab-content" id="tab-beneficios">
-                <h2>💰 Beneficios Recibidos</h2>
-                <div class="benefits-table">
+
+            <!-- Tab: Afiliados -->
+            <div class="tab-content" id="tab-afiliados">
+                <div class="section-header">
+                    <h2>👥 Gestión de Afiliados</h2>
+                    <button class="btn btn-primary" onclick="nuevoAfiliado()">
+                        ➕ Nuevo Afiliado
+                    </button>
+                </div>
+
+                <!-- Filtros y Búsqueda -->
+                <div class="admin-filters">
+                    <input type="text" class="search-input" placeholder="🔍 Buscar por nombre, RUT o centro de salud...">
+                    <select class="filter-select" id="filtroEstado">
+                        <option value="todos">Todos los estados</option>
+                        <option value="activo">Activos</option>
+                        <option value="inactivo">Inactivos</option>
+                        <option value="pendiente">Pendientes</option>
+                    </select>
+                    <select class="filter-select" id="filtroCentro">
+                        <option value="todos">Todos los centros</option>
+                        <option value="CESFAM Karol Wojtyla">CESFAM Karol Wojtyla</option>
+                        <option value="CESFAM Padre Manuel Villaseca">CESFAM Padre Manuel Villaseca</option>
+                        <option value="CESFAM Alejandro del Rio">CESFAM Alejandro del Rio</option>
+                        <option value="CESFAM Bernardo Leighton">CESFAM Bernardo Leighton</option>
+                        <option value="CESFAM Cardenal Raúl Silva Henríquez">CESFAM Cardenal Raúl Silva Henríquez</option>
+                        <option value="CESFAM Vista Hermosa">CESFAM Vista Hermosa</option>
+                        <option value="CESFAM Laurita Vicuña">CESFAM Laurita Vicuña</option>
+                        <option value="Centro de Imágenes">Centro de Imágenes</option>
+                        <option value="Central de Ambulancia">Central de Ambulancia</option>
+                        <option value="Administración Salud">Administración Salud</option>
+                        <option value="San Lázaro">San Lázaro</option>
+                        <option value="CEIF">CEIF</option>
+                        <option value="Laboratorio Salud">Laboratorio Salud</option>
+                    </select>
+                    <button class="btn btn-secondary" onclick="exportarAfiliados()">📊 Exportar Excel</button>
+                </div>
+
+                <!-- Contador de resultados -->
+                <div class="results-info">
+                    <span class="afiliados-counter">Cargando afiliados...</span>
+                </div>
+
+                <!-- Tabla de Afiliados -->
+                <div class="admin-table">
                     <table>
                         <thead>
                             <tr>
-                                <th>Fecha</th>
-                                <th>Beneficio</th>
-                                <th>Monto</th>
+                                <th>RUT</th>
+                                <th>Nombre</th>
+                                <th>Centro de Salud</th>
+                                <th>Fecha Afiliación</th>
                                 <th>Estado</th>
-                                <th>Comprobante</th>
+                                <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
+                            <!-- Los datos se cargan dinámicamente -->
                         </tbody>
                     </table>
                 </div>
-                <div class="total-benefits">
-                    <h3>Total Beneficios 2025: <span class="highlight"></span></h3>
-                </div>
-            </div>
-            <!-- Tab: Mis Convenios -->
-            <div class="tab-content" id="tab-convenios">
-                <h2>🏪 Convenios Activos</h2>
-                <div class="convenios-favoritos">
-                    <h3>⭐ Mis Convenios Favoritos</h3>
-                    <div class="convenios-grid-small"></div>
-                </div>
-                <div class="section-card">
-                    <button class="btn btn-primary" onclick="location.href='convenios.html'">
-                        Ver Todos los Convenios
-                    </button>
-                </div>
-            </div>
-<div class="tab-content" id="tab-compras-gas">
-    <h2>🛒 Compra de Vales de Gas</h2>
-    <form id="formCompraGas" enctype="multipart/form-data">
-        <div class="form-grid">
-            <!-- Información básica -->
-            <div class="form-group">
-                <label for="emailGas">Correo Electrónico</label>
-                <input type="email" id="emailGas" name="emailGas" required>
-            </div>
-            <div class="form-group">
-                <label for="fechaCompraGas">Fecha de compra</label>
-                <input type="date" id="fechaCompraGas" name="fechaCompraGas" required>
-            </div>
-            <div class="form-group">
-                <label for="rutGas">Rut</label>
-                <input type="text" id="rutGas" name="rutGas" required>
-            </div>
-            <div class="form-group">
-                <label for="nombreGas">Nombre y Apellido Afiliado</label>
-                <input type="text" id="nombreGas" name="nombreGas" required>
-            </div>
-            <div class="form-group">
-                <label for="telefonoGas">Teléfono</label>
-                <input type="tel" id="telefonoGas" name="telefonoGas" required>
-            </div>
 
-            <!-- Selector de empresa -->
-            <div class="form-group">
-                <label>Compra Lipigas</label>
-                <select id="compraLipigas" name="compraLipigas">
-                    <option value="no">No</option>
-                    <option value="si">Sí</option>
-                </select>
-            </div>
-
-            <!-- Opciones Lipigas -->
-            <div id="lipigasOpciones" style="display:none;">
-                <h4>Cargas Lipigas</h4>
-                <div class="limites-info"></div>
-                <div class="gas-options-list">
-                    <div class="gas-option">
-                        <span class="gas-label">5 kilos</span>
-                        <select id="lipigas5" name="lipigas5" class="gas-select">
-                            <option value="0">0</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                        </select>
-                    </div>
-                    <div class="gas-option">
-                        <span class="gas-label">11 kilos</span>
-                        <select id="lipigas11" name="lipigas11" class="gas-select">
-                            <option value="0">0</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                        </select>
-                    </div>
-                    <div class="gas-option">
-                        <span class="gas-label">15 kilos</span>
-                        <select id="lipigas15" name="lipigas15" class="gas-select">
-                            <option value="0">0</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                        </select>
-                    </div>
-                    <div class="gas-option">
-                        <span class="gas-label">45 kilos</span>
-                        <select id="lipigas45" name="lipigas45" class="gas-select">
-                            <option value="0">0</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="total-info">Total seleccionado: <span class="total-count">0</span></div>
-            </div>
-
-            <!-- Selector Abastible -->
-            <div class="form-group">
-                <label>Compra Abastible</label>
-                <select id="compraAbastible" name="compraAbastible">
-                    <option value="no">No</option>
-                    <option value="si">Sí</option>
-                </select>
-            </div>
-
-            <!-- Opciones Abastible -->
-            <div id="abastibleOpciones" style="display:none;">
-                <h4>Cargas Abastible</h4>
-                <div class="limites-info"></div>
-                <div class="gas-options-list">
-                    <div class="gas-option">
-                        <span class="gas-label">5 kilos</span>
-                        <select id="abastible5" name="abastible5" class="gas-select">
-                            <option value="0">0</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                        </select>
-                    </div>
-                    <div class="gas-option">
-                        <span class="gas-label">11 kilos</span>
-                        <select id="abastible11" name="abastible11" class="gas-select">
-                            <option value="0">0</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                        </select>
-                    </div>
-                    <div class="gas-option">
-                        <span class="gas-label">15 kilos</span>
-                        <select id="abastible15" name="abastible15" class="gas-select">
-                            <option value="0">0</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                        </select>
-                    </div>
-                    <div class="gas-option">
-                        <span class="gas-label">45 kilos</span>
-                        <select id="abastible45" name="abastible45" class="gas-select">
-                            <option value="0">0</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="total-info">Total seleccionado: <span class="total-count">0</span></div>
-                <div class="form-group">
-                    <label for="saldoFavor">Saldo a favor (si aplica)</label>
-                    <input type="text" id="saldoFavor" name="saldoFavor" placeholder="Fecha y monto">
+                <!-- Paginación -->
+                <div class="pagination">
+                    <button class="btn-small">← Anterior</button>
+                    <span>Página 1 de 25</span>
+                    <button class="btn-small">Siguiente →</button>
                 </div>
             </div>
 
-            <!-- Comprobante -->
-            <div class="form-group">
-                <label for="comprobanteGas">Adjuntar comprobante de transferencia</label>
-                <input type="file" id="comprobanteGas" name="comprobanteGas" required>
-                <small>Recuerde que el asunto debe indicar cantidad y carga de gas (5k-11k-15k-45k).</small>
-            </div>
-        </div>
-        <button type="submit" class="btn btn-primary">Enviar Compra</button>
-    </form>
-</div>
-            
             <!-- Tab: Solicitudes -->
             <div class="tab-content" id="tab-solicitudes">
-                <h2>📝 Mis Solicitudes</h2>
-                <div class="actions-bar">
-                    <button class="btn btn-primary" onclick="nuevaSolicitud()">
-                        ➕ Nueva Solicitud
-                    </button>
+                <div class="section-header">
+                    <h2>📝 Gestión de Solicitudes</h2>
+                    <div class="filter-pills">
+                        <button class="pill active">Todas (23)</button>
+                        <button class="pill">Pendientes (15)</button>
+                        <button class="pill">En Revisión (5)</button>
+                        <button class="pill">Aprobadas (3)</button>
+                    </div>
                 </div>
-                <div class="solicitudes-list"></div>
+
+                <!-- Lista de Solicitudes Admin -->
+                <div class="admin-solicitudes">
+                    <!-- Las solicitudes se cargan dinámicamente -->
+                </div>
             </div>
-            <!-- Tab: Mi Perfil -->
-            <div class="tab-content" id="tab-perfil">
-                <h2>⚙️ Mi Perfil</h2>
-                <div class="profile-grid">
-                    <div class="profile-card">
-                        <h3>Información Personal</h3>
-                        <form class="profile-form">
-                            <div class="form-group">
-                                <label>Nombre Completo</label>
-                                <input type="text" readonly>
+
+            <!-- Tab: Beneficios -->
+            <div class="tab-content" id="tab-beneficios">
+                <div class="section-header">
+                    <h2>💰 Administración de Beneficios</h2>
+                    <button class="btn btn-primary">➕ Crear Beneficio</button>
+                </div>
+
+                <div class="beneficios-admin-grid">
+                    <div class="beneficio-admin-card">
+                        <h3>Bono Navidad 2025</h3>
+                        <div class="beneficio-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Monto:</span>
+                                <span class="stat-value">$60.000</span>
                             </div>
-                            <div class="form-group">
-                                <label>RUT</label>
-                                <input type="text" readonly>
+                            <div class="stat-item">
+                                <span class="stat-label">Beneficiarios:</span>
+                                <span class="stat-value">1,247</span>
                             </div>
-                            <div class="form-group">
-                                <label>Email</label>
-                                <input type="email">
+                            <div class="stat-item">
+                                <span class="stat-label">Total:</span>
+                                <span class="stat-value highlight">$74.82M</span>
                             </div>
-                            <div class="form-group">
-                                <label>Teléfono</label>
-                                <input type="tel">
-                            </div>
-                            <button type="submit" class="btn btn-primary">Actualizar Información</button>
-                        </form>
-                    </div>
-                    <div class="profile-card">
-                        <h3>Cambiar Contraseña</h3>
-                        <form class="profile-form">
-                            <div class="form-group">
-                                <label>Contraseña Actual</label>
-                                <input type="password" placeholder="••••••••">
-                            </div>
-                            <div class="form-group">
-                                <label>Nueva Contraseña</label>
-                                <input type="password" placeholder="••••••••">
-                            </div>
-                            <div class="form-group">
-                                <label>Confirmar Contraseña</label>
-                                <input type="password" placeholder="••••••••">
-                            </div>
-                            <button type="submit" class="btn btn-primary">Cambiar Contraseña</button>
-                        </form>
-                    </div>
-                    <div class="profile-card">
-                        <h3>Información de Cuenta</h3>
-                        <div class="info-list">
-                            <div class="info-item">
-                                <span class="info-label">Fecha de afiliación:</span>
-                                <span class="info-value"></span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Centro de Salud:</span>
-                                <span class="info-value"></span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Cargas familiares:</span>
-                                <span class="info-value"></span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Estado:</span>
-                                <span class="badge success"></span>
+                            <div class="stat-item">
+                                <span class="stat-label">Estado:</span>
+                                <span class="badge info">Programado</span>
                             </div>
                         </div>
-                        <button class="btn btn-secondary">Ver Cargas Familiares</button>
+                        <div class="beneficio-actions">
+                            <button class="btn btn-small">Editar</button>
+                            <button class="btn btn-small btn-success">Procesar Pago</button>
+                        </div>
+                    </div>
+
+                    <div class="beneficio-admin-card">
+                        <h3>Bono Fiestas Patrias 2025</h3>
+                        <div class="beneficio-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Monto:</span>
+                                <span class="stat-value">$40.000</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Beneficiarios:</span>
+                                <span class="stat-value">1,198</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Total:</span>
+                                <span class="stat-value highlight">$47.92M</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Estado:</span>
+                                <span class="badge success">Pagado</span>
+                            </div>
+                        </div>
+                        <div class="beneficio-actions">
+                            <button class="btn btn-small">Ver Reporte</button>
+                            <button class="btn btn-small btn-secondary">Descargar Excel</button>
+                        </div>
                     </div>
                 </div>
             </div>
+            
+<div class="tab-content" id="tab-compras-gas-admin">
+    <h2>🛒 Compras de Gas - Administración</h2>
+    <div class="compras-gas-admin-actions">
+        <button class="btn btn-success" onclick="exportarLipigasExcel()">Descargar Lipigas Excel</button>
+        <button class="btn btn-warning" onclick="exportarAbastibleExcel()">Descargar Abastible Excel</button>
+        <button class="btn btn-info" onclick="exportarGeneralExcel()">Descargar General Excel</button>
+    </div>
+    <div id="listadoComprasGas">
+        <!-- Aquí se despliega el listado de compras del día, separado por empresa -->
+    </div>
+</div>
+            <!-- Tab: Convenios -->
+            <div class="tab-content" id="tab-convenios">
+                <div class="section-header">
+                    <h2>🏪 Administración de Convenios</h2>
+                    <button class="btn btn-primary">➕ Nuevo Convenio</button>
+                </div>
+
+                <div class="convenios-admin-list">
+                    <!-- Los convenios se cargan dinámicamente -->
+                </div>
+            </div>
+
+            <!-- Tab: Reportes -->
+            <div class="tab-content" id="tab-reportes">
+                <h2>📈 Centro de Reportes</h2>
+                
+                <div class="reportes-grid">
+                    <div class="reporte-card">
+                        <h3>📊 Reporte de Beneficios</h3>
+                        <p>Detalle de beneficios entregados por período</p>
+                        <div class="reporte-form">
+                            <select>
+                                <option>Último mes</option>
+                                <option>Último trimestre</option>
+                                <option>Último año</option>
+                                <option>Personalizado</option>
+                            </select>
+                            <button class="btn btn-primary">Generar</button>
+                        </div>
+                    </div>
+
+                    <div class="reporte-card">
+                        <h3>👥 Reporte de Afiliados</h3>
+                        <p>Listado completo de afiliados y su estado</p>
+                        <div class="reporte-form">
+                            <select>
+                                <option>Todos los centros</option>
+                                <option>CESFAM Karol Wojtyla</option>
+                                <option>CESFAM Padre Manuel Villaseca</option>
+                                <option>CESFAM Alejandro del Rio</option>
+                            </select>
+                            <button class="btn btn-primary">Generar</button>
+                        </div>
+                    </div>
+
+                    <div class="reporte-card">
+                        <h3>💰 Reporte Financiero</h3>
+                        <p>Resumen de montos entregados y presupuesto</p>
+                        <div class="reporte-form">
+                            <select>
+                                <option>2025</option>
+                                <option>2024</option>
+                                <option>2023</option>
+                            </select>
+                            <button class="btn btn-primary">Generar</button>
+                        </div>
+                    </div>
+
+                    <div class="reporte-card">
+                        <h3>🏪 Reporte de Convenios</h3>
+                        <p>Uso y efectividad de convenios activos</p>
+                        <div class="reporte-form">
+                            <select>
+                                <option>Todos los convenios</option>
+                                <option>Salud</option>
+                                <option>Educación</option>
+                            </select>
+                            <button class="btn btn-primary">Generar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </section>
+
+    <!-- Modal Nuevo Afiliado -->
+    <div id="modalNuevoAfiliado" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>➕ Nuevo Afiliado</h2>
+                <span class="close" onclick="cerrarModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="formNuevoAfiliado" onsubmit="crearNuevoAfiliado(event)">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="nombre">Nombre Completo *</label>
+                            <input type="text" name="nombre" id="nombre" required placeholder="Juan Pérez Gómez">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="rut">RUT *</label>
+                            <input type="text" name="rut" id="rut" required placeholder="12.345.678-9" maxlength="12">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">Correo Electrónico *</label>
+                            <input type="email" name="email" id="email" required placeholder="juan.perez@salud.cl">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="telefono">Número de Teléfono</label>
+                            <input type="tel" name="telefono" id="telefono" placeholder="+56 9 1234 5678">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="centroSalud">Lugar de Trabajo *</label>
+                            <select name="centroSalud" id="centroSalud" required>
+                                <option value="">Seleccione...</option>
+                                <option value="CESFAM Karol Wojtyla">CESFAM Karol Wojtyla</option>
+                                <option value="CESFAM Padre Manuel Villaseca">CESFAM Padre Manuel Villaseca</option>
+                                <option value="CESFAM Alejandro del Rio">CESFAM Alejandro del Rio</option>
+                                <option value="CESFAM Bernardo Leighton">CESFAM Bernardo Leighton</option>
+                                <option value="CESFAM Cardenal Raúl Silva Henríquez">CESFAM Cardenal Raúl Silva Henríquez</option>
+                                <option value="CESFAM Vista Hermosa">CESFAM Vista Hermosa</option>
+                                <option value="CESFAM Laurita Vicuña">CESFAM Laurita Vicuña</option>
+                                <option value="Centro de Imágenes">Centro de Imágenes</option>
+                                <option value="Central de Ambulancia">Central de Ambulancia</option>
+                                <option value="Administración Salud">Administración Salud</option>
+                                <option value="San Lázaro">San Lázaro</option>
+                                <option value="CEIF">CEIF</option>
+                                <option value="Laboratorio Salud">Laboratorio Salud</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="cargo">Cargo *</label>
+                            <input type="text" name="cargo" id="cargo" required placeholder="Enfermero, Técnico, etc.">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="estadoCivil">Estado Civil</label>
+                            <select name="estadoCivil" id="estadoCivil">
+                                <option value="">Seleccione...</option>
+                                <option value="Soltero/a">Soltero/a</option>
+                                <option value="Casado/a">Casado/a</option>
+                                <option value="Divorciado/a">Divorciado/a</option>
+                                <option value="Viudo/a">Viudo/a</option>
+                                <option value="Unión Civil">Unión Civil</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="password">Contraseña Temporal *</label>
+                            <input type="password" name="password" id="password" required placeholder="Mínimo 6 caracteres" minlength="6">
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Crear Afiliado</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
-            <p>&copy; 2025 Servicio Bienestar APS - Corporación Municipal de Puente Alto</p>
+            <p>&copy; 2025 Servicio Bienestar APS - Panel Administrativo</p>
         </div>
     </footer>
-    <script type="module" src="../js/dashboard-afiliado-firebase.js"></script>
-    <script type="module" src="../js/compras-gas.js"></script>
+    
+    <script type="module" src="../js/dashboard-admin-firebase.js"></script>
 </body>
 </html>
