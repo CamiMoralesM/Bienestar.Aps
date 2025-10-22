@@ -44,8 +44,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const limiteTotal = temporadaAlta ? 6 : 4;
         
         const temporadaMsg = temporadaAlta ? 
-            '🔥 Temporada Alta (Junio-Septiembre): Máximo 3 por carga (2 para 45kg), total 6 mensuales' :
-            '❄️ Temporada Normal (Octubre-Mayo): Máximo 2 por carga, total 4 mensuales';
+            '🔥 Temporada Alta (Junio-Septiembre): Máximo 3 por carga (2 para 45kg). TOTAL MENSUAL ENTRE AMBAS MARCAS: 6 cargas' :
+            '❄️ Temporada Normal (Octubre-Mayo): Máximo 2 por carga. TOTAL MENSUAL ENTRE AMBAS MARCAS: 4 cargas';
 
         // Crear o actualizar mensaje de límites
         let limiteInfo = contenedor.querySelector('.limites-info');
@@ -112,26 +112,51 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Función para calcular el total GLOBAL (Lipigas + Abastible)
+    function calcularTotalGlobal() {
+        let totalGlobal = 0;
+        
+        // Sumar cargas de Lipigas
+        if (lipigasOpciones && lipigasOpciones.style.display !== 'none') {
+            const selectsLipigas = lipigasOpciones.querySelectorAll('.gas-select');
+            selectsLipigas.forEach(select => {
+                totalGlobal += parseInt(select.value) || 0;
+            });
+        }
+        
+        // Sumar cargas de Abastible
+        if (abastibleOpciones && abastibleOpciones.style.display !== 'none') {
+            const selectsAbastible = abastibleOpciones.querySelectorAll('.gas-select');
+            selectsAbastible.forEach(select => {
+                totalGlobal += parseInt(select.value) || 0;
+            });
+        }
+        
+        return totalGlobal;
+    }
+
     // Función para actualizar el total de cargas seleccionadas
     function actualizarTotal(contenedor) {
         const selects = contenedor.querySelectorAll('.gas-select');
-        let total = 0;
+        let totalLocal = 0;
         
         selects.forEach(select => {
-            total += parseInt(select.value) || 0;
+            totalLocal += parseInt(select.value) || 0;
         });
         
+        // Actualizar contador local del contenedor
         const totalElement = contenedor.querySelector('.total-count');
         if (totalElement) {
-            totalElement.textContent = total;
+            totalElement.textContent = totalLocal;
         }
         
-        // Validar límite total
+        // Validar límite GLOBAL (Lipigas + Abastible juntas)
+        const totalGlobal = calcularTotalGlobal();
         const temporadaAlta = esTemporadaAlta();
         const limiteTotal = temporadaAlta ? 6 : 4;
         
-        if (total > limiteTotal) {
-            alert(`⚠️ El total de cargas no puede superar ${limiteTotal} en este período.\n\n${temporadaAlta ? 'Temporada Alta: Máximo 6 cargas mensuales' : 'Temporada Normal: Máximo 4 cargas mensuales'}`);
+        if (totalGlobal > limiteTotal) {
+            alert(`⚠️ El total de cargas entre LIPIGAS y ABASTIBLE no puede superar ${limiteTotal} en este período.\n\n${temporadaAlta ? 'Temporada Alta: Máximo 6 cargas mensuales (sumando ambas marcas)' : 'Temporada Normal: Máximo 4 cargas mensuales (sumando ambas marcas)'}\n\nTotal actual: ${totalGlobal} cargas`);
             // Resetear el último select que causó el exceso
             const lastChanged = Array.from(selects).reverse().find(s => parseInt(s.value) > 0);
             if (lastChanged) {
@@ -179,22 +204,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 return false;
             }
 
-            // Validar que se haya seleccionado al menos una carga
-            let totalCargas = 0;
-
-            if (comprandoLipigas) {
-                const selectsLipigas = lipigasOpciones.querySelectorAll('.gas-select');
-                selectsLipigas.forEach(select => {
-                    totalCargas += parseInt(select.value) || 0;
-                });
-            }
-
-            if (comprandoAbastible) {
-                const selectsAbastible = abastibleOpciones.querySelectorAll('.gas-select');
-                selectsAbastible.forEach(select => {
-                    totalCargas += parseInt(select.value) || 0;
-                });
-            }
+            // Calcular total de cargas global
+            const totalCargas = calcularTotalGlobal();
 
             if (totalCargas === 0) {
                 e.preventDefault();
@@ -202,8 +213,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 return false;
             }
 
+            // Validar límite global
+            const temporadaAlta = esTemporadaAlta();
+            const limiteTotal = temporadaAlta ? 6 : 4;
+
+            if (totalCargas > limiteTotal) {
+                e.preventDefault();
+                alert(`⚠️ El total de cargas (Lipigas + Abastible) no puede superar ${limiteTotal} en este período.\n\nTotal seleccionado: ${totalCargas} cargas\nLímite permitido: ${limiteTotal} cargas`);
+                return false;
+            }
+
             // Validación exitosa
             console.log('Formulario válido, enviando...');
+            console.log(`Total de cargas: ${totalCargas} (Límite: ${limiteTotal})`);
         });
     }
 
