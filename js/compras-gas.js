@@ -436,37 +436,21 @@ async function verificarCupoUsuario() {
  * Guarda la compra en Firebase (Firestore + Storage)
  */
 async function guardarCompraEnFirebase(formData, comprobanteFile) {
-    console.log('💾 Iniciando guardado en Firebase...');
+    console.log('💾 Guardando en Firebase (sin subir archivo físico)...');
     
     try {
-        let comprobanteUrl = "";
-
-        // 1. Subir comprobante a Storage
-        if (comprobanteFile) {
-            console.log('📤 Subiendo comprobante a Storage...');
-            const storage = getStorage();
-            const fileName = `${Date.now()}_${comprobanteFile.name}`;
-            const storageRef = ref(storage, `comprobantesGas/${fileName}`);
-            
-            await uploadBytes(storageRef, comprobanteFile);
-            comprobanteUrl = await getDownloadURL(storageRef);
-            console.log('✅ Comprobante subido:', comprobanteUrl);
-        }
-
-        // 2. Preparar datos de la compra
+        // Solo guardamos info del archivo, no lo subimos
         const compraLipigasValue = formData.get('compraLipigas') === 'si';
         const compraAbastibleValue = formData.get('compraAbastible') === 'si';
 
         const compraData = {
-            // Datos del usuario
             uid: auth.currentUser.uid,
             email: formData.get('emailGas'),
-            rut: formData.get('rutGas').replace(/\./g, '').replace(/-/g, ''), // Normalizado
+            rut: formData.get('rutGas').replace(/\./g, '').replace(/-/g, ''),
             nombre: formData.get('nombreGas'),
             telefono: formData.get('telefonoGas'),
             fechaCompra: formData.get('fechaCompraGas'),
             
-            // Datos de compra Lipigas
             compraLipigas: compraLipigasValue,
             cargas_lipigas: compraLipigasValue ? {
                 kg5: parseInt(formData.get('lipigas5')) || 0,
@@ -475,7 +459,6 @@ async function guardarCompraEnFirebase(formData, comprobanteFile) {
                 kg45: parseInt(formData.get('lipigas45')) || 0
             } : null,
             
-            // Datos de compra Abastible
             compraAbastible: compraAbastibleValue,
             cargas_abastible: compraAbastibleValue ? {
                 kg5: parseInt(formData.get('abastible5')) || 0,
@@ -484,37 +467,31 @@ async function guardarCompraEnFirebase(formData, comprobanteFile) {
                 kg45: parseInt(formData.get('abastible45')) || 0
             } : null,
             
-            // Saldo a favor (opcional)
             saldoFavor: formData.get('saldoFavor') || null,
             
-            // Comprobante
-            comprobanteUrl: comprobanteUrl,
+            // Info del comprobante
+            comprobanteNombre: comprobanteFile ? comprobanteFile.name : null,
+            comprobanteTamaño: comprobanteFile ? comprobanteFile.size : null,
+            comprobanteNota: 'Usuario debe enviar por email',
             
-            // Metadatos
-            estado: 'pendiente',
+            estado: 'pendiente_comprobante',
             createdAt: Timestamp.now(),
             updatedAt: Timestamp.now()
         };
 
-        console.log('📊 Datos preparados:', compraData);
-
-        // 3. Guardar en Firestore
-        console.log('💾 Guardando en Firestore...');
         const docRef = await addDoc(collection(db, "comprasGas"), compraData);
-        console.log('✅ Documento guardado con ID:', docRef.id);
-
+        
         return {
             success: true,
             id: docRef.id,
-            message: 'Compra registrada exitosamente'
+            message: 'Compra registrada. Envíe el comprobante por email con el ID de su compra'
         };
 
     } catch (error) {
-        console.error('❌ Error al guardar:', error);
+        console.error('❌ Error:', error);
         throw error;
     }
 }
-
 // ========================================
 // EVENT LISTENERS
 // ========================================
