@@ -26,7 +26,6 @@
             </div>
         </div>
     </header>
-
     <!-- Navegación Dashboard -->
     <nav class="dashboard-nav">
         <div class="container">
@@ -40,7 +39,6 @@
             </ul>
         </div>
     </nav>
-
     <!-- Contenido del Dashboard -->
     <section class="dashboard-content">
         <div class="container">
@@ -80,20 +78,17 @@
                         </div>
                     </div>
                 </div>
-
                 <!-- Próximos Beneficios -->
                 <div class="section-card">
                     <h2>📅 Próximos Beneficios</h2>
                     <div class="timeline" id="proximos-beneficios"></div>
                 </div>
-
                 <!-- Notificaciones -->
                 <div class="section-card">
                     <h2>🔔 Notificaciones Recientes</h2>
                     <div class="notifications" id="notificaciones-recientes"></div>
                 </div>
             </div>
-
             <!-- Tab: Mis Beneficios -->
             <div class="tab-content" id="tab-beneficios">
                 <h2>💰 Beneficios Recibidos</h2>
@@ -108,14 +103,14 @@
                                 <th>Comprobante</th>
                             </tr>
                         </thead>
-                        <tbody></tbody>
+                        <tbody>
+                        </tbody>
                     </table>
                 </div>
                 <div class="total-benefits">
                     <h3>Total Beneficios 2025: <span class="highlight"></span></h3>
                 </div>
             </div>
-
             <!-- Tab: Mis Convenios -->
             <div class="tab-content" id="tab-convenios">
                 <h2>🏪 Convenios Activos</h2>
@@ -129,129 +124,147 @@
                     </button>
                 </div>
             </div>
-
-            <!-- Tab: Compra de Gas -->
-            <div class="tab-content" id="tab-compras-gas">
-                <h2>🛒 Compra de Vales de Gas</h2>
-                <form id="formCompraGas" enctype="multipart/form-data">
-                    <div class="form-grid">
-                        <!-- Información básica -->
-                        <div class="form-group">
-                            <label for="emailGas">Correo Electrónico</label>
-                            <input type="email" id="emailGas" name="emailGas" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="fechaCompraGas">Fecha de compra</label>
-                            <input type="date" id="fechaCompraGas" name="fechaCompraGas" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="rutGas">Rut</label>
-                            <input type="text" id="rutGas" name="rutGas" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="nombreGas">Nombre y Apellido Afiliado</label>
-                            <input type="text" id="nombreGas" name="nombreGas" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="telefonoGas">Teléfono</label>
-                            <input type="tel" id="telefonoGas" name="telefonoGas" required>
-                        </div>
-
-                        <!-- Selector de empresa -->
-                        <div class="form-group">
-                            <label>Compra Lipigas</label>
-                            <select id="compraLipigas" name="compraLipigas">
-                                <option value="no">No</option>
-                                <option value="si">Sí</option>
-                            </select>
-                        </div>
-
-                        <!-- Opciones Lipigas -->
-                        <div id="lipigasOpciones" style="display:none;">
-                            <div class="gas-options-container">
-                                <div class="gas-option">
-                                    <label class="gas-label">5 kilos</label>
-                                    <select id="lipigas5" name="lipigas5" class="gas-select">
-                                        <option value="0">Seleccionar</option>
-                                    </select>
-                                </div>
-                                <div class="gas-option">
-                                    <label class="gas-label">11 kilos</label>
-                                    <select id="lipigas11" name="lipigas11" class="gas-select">
-                                        <option value="0">Seleccionar</option>
-                                    </select>
-                                </div>
-                                <div class="gas-option">
-                                    <label class="gas-label">15 kilos</label>
-                                    <select id="lipigas15" name="lipigas15" class="gas-select">
-                                        <option value="0">Seleccionar</option>
-                                    </select>
-                                </div>
-                                <div class="gas-option">
-                                    <label class="gas-label">45 kilos</label>
-                                    <select id="lipigas45" name="lipigas45" class="gas-select">
-                                        <option value="0">Seleccionar</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="total-info">Total seleccionado: <span class="total-count">0</span></div>
-                        </div>
-
-                        <!-- Selector Abastible -->
-                        <div class="form-group">
-                            <label>Compra Abastible</label>
-                            <select id="compraAbastible" name="compraAbastible">
-                                <option value="no">No</option>
-                                <option value="si">Sí</option>
-                            </select>
-                        </div>
-
-                        <!-- Opciones Abastible -->
-                        <div id="abastibleOpciones" style="display:none;">
-                            <div class="gas-options-container">
-                                <div class="gas-option">
-                                    <label class="gas-label">5 kilos</label>
-                                    <select id="abastible5" name="abastible5" class="gas-select">
-                                        <option value="0">Seleccionar</option>
-                                    </select>
-                                </div>
-                                <div class="gas-option">
-                                    <label class="gas-label">11 kilos</label>
-                                    <select id="abastible11" name="abastible11" class="gas-select">
-                                        <option value="0">Seleccionar</option>
-                                    </select>
-                                </div>
-                                <div class="gas-option">
-                                    <label class="gas-label">15 kilos</label>
-                                    <select id="abastible15" name="abastible15" class="gas-select">
-                                        <option value="0">Seleccionar</option>
-                                    </select>
-                                </div>
-                                <div class="gas-option">
-                                    <label class="gas-label">45 kilos</label>
-                                    <select id="abastible45" name="abastible45" class="gas-select">
-                                        <option value="0">Seleccionar</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="total-info">Total seleccionado: <span class="total-count">0</span></div>
-                            <div class="form-group saldo-favor">
-                                <label for="saldoFavor">Saldo a favor (si aplica)</label>
-                                <input type="text" id="saldoFavor" name="saldoFavor" placeholder="Fecha y monto">
-                            </div>
-                        </div>
-
-                        <!-- Comprobante -->
-                        <div class="form-group">
-                            <label for="comprobanteGas">Adjuntar comprobante de transferencia</label>
-                            <input type="file" id="comprobanteGas" name="comprobanteGas" required>
-                            <small>Recuerde que el asunto debe indicar cantidad y carga de gas (5k-11k-15k-45k).</small>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Enviar Compra</button>
-                </form>
+<div class="tab-content" id="tab-compras-gas">
+    <h2>🛒 Compra de Vales de Gas</h2>
+    <form id="formCompraGas" enctype="multipart/form-data">
+        <div class="form-grid">
+            <!-- Información básica -->
+            <div class="form-group">
+                <label for="emailGas">Correo Electrónico</label>
+                <input type="email" id="emailGas" name="emailGas" required>
+            </div>
+            <div class="form-group">
+                <label for="fechaCompraGas">Fecha de compra</label>
+                <input type="date" id="fechaCompraGas" name="fechaCompraGas" required>
+            </div>
+            <div class="form-group">
+                <label for="rutGas">Rut</label>
+                <input type="text" id="rutGas" name="rutGas" required>
+            </div>
+            <div class="form-group">
+                <label for="nombreGas">Nombre y Apellido Afiliado</label>
+                <input type="text" id="nombreGas" name="nombreGas" required>
+            </div>
+            <div class="form-group">
+                <label for="telefonoGas">Teléfono</label>
+                <input type="tel" id="telefonoGas" name="telefonoGas" required>
             </div>
 
+            <!-- Selector de empresa -->
+            <div class="form-group">
+                <label>Compra Lipigas</label>
+                <select id="compraLipigas" name="compraLipigas">
+                    <option value="no">No</option>
+                    <option value="si">Sí</option>
+                </select>
+            </div>
+
+            <!-- Opciones Lipigas -->
+            <div id="lipigasOpciones" style="display:none;">
+                <h4>Cargas Lipigas</h4>
+                <div class="limites-info"></div>
+                <div class="gas-options-list">
+                    <div class="gas-option">
+                        <span class="gas-label">5 kilos</span>
+                        <select id="lipigas5" name="lipigas5" class="gas-select">
+                            <option value="0">0</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                        </select>
+                    </div>
+                    <div class="gas-option">
+                        <span class="gas-label">11 kilos</span>
+                        <select id="lipigas11" name="lipigas11" class="gas-select">
+                            <option value="0">0</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                        </select>
+                    </div>
+                    <div class="gas-option">
+                        <span class="gas-label">15 kilos</span>
+                        <select id="lipigas15" name="lipigas15" class="gas-select">
+                            <option value="0">0</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                        </select>
+                    </div>
+                    <div class="gas-option">
+                        <span class="gas-label">45 kilos</span>
+                        <select id="lipigas45" name="lipigas45" class="gas-select">
+                            <option value="0">0</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="total-info">Total seleccionado: <span class="total-count">0</span></div>
+            </div>
+
+            <!-- Selector Abastible -->
+            <div class="form-group">
+                <label>Compra Abastible</label>
+                <select id="compraAbastible" name="compraAbastible">
+                    <option value="no">No</option>
+                    <option value="si">Sí</option>
+                </select>
+            </div>
+
+            <!-- Opciones Abastible -->
+            <div id="abastibleOpciones" style="display:none;">
+                <h4>Cargas Abastible</h4>
+                <div class="limites-info"></div>
+                <div class="gas-options-list">
+                    <div class="gas-option">
+                        <span class="gas-label">5 kilos</span>
+                        <select id="abastible5" name="abastible5" class="gas-select">
+                            <option value="0">0</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                        </select>
+                    </div>
+                    <div class="gas-option">
+                        <span class="gas-label">11 kilos</span>
+                        <select id="abastible11" name="abastible11" class="gas-select">
+                            <option value="0">0</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                        </select>
+                    </div>
+                    <div class="gas-option">
+                        <span class="gas-label">15 kilos</span>
+                        <select id="abastible15" name="abastible15" class="gas-select">
+                            <option value="0">0</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                        </select>
+                    </div>
+                    <div class="gas-option">
+                        <span class="gas-label">45 kilos</span>
+                        <select id="abastible45" name="abastible45" class="gas-select">
+                            <option value="0">0</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="total-info">Total seleccionado: <span class="total-count">0</span></div>
+                <div class="form-group">
+                    <label for="saldoFavor">Saldo a favor (si aplica)</label>
+                    <input type="text" id="saldoFavor" name="saldoFavor" placeholder="Fecha y monto">
+                </div>
+            </div>
+
+            <!-- Comprobante -->
+            <div class="form-group">
+                <label for="comprobanteGas">Adjuntar comprobante de transferencia</label>
+                <input type="file" id="comprobanteGas" name="comprobanteGas" required>
+                <small>Recuerde que el asunto debe indicar cantidad y carga de gas (5k-11k-15k-45k).</small>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Enviar Compra</button>
+    </form>
+</div>
+            
             <!-- Tab: Solicitudes -->
             <div class="tab-content" id="tab-solicitudes">
                 <h2>📝 Mis Solicitudes</h2>
@@ -262,7 +275,6 @@
                 </div>
                 <div class="solicitudes-list"></div>
             </div>
-
             <!-- Tab: Mi Perfil -->
             <div class="tab-content" id="tab-perfil">
                 <h2>⚙️ Mi Perfil</h2>
@@ -326,4 +338,20 @@
                                 <span class="info-label">Estado:</span>
                                 <span class="badge success"></span>
                             </div>
-                        </div
+                        </div>
+                        <button class="btn btn-secondary">Ver Cargas Familiares</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 Servicio Bienestar APS - Corporación Municipal de Puente Alto</p>
+        </div>
+    </footer>
+    <script type="module" src="../js/dashboard-afiliado-firebase.js"></script>
+    <script type="module" src="../js/compras-gas.js"></script>
+</body>
+</html>
