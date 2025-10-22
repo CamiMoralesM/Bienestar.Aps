@@ -124,87 +124,122 @@
                     </button>
                 </div>
             </div>
-            <div class="tab-content" id="tab-compras-gas">
-                <h2>🛒 Compra de Vales de Gas</h2>
-                <form id="formCompraGas" enctype="multipart/form-data">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="emailGas">Correo Electrónico</label>
-                            <input type="email" id="emailGas" name="emailGas" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="fechaCompraGas">Fecha de compra</label>
-                            <input type="text" id="fechaCompraGas" name="fechaCompraGas" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label for="rutGas">Rut</label>
-                            <input type="text" id="rutGas" name="rutGas" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="nombreGas">Nombre y Apellido Afiliado</label>
-                            <input type="text" id="nombreGas" name="nombreGas" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="telefonoGas">Teléfono</label>
-                            <input type="tel" id="telefonoGas" name="telefonoGas" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Compra Lipigas</label>
-                            <select id="compraLipigas" name="compraLipigas">
-                                <option value="no">No</option>
-                                <option value="si">Sí</option>
-                            </select>
-                        </div>
-                        <div id="lipigasOpciones" style="display:none;">
-                            <div class="form-group">
-                                <label for="tipoLipigas">Tipo de carga Lipigas</label>
-                                <select id="tipoLipigas" name="tipoLipigas">
-                                    <option value="5">5 kg</option>
-                                    <option value="11">11 kg</option>
-                                    <option value="15">15 kg</option>
-                                    <option value="45">45 kg</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="cantidadLipigas">Cantidad (máx 2/cupon, 4 mensual)</label>
-                                <input type="number" id="cantidadLipigas" name="cantidadLipigas" min="0" max="4">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Compra Abastible</label>
-                            <select id="compraAbastible" name="compraAbastible">
-                                <option value="no">No</option>
-                                <option value="si">Sí</option>
-                            </select>
-                        </div>
-                        <div id="abastibleOpciones" style="display:none;">
-                            <div class="form-group">
-                                <label for="tipoAbastible">Tipo de carga Abastible</label>
-                                <select id="tipoAbastible" name="tipoAbastible">
-                                    <option value="5">5 kg</option>
-                                    <option value="11">11 kg</option>
-                                    <option value="15">15 kg</option>
-                                    <option value="45">45 kg</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="cantidadAbastible">Cantidad (máx 2/cupon, 4 mensual)</label>
-                                <input type="number" id="cantidadAbastible" name="cantidadAbastible" min="0" max="4">
-                            </div>
-                            <div class="form-group">
-                                <label for="saldoFavor">Saldo a favor (si aplica)</label>
-                                <input type="text" id="saldoFavor" name="saldoFavor" placeholder="Fecha y monto">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="comprobanteGas">Adjuntar comprobante de transferencia</label>
-                            <input type="file" id="comprobanteGas" name="comprobanteGas" required>
-                            <small>Recuerde que el asunto debe indicar cantidad y carga de gas (5k-11k-15k-45k).</small>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Enviar Compra</button>
-                </form>
+           <div class="tab-content" id="tab-compras-gas">
+    <h2>🛒 Compra de Vales de Gas</h2>
+    <form id="formCompraGas" enctype="multipart/form-data">
+        <div class="form-grid">
+            <!-- Información básica -->
+            <div class="form-group">
+                <label for="emailGas">Correo Electrónico</label>
+                <input type="email" id="emailGas" name="emailGas" required>
             </div>
+            <div class="form-group">
+                <label for="fechaCompraGas">Fecha de compra</label>
+                <input type="date" id="fechaCompraGas" name="fechaCompraGas" required>
+            </div>
+            <div class="form-group">
+                <label for="rutGas">Rut</label>
+                <input type="text" id="rutGas" name="rutGas" required>
+            </div>
+            <div class="form-group">
+                <label for="nombreGas">Nombre y Apellido Afiliado</label>
+                <input type="text" id="nombreGas" name="nombreGas" required>
+            </div>
+            <div class="form-group">
+                <label for="telefonoGas">Teléfono</label>
+                <input type="tel" id="telefonoGas" name="telefonoGas" required>
+            </div>
+
+            <!-- Selector de empresa -->
+            <div class="form-group">
+                <label>Compra Lipigas</label>
+                <select id="compraLipigas" name="compraLipigas">
+                    <option value="no">No</option>
+                    <option value="si">Sí</option>
+                </select>
+            </div>
+
+            <!-- Opciones Lipigas -->
+            <div id="lipigasOpciones" style="display:none;">
+                <h4>Cargas Lipigas</h4>
+                <div class="limites-info"></div>
+                <div class="gas-options-grid">
+                    <div class="form-group">
+                        <label for="lipigas5">Carga 5 kg</label>
+                        <input type="number" id="lipigas5" name="lipigas5" min="0" value="0">
+                        <small class="limite-msg"></small>
+                    </div>
+                    <div class="form-group">
+                        <label for="lipigas11">Carga 11 kg</label>
+                        <input type="number" id="lipigas11" name="lipigas11" min="0" value="0">
+                        <small class="limite-msg"></small>
+                    </div>
+                    <div class="form-group">
+                        <label for="lipigas15">Carga 15 kg</label>
+                        <input type="number" id="lipigas15" name="lipigas15" min="0" value="0">
+                        <small class="limite-msg"></small>
+                    </div>
+                    <div class="form-group">
+                        <label for="lipigas45">Carga 45 kg</label>
+                        <input type="number" id="lipigas45" name="lipigas45" min="0" value="0">
+                        <small class="limite-msg"></small>
+                    </div>
+                </div>
+                <div class="total-info">Total seleccionado: <span class="total-count">0</span></div>
+            </div>
+
+            <!-- Selector Abastible -->
+            <div class="form-group">
+                <label>Compra Abastible</label>
+                <select id="compraAbastible" name="compraAbastible">
+                    <option value="no">No</option>
+                    <option value="si">Sí</option>
+                </select>
+            </div>
+
+            <!-- Opciones Abastible -->
+            <div id="abastibleOpciones" style="display:none;">
+                <h4>Cargas Abastible</h4>
+                <div class="limites-info"></div>
+                <div class="gas-options-grid">
+                    <div class="form-group">
+                        <label for="abastible5">Carga 5 kg</label>
+                        <input type="number" id="abastible5" name="abastible5" min="0" value="0">
+                        <small class="limite-msg"></small>
+                    </div>
+                    <div class="form-group">
+                        <label for="abastible11">Carga 11 kg</label>
+                        <input type="number" id="abastible11" name="abastible11" min="0" value="0">
+                        <small class="limite-msg"></small>
+                    </div>
+                    <div class="form-group">
+                        <label for="abastible15">Carga 15 kg</label>
+                        <input type="number" id="abastible15" name="abastible15" min="0" value="0">
+                        <small class="limite-msg"></small>
+                    </div>
+                    <div class="form-group">
+                        <label for="abastible45">Carga 45 kg</label>
+                        <input type="number" id="abastible45" name="abastible45" min="0" value="0">
+                        <small class="limite-msg"></small>
+                    </div>
+                </div>
+                <div class="total-info">Total seleccionado: <span class="total-count">0</span></div>
+                <div class="form-group">
+                    <label for="saldoFavor">Saldo a favor (si aplica)</label>
+                    <input type="text" id="saldoFavor" name="saldoFavor" placeholder="Fecha y monto">
+                </div>
+            </div>
+
+            <!-- Comprobante -->
+            <div class="form-group">
+                <label for="comprobanteGas">Adjuntar comprobante de transferencia</label>
+                <input type="file" id="comprobanteGas" name="comprobanteGas" required>
+                <small>Recuerde que el asunto debe indicar cantidad y carga de gas (5k-11k-15k-45k).</small>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Enviar Compra</button>
+    </form>
+</div>
             <!-- Tab: Solicitudes -->
             <div class="tab-content" id="tab-solicitudes">
                 <h2>📝 Mis Solicitudes</h2>
