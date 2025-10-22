@@ -1,5 +1,4 @@
-// El código completo ya está en tu repo y vincula todos los datos del afiliado de Firebase al HTML.
-// ¡Sólo asegúrate que los IDs del HTML coincidan y el JS se cargue bien!
+// Dashboard del Afiliado con Sistema de Notificaciones de Compras
 
 import { auth } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -11,6 +10,7 @@ import {
     crearSolicitud
 } from './firestore-operations.js';
 import { cerrarSesion } from './auth.js';
+import { inicializarNotificaciones } from './notificaciones-compras.js';
 
 // Verificar autenticación al cargar
 onAuthStateChanged(auth, async (user) => {
@@ -24,6 +24,9 @@ onAuthStateChanged(auth, async (user) => {
         
         // Cargar datos del usuario
         await cargarDatosUsuario(user.uid);
+        
+        // Inicializar notificaciones de compras de gas
+        await inicializarNotificaciones(user.uid);
     } else {
         window.location.href = 'login.html';
     }
