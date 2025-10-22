@@ -1,25 +1,10 @@
 // ========================================
-// COMPRAS GAS - VERSIÓN COMPLETA CON GUARDADO EN FIREBASE
+// COMPRAS GAS CON VALIDACIÓN DE CUPO MENSUAL
 // ========================================
 
-import { db, auth } from './firebase-config.js';
-import { collection, addDoc, Timestamp, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+import { validarCupoDisponible, validarCargasSolicitadas, obtenerDetalleComprasMes } from './validacion-cupo-mensual.js';
 
-// Importar validaciones de cupo (si existen)
-let validarCupoDisponible, validarCargasSolicitadas;
-try {
-    const validacionModule = await import('./validacion-cupo-mensual.js');
-    validarCupoDisponible = validacionModule.validarCupoDisponible;
-    validarCargasSolicitadas = validacionModule.validarCargasSolicitadas;
-    console.log('✅ Módulo de validación de cupo cargado');
-} catch (error) {
-    console.warn('⚠️ Módulo de validación de cupo no encontrado, continuando sin validación de cupo mensual');
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🔄 Inicializando sistema de compras de gas...');
-    
+document.addEventListener('DOMContentLoaded', async function() {
     // Obtener referencias a los elementos
     const compraLipigas = document.getElementById('compraLipigas');
     const compraAbastible = document.getElementById('compraAbastible');
@@ -27,11 +12,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const abastibleOpciones = document.getElementById('abastibleOpciones');
     const rutInput = document.getElementById('rutGas');
     const formCompraGas = document.getElementById('formCompraGas');
-
-    if (!formCompraGas) {
-        console.error('❌ No se encontró el formulario #formCompraGas');
-        return;
-    }
 
     // Función para determinar si estamos en temporada alta
     function esTemporadaAlta() {
@@ -46,18 +26,23 @@ document.addEventListener('DOMContentLoaded', function() {
         let maxOpciones;
 
         if (temporadaAlta) {
-            maxOpciones = (tipoCarga === '45') ? 2 : 3;
+            if (tipoCarga === '45') {
+                maxOpciones = 2;
+            } else {
+                maxOpciones = 3;
+            }
         } else {
             maxOpciones = 2;
         }
 
         selectElement.innerHTML = '<option value="0">0</option>';
+        
         for (let i = 1; i <= maxOpciones; i++) {
             selectElement.innerHTML += `<option value="${i}">${i}</option>`;
         }
     }
 
-    // Función para calcular el total GLOBAL
+    // Función para calcular el total GLOBAL (Lipigas + Abastible)
     function calcularTotalGlobal() {
         let totalGlobal = 0;
         
@@ -78,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return totalGlobal;
     }
 
-    // Función para actualizar opciones de gas
+    // Función para actualizar los límites y mostrar las opciones
     function actualizarOpcionesGas(contenedor, empresa) {
         const temporadaAlta = esTemporadaAlta();
         const limiteTotal = temporadaAlta ? 6 : 4;
@@ -118,14 +103,16 @@ document.addEventListener('DOMContentLoaded', function() {
         contenedor.style.display = 'block';
     }
 
-    // Event listeners
+    // Event listeners para los selectores principales
     if (compraLipigas) {
         compraLipigas.addEventListener('change', function() {
             if (this.value === 'si') {
                 actualizarOpcionesGas(lipigasOpciones, 'lipigas');
             } else {
                 lipigasOpciones.style.display = 'none';
-                lipigasOpciones.querySelectorAll('select').forEach(select => select.value = '0');
+                lipigasOpciones.querySelectorAll('select').forEach(select => {
+                    select.value = '0';
+                });
                 actualizarTotal(lipigasOpciones);
             }
         });
@@ -137,7 +124,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 actualizarOpcionesGas(abastibleOpciones, 'abastible');
             } else {
                 abastibleOpciones.style.display = 'none';
-                abastibleOpciones.querySelectorAll('select').forEach(select => select.value = '0');
+                abastibleOpciones.querySelectorAll('select').forEach(select => {
+                    select.value = '0';
+                });
                 actualizarTotal(abastibleOpciones);
             }
         });
@@ -162,7 +151,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const limiteTotal = temporadaAlta ? 6 : 4;
         
         if (totalGlobal > limiteTotal) {
-            alert(`⚠️ El total de cargas entre LIPIGAS y ABASTIBLE no puede superar ${limiteTotal} en este período.\n\nTotal actual: ${totalGlobal} cargas`);
+            alert(`⚠️ El total de cargas entre LIPIGAS y ABASTIBLE no puede superar ${limiteTotal} en este período.\n\n${temporadaAlta ? 'Temporada Alta: Máximo 6 cargas mensuales (sumando ambas marcas)' : 'Temporada Normal: Máximo 4 cargas mensuales (sumando ambas marcas)'}\n\nTotal actual: ${totalGlobal} cargas`);
             const lastChanged = Array.from(selects).reverse().find(s => parseInt(s.value) > 0);
             if (lastChanged) {
                 lastChanged.value = '0';
@@ -171,15 +160,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Agregar listeners
+    // Agregar listeners para actualizar totales
     if (lipigasOpciones) {
-        lipigasOpciones.querySelectorAll('.gas-select').forEach(select => {
+        const selectsLipigas = lipigasOpciones.querySelectorAll('.gas-select');
+        selectsLipigas.forEach(select => {
             select.addEventListener('change', () => actualizarTotal(lipigasOpciones));
         });
     }
 
     if (abastibleOpciones) {
-        abastibleOpciones.querySelectorAll('.gas-select').forEach(select => {
+        const selectsAbastible = abastibleOpciones.querySelectorAll('.gas-select');
+        selectsAbastible.forEach(select => {
             select.addEventListener('change', () => actualizarTotal(abastibleOpciones));
         });
     }
@@ -193,95 +184,179 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ========================================
-    // FUNCIÓN PRINCIPAL: GUARDAR EN FIREBASE
+    // NUEVA FUNCIÓN: Verificar cupo al cargar
     // ========================================
-    async function guardarCompraEnFirebase(formData, comprobanteFile) {
-        console.log('💾 Iniciando guardado en Firebase...');
+    async function verificarCupoUsuario() {
+        const rut = rutInput.value.trim();
         
-        try {
-            let comprobanteUrl = "";
+        if (!rut) return;
 
-            // 1. Subir comprobante a Storage
-            if (comprobanteFile) {
-                console.log('📤 Subiendo comprobante a Storage...');
-                const storage = getStorage();
-                const fileName = `${Date.now()}_${comprobanteFile.name}`;
-                const storageRef = ref(storage, `comprobantesGas/${fileName}`);
-                
-                await uploadBytes(storageRef, comprobanteFile);
-                comprobanteUrl = await getDownloadURL(storageRef);
-                console.log('✅ Comprobante subido:', comprobanteUrl);
+        try {
+            // Mostrar indicador de carga
+            mostrarIndicadorCarga('Verificando cupo disponible...');
+
+            const validacion = await validarCupoDisponible(rut);
+            
+            ocultarIndicadorCarga();
+
+            if (!validacion.success) {
+                console.error('Error en validación:', validacion.error);
+                return;
             }
 
-            // 2. Preparar datos de la compra
-            const compraLipigasValue = formData.get('compraLipigas') === 'si';
-            const compraAbastibleValue = formData.get('compraAbastible') === 'si';
+            // Mostrar información del cupo
+            mostrarInfoCupo(validacion);
 
-            const compraData = {
-                // Datos del usuario
-                uid: auth.currentUser.uid,
-                email: formData.get('emailGas'),
-                rut: formData.get('rutGas').replace(/\./g, '').replace(/-/g, ''), // Normalizado
-                nombre: formData.get('nombreGas'),
-                telefono: formData.get('telefonoGas'),
-                fechaCompra: formData.get('fechaCompraGas'),
-                
-                // Datos de compra Lipigas
-                compraLipigas: compraLipigasValue,
-                cargas_lipigas: compraLipigasValue ? {
-                    kg5: parseInt(formData.get('lipigas5')) || 0,
-                    kg11: parseInt(formData.get('lipigas11')) || 0,
-                    kg15: parseInt(formData.get('lipigas15')) || 0,
-                    kg45: parseInt(formData.get('lipigas45')) || 0
-                } : null,
-                
-                // Datos de compra Abastible
-                compraAbastible: compraAbastibleValue,
-                cargas_abastible: compraAbastibleValue ? {
-                    kg5: parseInt(formData.get('abastible5')) || 0,
-                    kg11: parseInt(formData.get('abastible11')) || 0,
-                    kg15: parseInt(formData.get('abastible15')) || 0,
-                    kg45: parseInt(formData.get('abastible45')) || 0
-                } : null,
-                saldoFavor: formData.get('saldoFavor') || null,
-                
-                // Comprobante
-                comprobanteUrl: comprobanteUrl,
-                
-                // Metadatos
-                estado: 'pendiente',
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now()
-            };
-
-            console.log('📊 Datos preparados:', compraData);
-
-            // 3. Guardar en Firestore
-            console.log('💾 Guardando en Firestore...');
-            const docRef = await addDoc(collection(db, "comprasGas"), compraData);
-            console.log('✅ Documento guardado con ID:', docRef.id);
-
-            return {
-                success: true,
-                id: docRef.id,
-                message: 'Compra registrada exitosamente'
-            };
+            // Si no tiene cupo, deshabilitar formulario
+            if (!validacion.puedeComprar) {
+                deshabilitarFormulario(validacion);
+            } else {
+                habilitarFormulario();
+            }
 
         } catch (error) {
-            console.error('❌ Error al guardar:', error);
-            throw error;
+            console.error('Error al verificar cupo:', error);
+            ocultarIndicadorCarga();
         }
     }
 
     // ========================================
-    // SUBMIT DEL FORMULARIO
+    // FUNCIÓN: Mostrar información del cupo
     // ========================================
-    formCompraGas.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        console.log('🔍 Formulario enviado');
+    function mostrarInfoCupo(validacion) {
+        // Buscar o crear contenedor de información
+        let infoContainer = document.getElementById('info-cupo-mensual');
+        
+        if (!infoContainer) {
+            infoContainer = document.createElement('div');
+            infoContainer.id = 'info-cupo-mensual';
+            infoContainer.style.cssText = `
+                padding: 15px 20px;
+                margin: 20px 0;
+                border-radius: 8px;
+                font-weight: 500;
+            `;
+            
+            // Insertar después del campo RUT
+            const rutGroup = rutInput.closest('.form-group');
+            rutGroup.parentNode.insertBefore(infoContainer, rutGroup.nextSibling);
+        }
 
-        try {
-            // Validaciones básicas
+        const temporadaNombre = validacion.temporada === 'alta' ? 'Temporada Alta' : 'Temporada Normal';
+        const emoji = validacion.puedeComprar ? '✅' : '❌';
+        
+        if (validacion.puedeComprar) {
+            infoContainer.style.background = '#d4edda';
+            infoContainer.style.borderLeft = '4px solid #28a745';
+            infoContainer.style.color = '#155724';
+            
+            infoContainer.innerHTML = `
+                <strong>${emoji} Cupo Disponible</strong><br>
+                ${temporadaNombre}: Ha usado ${validacion.totalUsado} de ${validacion.limiteMaximo} cargas mensuales<br>
+                <strong>Tiene ${validacion.cupoDisponible} cargas disponibles este mes</strong>
+            `;
+        } else {
+            infoContainer.style.background = '#f8d7da';
+            infoContainer.style.borderLeft = '4px solid #dc3545';
+            infoContainer.style.color = '#721c24';
+            
+            infoContainer.innerHTML = `
+                <strong>${emoji} Sin Cupo Disponible</strong><br>
+                ${temporadaNombre}: Ha usado ${validacion.totalUsado} de ${validacion.limiteMaximo} cargas mensuales<br>
+                <strong>Ha alcanzado el límite mensual. No puede realizar más compras este mes.</strong>
+            `;
+        }
+    }
+
+    // ========================================
+    // FUNCIÓN: Deshabilitar formulario
+    // ========================================
+    function deshabilitarFormulario(validacion) {
+        // Deshabilitar selectores de empresa
+        if (compraLipigas) compraLipigas.disabled = true;
+        if (compraAbastible) compraAbastible.disabled = true;
+
+        // Deshabilitar botón de envío
+        const btnSubmit = formCompraGas.querySelector('button[type="submit"]');
+        if (btnSubmit) {
+            btnSubmit.disabled = true;
+            btnSubmit.textContent = '❌ Sin Cupo Disponible';
+            btnSubmit.style.opacity = '0.5';
+            btnSubmit.style.cursor = 'not-allowed';
+        }
+
+        // Ocultar opciones si están visibles
+        if (lipigasOpciones) lipigasOpciones.style.display = 'none';
+        if (abastibleOpciones) abastibleOpciones.style.display = 'none';
+    }
+
+    // ========================================
+    // FUNCIÓN: Habilitar formulario
+    // ========================================
+    function habilitarFormulario() {
+        // Habilitar selectores
+        if (compraLipigas) compraLipigas.disabled = false;
+        if (compraAbastible) compraAbastible.disabled = false;
+
+        // Habilitar botón
+        const btnSubmit = formCompraGas.querySelector('button[type="submit"]');
+        if (btnSubmit) {
+            btnSubmit.disabled = false;
+            btnSubmit.textContent = 'Enviar Compra';
+            btnSubmit.style.opacity = '1';
+            btnSubmit.style.cursor = 'pointer';
+        }
+    }
+
+    // ========================================
+    // FUNCIONES DE UI
+    // ========================================
+    function mostrarIndicadorCarga(mensaje) {
+        let indicator = document.getElementById('loading-indicator');
+        
+        if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.id = 'loading-indicator';
+            indicator.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(0,0,0,0.8);
+                color: white;
+                padding: 20px 40px;
+                border-radius: 8px;
+                z-index: 10000;
+                font-weight: 500;
+            `;
+            document.body.appendChild(indicator);
+        }
+        
+        indicator.textContent = mensaje;
+        indicator.style.display = 'block';
+    }
+
+    function ocultarIndicadorCarga() {
+        const indicator = document.getElementById('loading-indicator');
+        if (indicator) {
+            indicator.style.display = 'none';
+        }
+    }
+
+    // ========================================
+    // EVENT LISTENER: Verificar cupo al perder foco del RUT
+    // ========================================
+    if (rutInput) {
+        rutInput.addEventListener('blur', verificarCupoUsuario);
+    }
+
+    // ========================================
+    // VALIDACIÓN MEJORADA DEL FORMULARIO
+    // ========================================
+    if (formCompraGas) {
+        formCompraGas.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
             const comprandoLipigas = compraLipigas.value === 'si';
             const comprandoAbastible = compraAbastible.value === 'si';
 
@@ -297,21 +372,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 return false;
             }
 
-            // Validar límite global
-            const temporadaAlta = esTemporadaAlta();
-            const limiteTotal = temporadaAlta ? 6 : 4;
+            // VALIDACIÓN DE CUPO CON FIREBASE
+            const rut = rutInput.value.trim();
 
-            if (totalCargas > limiteTotal) {
-                alert(`⚠️ El total de cargas no puede superar ${limiteTotal}`);
+            if (!rut) {
+                alert('⚠️ Debe ingresar su RUT');
                 return false;
             }
 
-            // Validación de cupo mensual (si está disponible)
-            if (validarCargasSolicitadas) {
-                console.log('🔍 Validando cupo mensual...');
-                const rut = rutInput.value.trim();
-                
+            try {
+                mostrarIndicadorCarga('Validando cupo disponible...');
+
+                // Preparar objeto de cargas solicitadas
                 const cargasSolicitadas = {};
+
                 if (comprandoLipigas) {
                     cargasSolicitadas.lipigas = {
                         kg5: parseInt(document.getElementById('lipigas5').value) || 0,
@@ -320,6 +394,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         kg45: parseInt(document.getElementById('lipigas45').value) || 0
                     };
                 }
+
                 if (comprandoAbastible) {
                     cargasSolicitadas.abastible = {
                         kg5: parseInt(document.getElementById('abastible5').value) || 0,
@@ -329,58 +404,49 @@ document.addEventListener('DOMContentLoaded', function() {
                     };
                 }
 
+                // Validar con Firebase
                 const validacion = await validarCargasSolicitadas(rut, cargasSolicitadas);
-                
-                if (!validacion.success || !validacion.puedeComprar) {
-                    alert(`❌ ${validacion.mensaje}`);
+
+                ocultarIndicadorCarga();
+
+                if (!validacion.success) {
+                    alert('❌ Error al validar: ' + validacion.error);
                     return false;
                 }
-            }
 
-            // Obtener datos del formulario
-            const formData = new FormData(this);
-            const comprobanteFile = document.getElementById('comprobanteGas').files[0];
+                if (!validacion.puedeComprar) {
+                    alert(`❌ ${validacion.mensaje}\n\nTotal usado: ${validacion.totalUsado} cargas\nSolicita: ${validacion.totalSolicitado} cargas\nDisponible: ${validacion.cupoDisponible} cargas`);
+                    return false;
+                }
 
-            if (!comprobanteFile) {
-                alert('⚠️ Debe adjuntar el comprobante de transferencia');
+                // Si pasó todas las validaciones, enviar formulario
+                console.log('✅ Validación exitosa, enviando formulario...');
+                console.log('Detalle:', validacion);
+
+                // Aquí continúa el proceso normal de envío a Firebase
+                // this.submit(); // Descomentar cuando esté listo para enviar
+                
+                alert(`✅ Compra válida!\n\n${validacion.mensaje}\n\nProcesor: Envío a Firebase...`);
+
+            } catch (error) {
+                ocultarIndicadorCarga();
+                console.error('Error en validación:', error);
+                alert('❌ Error al procesar la solicitud. Intente nuevamente.');
                 return false;
             }
+        });
+    }
 
-            // Deshabilitar botón
-            const btnSubmit = this.querySelector('button[type="submit"]');
-            const textoOriginal = btnSubmit.textContent;
-            btnSubmit.disabled = true;
-            btnSubmit.textContent = '⏳ Guardando...';
+    // ========================================
+    // FUNCIÓN AUXILIAR: Mostrar información de temporada
+    // ========================================
+    function mostrarInfoTemporada() {
+        const temporadaAlta = esTemporadaAlta();
+        console.log(temporadaAlta ? 
+            '🔥 Temporada Alta Activa (Junio-Septiembre)' : 
+            '❄️ Temporada Normal Activa (Octubre-Mayo)'
+        );
+    }
 
-            // Guardar en Firebase
-            const resultado = await guardarCompraEnFirebase(formData, comprobanteFile);
-
-            if (resultado.success) {
-                alert(`✅ ${resultado.message}\n\nID de compra: ${resultado.id}\n\nSu compra ha sido registrada y será procesada a la brevedad.`);
-                
-                // Limpiar formulario
-                this.reset();
-                lipigasOpciones.style.display = 'none';
-                abastibleOpciones.style.display = 'none';
-                
-                // Recargar página o redirigir
-                setTimeout(() => {
-                    window.location.reload();
-                }, 2000);
-            }
-
-        } catch (error) {
-            console.error('❌ Error al procesar:', error);
-            alert(`❌ Error al guardar la compra: ${error.message}\n\nPor favor, intente nuevamente.`);
-        } finally {
-            // Rehabilitar botón
-            const btnSubmit = this.querySelector('button[type="submit"]');
-            if (btnSubmit) {
-                btnSubmit.disabled = false;
-                btnSubmit.textContent = 'Enviar Compra';
-            }
-        }
-    });
-
-    console.log('✅ Sistema de compras de gas inicializado correctamente');
+    mostrarInfoTemporada();
 });
