@@ -15,45 +15,46 @@ async function guardarCompraGasFirebase(compra, comprobanteFile) {
         comprobanteUrl = await getDownloadURL(storageRef);
     }
 
-    // Agregar la compra a Firestore
+    // Construir objeto de compra
     const compraData = {
-        ...compra,
+        fechaCompra: compra.fechaCompraGas,
+        rut: compra.rutGas,
+        nombre: compra.nombreGas,
+        email: compra.emailGas,
+        telefono: compra.telefonoGas,
         comprobanteUrl,
-        fechaCompra: new Date().toISOString(),
+        
+        // Datos Lipigas
+        compraLipigas: compra.compraLipigas === 'si',
+        cargas_lipigas: compra.compraLipigas === 'si' ? {
+            kg5: parseInt(compra.lipigas5) || 0,
+            kg11: parseInt(compra.lipigas11) || 0,
+            kg15: parseInt(compra.lipigas15) || 0,
+            kg45: parseInt(compra.lipigas45) || 0
+        } : null,
+        
+        // Datos Abastible
+        compraAbastible: compra.compraAbastible === 'si',
+        cargas_abastible: compra.compraAbastible === 'si' ? {
+            kg5: parseInt(compra.abastible5) || 0,
+            kg11: parseInt(compra.abastible11) || 0,
+            kg15: parseInt(compra.abastible15) || 0,
+            kg45: parseInt(compra.abastible45) || 0
+        } : null,
+        saldoFavor: compra.saldoFavor || null,
+        
+        // Metadatos
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
     };
 
+    // Guardar en Firestore
     await addDoc(collection(db, "comprasGas"), compraData);
 }
 
-// Manejo del formulario
+// Inicializar la gestión de compras de gas
 document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('formCompraGas');
-    if (!form) return;
-
-    form.addEventListener('submit', async function(e) {
-        e.preventDefault();
-
-        // Extrae los datos del formulario aquí
-        const compra = {
-            rut: document.getElementById('rutGas').value,
-            nombre: document.getElementById('nombreGas').value.split(' ')[0],
-            apellido: document.getElementById('nombreGas').value.split(' ').slice(1).join(' '),
-            email: document.getElementById('emailGas').value,
-            telefono: document.getElementById('telefonoGas').value,
-            empresa: document.getElementById('compraLipigas').value === 'si' ? 'Lipigas' : (document.getElementById('compraAbastible').value === 'si' ? 'Abastible' : ''),
-            tipoCarga: document.getElementById('compraLipigas').value === 'si' ? document.getElementById('tipoLipigas').value : document.getElementById('tipoAbastible').value,
-            cantidad: document.getElementById('compraLipigas').value === 'si' ? Number(document.getElementById('cantidadLipigas').value) : Number(document.getElementById('cantidadAbastible').value),
-            saldoFavor: document.getElementById('compraAbastible').value === 'si' ? document.getElementById('saldoFavor').value : "",
-        };
-
-        const comprobanteFile = document.getElementById('comprobanteGas').files[0];
-
-        try {
-            await guardarCompraGasFirebase(compra, comprobanteFile);
-            alert('Compra registrada correctamente');
-            form.reset();
-        } catch (err) {
-            alert('Error al registrar la compra: ' + err.message);
-        }
-    });
+    const comprasGasManager = new ComprasGasManager();
 });
+
+export { guardarCompraGasFirebase };
