@@ -796,7 +796,3 @@ async function handleSubmitEntretenimiento(form, formData, tipoCompra) {
     }
 }
 
-export {
-    inicializarFormulario,
-    obtenerComprasPorTipo,
-};
