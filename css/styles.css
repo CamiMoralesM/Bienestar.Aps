@@ -2888,3 +2888,36 @@ body.modal-open {
 #tab-compra-gimnasio .info-box {
     background: #dff5e1; /* Verde pastel suave */
 }
+.stats-grid {
+    display: flex;
+    justify-content: center; /* Centra horizontalmente */
+    align-items: center;      /* Centra verticalmente */
+    gap: 2rem;                /* Espacio entre tarjetas */
+    flex-wrap: wrap;          /* Permite que se ajusten si la pantalla es pequeña */
+    margin-top: 2rem;
+}
+
+.stat-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem 2rem;
+    text-align: center;
+    width: 250px; /* Tamaño fijo para equilibrio visual */
+}
+
+.stat-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.stat-info h3 {
+    font-size: 1.5rem;
+    margin: 0;
+    color: #0d47a1;
+}
+
+.stat-info p {
+    color: #333;
+    font-size: 0.95rem;
+}
