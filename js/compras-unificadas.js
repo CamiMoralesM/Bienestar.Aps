@@ -796,19 +796,7 @@ async function handleSubmitEntretenimiento(form, formData, tipoCompra) {
     }
 }
 
-// ========================================
-// EXPORTACIONES FINALES - SIN DUPLICADOS
-// ========================================
-
-// Ya exportadas arriba:
-// export { esTemporadaAlta }  <- REMOVIDO PARA EVITAR DUPLICADO
-// export { obtenerLimiteMaximoGas }  <- REMOVIDO PARA EVITAR DUPLICADO
-// export { validarCupoDisponible }  <- REMOVIDO PARA EVITAR DUPLICADO
-// export { guardarCompra }  <- REMOVIDO PARA EVITAR DUPLICADO
-
-// Exportaciones adicionales sin duplicar
 export {
     inicializarFormulario,
     obtenerComprasPorTipo,
-    obtenerEstadisticasCompras
 };
