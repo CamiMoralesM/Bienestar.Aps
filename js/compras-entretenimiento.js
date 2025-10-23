@@ -23,6 +23,24 @@ const LIMITES_MENSUALES = {
     gimnasio: 4
 };
 
+const PRECIOS = {
+    cine: 7000,        // $7.000 entrada + combo
+    jumper: 6500,      // $6.500 entrada + combo  
+    gimnasio: 18000    // $18.000 ticket mensual
+};
+
+const COLECCIONES = {
+    cine: 'comprasCine',
+    jumper: 'comprasJumper', 
+    gimnasio: 'comprasGimnasio'
+};
+
+const NOMBRES_TIPOS = {
+    cine: 'Cine',
+    jumper: 'Jumper Trampoline Park',
+    gimnasio: 'Gimnasio Energy'
+};
+
 // ========================================
 // FUNCIONES DE VALIDACIÓN DE CUPO
 // ========================================
@@ -49,7 +67,7 @@ async function obtenerComprasMesActual(rut, tipoCompra) {
         const rango = obtenerRangoMesActual();
         const rutNormalizado = rut.replace(/\./g, '').replace(/-/g, '');
         
-        const comprasRef = collection(db, `compras${tipoCompra.charAt(0).toUpperCase() + tipoCompra.slice(1)}`);
+        const comprasRef = collection(db, COLECCIONES[tipoCompra]);
         const q = query(
             comprasRef,
             where("rut", "==", rutNormalizado),
@@ -110,11 +128,25 @@ export async function validarCupoDisponible(rut, tipoCompra) {
 }
 
 // ========================================
-// FUNCIONES DE GUARDADO
+// FUNCIONES DE GUARDADO EN FIREBASE
 // ========================================
 
 /**
- * Guarda una compra en Firebase
+ * Calcula el monto total según el tipo y cantidad
+ */
+function calcularMontoTotal(tipoCompra, cantidad) {
+    return (PRECIOS[tipoCompra] || 0) * cantidad;
+}
+
+/**
+ * Obtiene el nombre descriptivo del tipo
+ */
+function getTipoNombre(tipoCompra) {
+    return NOMBRES_TIPOS[tipoCompra] || tipoCompra;
+}
+
+/**
+ * Guarda una compra en Firebase con colección específica
  */
 export async function guardarCompra(tipoCompra, formData, comprobanteFile) {
     console.log(`💾 Guardando compra de ${tipoCompra}...`);
@@ -125,36 +157,52 @@ export async function guardarCompra(tipoCompra, formData, comprobanteFile) {
         
         // Subir comprobante si existe
         if (comprobanteFile) {
-            const storageRef = ref(storage, `comprobantes${tipoCompra.charAt(0).toUpperCase() + tipoCompra.slice(1)}/${Date.now()}_${comprobanteFile.name}`);
+            const carpetaStorage = {
+                'cine': 'comprobantesCine',
+                'jumper': 'comprobantesJumper', 
+                'gimnasio': 'comprobantesGimnasio'
+            };
+            
+            const storageRef = ref(storage, `${carpetaStorage[tipoCompra]}/${Date.now()}_${comprobanteFile.name}`);
             await uploadBytes(storageRef, comprobanteFile);
             comprobanteUrl = await getDownloadURL(storageRef);
         }
         
+        // Mapear nombres de campos según el tipo
+        const tipoCapitalizado = tipoCompra.charAt(0).toUpperCase() + tipoCompra.slice(1);
+        
         const compraData = {
             uid: auth.currentUser.uid,
-            email: formData.get(`email${tipoCompra.charAt(0).toUpperCase() + tipoCompra.slice(1)}`),
-            rut: formData.get(`rut${tipoCompra.charAt(0).toUpperCase() + tipoCompra.slice(1)}`).replace(/\./g, '').replace(/-/g, ''),
-            nombre: formData.get(`nombre${tipoCompra.charAt(0).toUpperCase() + tipoCompra.slice(1)}`),
-            telefono: formData.get(`telefono${tipoCompra.charAt(0).toUpperCase() + tipoCompra.slice(1)}`),
-            fechaCompra: formData.get(`fechaCompra${tipoCompra.charAt(0).toUpperCase() + tipoCompra.slice(1)}`),
-            cantidad: parseInt(formData.get(`cantidad${tipoCompra.charAt(0).toUpperCase() + tipoCompra.slice(1)}`)) || 0,
+            email: formData.get(`email${tipoCapitalizado}`),
+            rut: formData.get(`rut${tipoCapitalizado}`).replace(/\./g, '').replace(/-/g, ''),
+            nombre: formData.get(`nombre${tipoCapitalizado}`),
+            telefono: formData.get(`telefono${tipoCapitalizado}`),
+            fechaCompra: formData.get(`fechaCompra${tipoCapitalizado}`),
+            cantidad: parseInt(formData.get(`cantidad${tipoCapitalizado}`)) || 0,
+            tipoEntretenimiento: tipoCompra, // Campo para identificar el tipo
             comprobanteUrl: comprobanteUrl,
+            comprobanteNombre: comprobanteFile ? comprobanteFile.name : null,
             estado: 'pendiente',
+            montoTotal: calcularMontoTotal(tipoCompra, parseInt(formData.get(`cantidad${tipoCapitalizado}`)) || 0),
             createdAt: Timestamp.now(),
             updatedAt: Timestamp.now()
         };
         
-        const coleccion = `compras${tipoCompra.charAt(0).toUpperCase() + tipoCompra.slice(1)}`;
-        const docRef = await addDoc(collection(db, coleccion), compraData);
+        // Guardar en la colección específica
+        const nombreColeccion = COLECCIONES[tipoCompra];
+        const docRef = await addDoc(collection(db, nombreColeccion), compraData);
+        
+        console.log(`✅ Compra guardada en colección: ${nombreColeccion} con ID: ${docRef.id}`);
         
         return {
             success: true,
             id: docRef.id,
-            message: `Compra de ${tipoCompra} registrada exitosamente`
+            coleccion: nombreColeccion,
+            message: `Compra de ${getTipoNombre(tipoCompra)} registrada exitosamente`
         };
         
     } catch (error) {
-        console.error('❌ Error:', error);
+        console.error('❌ Error al guardar compra:', error);
         throw error;
     }
 }
@@ -176,7 +224,8 @@ export function inicializarFormulario(tipoCompra) {
     }
     
     // Inicializar fecha
-    const fechaInput = document.getElementById(`fechaCompra${tipoCompra.charAt(0).toUpperCase() + tipoCompra.slice(1)}`);
+    const tipoCapitalizado = tipoCompra.charAt(0).toUpperCase() + tipoCompra.slice(1);
+    const fechaInput = document.getElementById(`fechaCompra${tipoCapitalizado}`);
     if (fechaInput) {
         const today = new Date().toISOString().split('T')[0];
         fechaInput.value = today;
@@ -184,7 +233,7 @@ export function inicializarFormulario(tipoCompra) {
     }
     
     // Inicializar validación de RUT al cambiar
-    const rutInput = document.getElementById(`rut${tipoCompra.charAt(0).toUpperCase() + tipoCompra.slice(1)}`);
+    const rutInput = document.getElementById(`rut${tipoCapitalizado}`);
     if (rutInput) {
         rutInput.addEventListener('blur', async () => {
             const rut = rutInput.value.trim();
@@ -244,7 +293,8 @@ function mostrarInfoCupo(validacion, tipoCompra) {
             font-weight: 500;
         `;
         
-        const rutInput = document.getElementById(`rut${tipoCompra.charAt(0).toUpperCase() + tipoCompra.slice(1)}`);
+        const tipoCapitalizado = tipoCompra.charAt(0).toUpperCase() + tipoCompra.slice(1);
+        const rutInput = document.getElementById(`rut${tipoCapitalizado}`);
         const rutGroup = rutInput?.closest('.form-group');
         if (rutGroup) {
             rutGroup.parentNode.insertBefore(infoContainer, rutGroup.nextSibling);
@@ -252,7 +302,7 @@ function mostrarInfoCupo(validacion, tipoCompra) {
     }
     
     const emoji = validacion.puedeComprar ? '✅' : '❌';
-    const tipoNombre = tipoCompra === 'cine' ? 'Cine' : tipoCompra === 'jumper' ? 'Jumper Park' : 'Gimnasio';
+    const tipoNombre = getTipoNombre(tipoCompra);
     
     if (validacion.puedeComprar) {
         infoContainer.style.background = '#d4edda';
@@ -281,7 +331,8 @@ function mostrarInfoCupo(validacion, tipoCompra) {
  * Actualiza las opciones del select según el cupo disponible
  */
 function actualizarOpcionesSelect(tipoCompra, cupoDisponible) {
-    const selectId = `cantidad${tipoCompra.charAt(0).toUpperCase() + tipoCompra.slice(1)}`;
+    const tipoCapitalizado = tipoCompra.charAt(0).toUpperCase() + tipoCompra.slice(1);
+    const selectId = `cantidad${tipoCapitalizado}`;
     const select = document.getElementById(selectId);
     
     if (!select) return;
@@ -324,7 +375,7 @@ function habilitarFormulario(tipoCompra) {
     const btnSubmit = form.querySelector('button[type="submit"]');
     if (btnSubmit) {
         btnSubmit.disabled = false;
-        btnSubmit.textContent = 'Enviar Compra';
+        btnSubmit.textContent = `Enviar Compra ${getTipoNombre(tipoCompra)}`;
         btnSubmit.style.opacity = '1';
     }
 }
@@ -339,11 +390,12 @@ async function handleFormSubmit(e, tipoCompra) {
     try {
         const form = e.target;
         const formData = new FormData(form);
-        const comprobanteInput = document.getElementById(`comprobante${tipoCompra.charAt(0).toUpperCase() + tipoCompra.slice(1)}`);
+        const tipoCapitalizado = tipoCompra.charAt(0).toUpperCase() + tipoCompra.slice(1);
+        const comprobanteInput = document.getElementById(`comprobante${tipoCapitalizado}`);
         const comprobanteFile = comprobanteInput?.files[0];
         
         // Validaciones
-        const cantidad = parseInt(formData.get(`cantidad${tipoCompra.charAt(0).toUpperCase() + tipoCompra.slice(1)}`)) || 0;
+        const cantidad = parseInt(formData.get(`cantidad${tipoCapitalizado}`)) || 0;
         
         if (cantidad === 0) {
             alert('⚠️ Debe seleccionar al menos una entrada');
@@ -356,7 +408,7 @@ async function handleFormSubmit(e, tipoCompra) {
         }
         
         // Validar cupo
-        const rutInput = document.getElementById(`rut${tipoCompra.charAt(0).toUpperCase() + tipoCompra.slice(1)}`);
+        const rutInput = document.getElementById(`rut${tipoCapitalizado}`);
         const rut = rutInput?.value.trim();
         
         if (!rut) {
@@ -387,10 +439,19 @@ async function handleFormSubmit(e, tipoCompra) {
         const resultado = await guardarCompra(tipoCompra, formData, comprobanteFile);
         
         if (resultado.success) {
-            const tipoNombre = tipoCompra === 'cine' ? 'Cine' : tipoCompra === 'jumper' ? 'Jumper Park' : 'Gimnasio';
-            alert(`✅ ${resultado.message}\n\nID: ${resultado.id}`);
+            const tipoNombre = getTipoNombre(tipoCompra);
+            const montoTotal = calcularMontoTotal(tipoCompra, cantidad);
+            
+            alert(`✅ ${resultado.message}\n\nID: ${resultado.id}\nColección: ${resultado.coleccion}\nCantidad: ${cantidad} entradas\nMonto Total: $${montoTotal.toLocaleString('es-CL')}`);
             
             form.reset();
+            
+            // Limpiar información de cupo
+            const infoContainer = document.getElementById(`info-cupo-${tipoCompra}`);
+            if (infoContainer) {
+                infoContainer.remove();
+            }
+            
             setTimeout(() => window.location.reload(), 2000);
         }
         
@@ -402,8 +463,78 @@ async function handleFormSubmit(e, tipoCompra) {
         const btnSubmit = form.querySelector('button[type="submit"]');
         if (btnSubmit) {
             btnSubmit.disabled = false;
-            btnSubmit.textContent = 'Enviar Compra';
+            const tipoNombre = getTipoNombre(tipoCompra);
+            btnSubmit.textContent = `Enviar Compra ${tipoNombre}`;
         }
+    }
+}
+
+// ========================================
+// FUNCIONES DE ADMINISTRACIÓN
+// ========================================
+
+/**
+ * Obtiene todas las compras de un tipo específico (para admin)
+ */
+export async function obtenerComprasPorTipo(tipoCompra, filtros = {}) {
+    try {
+        const coleccionRef = collection(db, COLECCIONES[tipoCompra]);
+        let q = coleccionRef;
+        
+        // Aplicar filtros si existen
+        if (filtros.fecha) {
+            const fecha = new Date(filtros.fecha);
+            const inicioDia = new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate());
+            const finDia = new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate(), 23, 59, 59);
+            
+            q = query(q, 
+                where("createdAt", ">=", Timestamp.fromDate(inicioDia)),
+                where("createdAt", "<=", Timestamp.fromDate(finDia))
+            );
+        }
+        
+        if (filtros.estado) {
+            q = query(q, where("estado", "==", filtros.estado));
+        }
+        
+        const querySnapshot = await getDocs(q);
+        const compras = [];
+        
+        querySnapshot.forEach((doc) => {
+            compras.push({
+                id: doc.id,
+                ...doc.data(),
+                tipoCompra: tipoCompra
+            });
+        });
+        
+        return compras;
+    } catch (error) {
+        console.error(`Error al obtener compras de ${tipoCompra}:`, error);
+        return [];
+    }
+}
+
+/**
+ * Obtiene estadísticas de compras por tipo
+ */
+export async function obtenerEstadisticasCompras(tipoCompra) {
+    try {
+        const compras = await obtenerComprasPorTipo(tipoCompra);
+        
+        const estadisticas = {
+            total: compras.length,
+            pendientes: compras.filter(c => c.estado === 'pendiente').length,
+            aprobadas: compras.filter(c => c.estado === 'aprobado').length,
+            rechazadas: compras.filter(c => c.estado === 'rechazado').length,
+            montoTotal: compras.reduce((total, c) => total + (c.montoTotal || 0), 0),
+            entradasTotales: compras.reduce((total, c) => total + (c.cantidad || 0), 0)
+        };
+        
+        return estadisticas;
+    } catch (error) {
+        console.error(`Error al obtener estadísticas de ${tipoCompra}:`, error);
+        return null;
     }
 }
 
@@ -412,5 +543,8 @@ async function handleFormSubmit(e, tipoCompra) {
 // ========================================
 export {
     inicializarFormulario,
-    LIMITES_MENSUALES
+    LIMITES_MENSUALES,
+    PRECIOS,
+    COLECCIONES,
+    NOMBRES_TIPOS
 };
