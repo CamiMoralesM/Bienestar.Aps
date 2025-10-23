@@ -166,20 +166,23 @@
             <li><strong>Temporada Alta</strong> (Jun-Sep): Máximo 6 cargas mensuales, máximo 3 por tipo (45kg máx. 2)</li>
         </ul>
     </div>
+
+    <form id="formCompraGas" enctype="multipart/form-data">
+        <div class="form-grid">
             <!-- Información básica -->
             <div class="form-group">
-                 <div class="form-group">
                 <label for="rutGas">Rut</label>
                 <input type="text" id="rutGas" name="rutGas" required>
             </div>
-                <div class="form-group">
+            <div class="form-group">
                 <label for="nombreGas">Nombre y Apellido Afiliado</label>
                 <input type="text" id="nombreGas" name="nombreGas" required>
             </div>
-                <div class="form-group">
+            <div class="form-group">
                 <label for="fechaCompraGas">Fecha de compra</label>
                 <input type="date" id="fechaCompraGas" name="fechaCompraGas" required>
             </div>
+            <div class="form-group">
                 <label for="emailGas">Correo Electrónico</label>
                 <input type="email" id="emailGas" name="emailGas" required>
             </div>
@@ -295,10 +298,11 @@
                 <small>Recuerde que el asunto debe indicar cantidad y carga de gas (5k-11k-15k-45k).</small>
             </div>
         </div>
-        <button type="submit" class="btn btn-primary">Enviar Compra</button>
+        <button type="submit" class="btn btn-primary btn-enviar-gas">Enviar Compra Gas</button>
     </form>
 </div>
-          <!-- Tab: Compra de Cine -->
+
+<!-- Tab: Compra de Cine -->
 <div class="tab-content" id="tab-compra-cine">
     <h2>🎬 Compra de Entradas de Cine</h2>
     <div class="info-box" style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
@@ -356,10 +360,11 @@
             </div>
         </div>
         
-        <button type="submit" class="btn btn-primary">Enviar Compra</button>
+        <button type="submit" class="btn btn-primary btn-enviar-cine">Enviar Compra Cine</button>
     </form>
 </div>  
-            <!-- Tab: Compra de Jumper Trampoline Park -->
+
+<!-- Tab: Compra de Jumper Trampoline Park -->
 <div class="tab-content" id="tab-compra-jumper">
     <h2>🤸 Compra de Entradas Jumper Trampoline Park</h2>
     <div class="info-box" style="background: #fff3e0; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
@@ -419,10 +424,11 @@
             </div>
         </div>
         
-        <button type="submit" class="btn btn-primary">Enviar Compra</button>
+        <button type="submit" class="btn btn-primary btn-enviar-jumper">Enviar Compra Jumper</button>
     </form>
 </div>
-            <!-- Tab: Compra de Gimnasio -->
+
+<!-- Tab: Compra de Gimnasio -->
 <div class="tab-content" id="tab-compra-gimnasio">
     <h2>💪 Compra de Entradas Gimnasio Energy</h2>
     <div class="info-box" style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
@@ -481,87 +487,89 @@
             </div>
         </div>
         
-        <button type="submit" class="btn btn-primary">Enviar Compra</button>
+        <button type="submit" class="btn btn-primary btn-enviar-gimnasio">Enviar Compra Gimnasio</button>
     </form>
 </div>
-            <!-- Tab: Solicitudes -->
-            <div class="tab-content" id="tab-solicitudes">
-                <h2>📝 Mis Solicitudes</h2>
-                <div class="actions-bar">
-                    <button class="btn btn-primary" onclick="nuevaSolicitud()">
-                        ➕ Nueva Solicitud
-                    </button>
+
+<!-- Tab: Solicitudes -->
+<div class="tab-content" id="tab-solicitudes">
+    <h2>📝 Mis Solicitudes</h2>
+    <div class="actions-bar">
+        <button class="btn btn-primary" onclick="nuevaSolicitud()">
+            ➕ Nueva Solicitud
+        </button>
+    </div>
+    <div class="solicitudes-list"></div>
+</div>
+
+<!-- Tab: Mi Perfil -->
+<div class="tab-content" id="tab-perfil">
+    <h2>⚙️ Mi Perfil</h2>
+    <div class="profile-grid">
+        <div class="profile-card">
+            <h3>Información Personal</h3>
+            <form class="profile-form">
+                <div class="form-group">
+                    <label>Nombre Completo</label>
+                    <input type="text" readonly>
                 </div>
-                <div class="solicitudes-list"></div>
-            </div>
-            <!-- Tab: Mi Perfil -->
-            <div class="tab-content" id="tab-perfil">
-                <h2>⚙️ Mi Perfil</h2>
-                <div class="profile-grid">
-                    <div class="profile-card">
-                        <h3>Información Personal</h3>
-                        <form class="profile-form">
-                            <div class="form-group">
-                                <label>Nombre Completo</label>
-                                <input type="text" readonly>
-                            </div>
-                            <div class="form-group">
-                                <label>RUT</label>
-                                <input type="text" readonly>
-                            </div>
-                            <div class="form-group">
-                                <label>Email</label>
-                                <input type="email">
-                            </div>
-                            <div class="form-group">
-                                <label>Teléfono</label>
-                                <input type="tel">
-                            </div>
-                            <button type="submit" class="btn btn-primary">Actualizar Información</button>
-                        </form>
-                    </div>
-                    <div class="profile-card">
-                        <h3>Cambiar Contraseña</h3>
-                        <form class="profile-form">
-                            <div class="form-group">
-                                <label>Contraseña Actual</label>
-                                <input type="password" placeholder="••••••••">
-                            </div>
-                            <div class="form-group">
-                                <label>Nueva Contraseña</label>
-                                <input type="password" placeholder="••••••••">
-                            </div>
-                            <div class="form-group">
-                                <label>Confirmar Contraseña</label>
-                                <input type="password" placeholder="••••••••">
-                            </div>
-                            <button type="submit" class="btn btn-primary">Cambiar Contraseña</button>
-                        </form>
-                    </div>
-                    <div class="profile-card">
-                        <h3>Información de Cuenta</h3>
-                        <div class="info-list">
-                            <div class="info-item">
-                                <span class="info-label">Fecha de afiliación:</span>
-                                <span class="info-value"></span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Centro de Salud:</span>
-                                <span class="info-value"></span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Cargas familiares:</span>
-                                <span class="info-value"></span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Estado:</span>
-                                <span class="badge success"></span>
-                            </div>
-                        </div>
-                        <button class="btn btn-secondary">Ver Cargas Familiares</button>
-                    </div>
+                <div class="form-group">
+                    <label>RUT</label>
+                    <input type="text" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email">
+                </div>
+                <div class="form-group">
+                    <label>Teléfono</label>
+                    <input type="tel">
+                </div>
+                <button type="submit" class="btn btn-primary">Actualizar Información</button>
+            </form>
+        </div>
+        <div class="profile-card">
+            <h3>Cambiar Contraseña</h3>
+            <form class="profile-form">
+                <div class="form-group">
+                    <label>Contraseña Actual</label>
+                    <input type="password" placeholder="••••••••">
+                </div>
+                <div class="form-group">
+                    <label>Nueva Contraseña</label>
+                    <input type="password" placeholder="••••••••">
+                </div>
+                <div class="form-group">
+                    <label>Confirmar Contraseña</label>
+                    <input type="password" placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn btn-primary">Cambiar Contraseña</button>
+            </form>
+        </div>
+        <div class="profile-card">
+            <h3>Información de Cuenta</h3>
+            <div class="info-list">
+                <div class="info-item">
+                    <span class="info-label">Fecha de afiliación:</span>
+                    <span class="info-value"></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Centro de Salud:</span>
+                    <span class="info-value"></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Cargas familiares:</span>
+                    <span class="info-value"></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Estado:</span>
+                    <span class="badge success"></span>
                 </div>
             </div>
+            <button class="btn btn-secondary">Ver Cargas Familiares</button>
+        </div>
+    </div>
+</div>
         </div>
     </section>
     <!-- Footer -->
@@ -570,6 +578,7 @@
             <p>&copy; 2025 Servicio Bienestar APS - Corporación Municipal de Puente Alto</p>
         </div>
     </footer>
+
 <script type="module" src="../js/dashboard-afiliado-firebase.js"></script>
 <script type="module" src="../js/compras-gas.js"></script>
 <script type="module">
@@ -580,7 +589,62 @@
         inicializarFormulario('cine');
         inicializarFormulario('jumper');
         inicializarFormulario('gimnasio');
+        
+        // Sistema de pestañas mejorado
+        const tabs = document.querySelectorAll('.nav-tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                const targetTab = this.getAttribute('data-tab');
+                
+                // Remover clase active de todas las pestañas
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+                
+                // Agregar clase active a la pestaña clickeada
+                this.classList.add('active');
+                
+                // Mostrar el contenido correspondiente
+                const targetContent = document.getElementById(`tab-${targetTab}`);
+                if (targetContent) {
+                    targetContent.classList.add('active');
+                }
+            });
+        });
     });
 </script>
+
+<style>
+/* Estilos para mostrar/ocultar botones según la pestaña activa */
+.btn-enviar-gas,
+.btn-enviar-cine,
+.btn-enviar-jumper,
+.btn-enviar-gimnasio {
+    margin-top: 20px;
+    width: 100%;
+    padding: 12px;
+    font-size: 1.1em;
+    font-weight: 600;
+}
+
+/* Solo mostrar los botones cuando su pestaña correspondiente está activa */
+#tab-compras-gas:not(.active) .btn-enviar-gas,
+#tab-compra-cine:not(.active) .btn-enviar-cine,
+#tab-compra-jumper:not(.active) .btn-enviar-jumper,
+#tab-compra-gimnasio:not(.active) .btn-enviar-gimnasio {
+    display: none !important;
+}
+
+/* Asegurar que el contenido de las pestañas solo se muestre cuando está activo */
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+</style>
+
 </body>
 </html>
