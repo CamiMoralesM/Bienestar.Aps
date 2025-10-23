@@ -1,172 +1,310 @@
 // ========================================
-// VALIDACIÓN DE CUPO MENSUAL UNIFICADA
-// Gas y Entretenimiento (Cine, Jumper, Gimnasio)
+// SISTEMA DE VALIDACIÓN DE CUPOS MENSUALES
+// Gas, Cine, Jumper Trampoline Park y Gimnasio
 // ========================================
 
-import { db } from './firebase-config.js';
-import { collection, query, where, getDocs, Timestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { db, auth } from './firebase-config.js';
+import { 
+    collection, 
+    query, 
+    where, 
+    getDocs, 
+    Timestamp,
+    orderBy 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // ========================================
-// CONSTANTES
+// CONSTANTES DE VALIDACIÓN
 // ========================================
 
-// Límites mensuales unificados
-const LIMITES_MENSUALES = {
+// Límites mensuales por tipo de compra
+export const LIMITES_CUPOS = {
     // Gas (por temporada)
-    gas_temporada_normal: 4,
-    gas_temporada_alta: 6,
+    gas: {
+        temporada_normal: 4,    // Oct-May
+        temporada_alta: 6       // Jun-Sep
+    },
     
     // Entretenimiento
-    cine: 4,
-    jumper: 6,
-    gimnasio: 4
+    cine: 4,           // 4 entradas mensuales
+    jumper: 6,         // 6 entradas mensuales  
+    gimnasio: 4        // 4 tickets mensuales
 };
 
 // Colecciones de Firebase
-const COLECCIONES = {
+export const COLECCIONES_CUPOS = {
     gas: 'comprasGas',
     cine: 'comprasCine',
     jumper: 'comprasJumper',
     gimnasio: 'comprasGimnasio'
 };
 
+// Tipos de compra para mensajes
+export const TIPOS_COMPRA = {
+    gas: 'cargas de gas',
+    cine: 'entradas de cine',
+    jumper: 'entradas de Jumper Park',
+    gimnasio: 'tickets de gimnasio'
+};
+
 // ========================================
-// FUNCIONES DE TEMPORADA Y FECHAS
+// FUNCIONES DE TEMPORADA (SOLO PARA GAS)
 // ========================================
 
 /**
- * Determina si estamos en temporada alta (para gas)
+ * Determina si estamos en temporada alta de gas
+ * @returns {boolean} True si es temporada alta (Jun-Sep)
  */
-function esTemporadaAlta() {
-    const mes = new Date().getMonth() + 1; // 1-12
+export function esTemporadaAltaGas() {
+    const fecha = new Date();
+    const mes = fecha.getMonth() + 1;
     return mes >= 6 && mes <= 9;
 }
 
 /**
- * Obtiene el límite máximo según el tipo de compra y temporada
+ * Obtiene el límite máximo de gas según la temporada
+ * @returns {number} Límite de cargas de gas
  */
-function obtenerLimiteMaximo(tipoCompra) {
-    switch(tipoCompra) {
-        case 'gas':
-            return esTemporadaAlta() ? LIMITES_MENSUALES.gas_temporada_alta : LIMITES_MENSUALES.gas_temporada_normal;
-        case 'cine':
-            return LIMITES_MENSUALES.cine;
-        case 'jumper':
-            return LIMITES_MENSUALES.jumper;
-        case 'gimnasio':
-            return LIMITES_MENSUALES.gimnasio;
-        default:
-            return 0;
+export function obtenerLimiteGas() {
+    return esTemporadaAltaGas() ? 
+        LIMITES_CUPOS.gas.temporada_alta : 
+        LIMITES_CUPOS.gas.temporada_normal;
+}
+
+/**
+ * Obtiene el límite para cualquier tipo de compra
+ * @param {string} tipo - Tipo de compra (gas, cine, jumper, gimnasio)
+ * @returns {number} Límite mensual
+ */
+export function obtenerLimitePorTipo(tipo) {
+    if (tipo === 'gas') {
+        return obtenerLimiteGas();
+    }
+    return LIMITES_CUPOS[tipo] || 0;
+}
+
+// ========================================
+// FUNCIONES DE VALIDACIÓN DE CUPOS
+// ========================================
+
+/**
+ * Valida el cupo disponible para un usuario y tipo de compra específico
+ * @param {string} rut - RUT del usuario (se limpiará automáticamente)
+ * @param {string} tipo - Tipo de compra (gas, cine, jumper, gimnasio)
+ * @returns {Promise<Object>} Resultado de la validación
+ */
+export async function validarCupoMensual(rut, tipo) {
+    try {
+        console.log(`🔍 Validando cupo mensual de ${tipo} para RUT:`, rut);
+        
+        // Limpiar RUT
+        const rutLimpio = rut.replace(/\./g, '').replace(/-/g, '').toLowerCase();
+        
+        if (!rutLimpio || rutLimpio.length < 8) {
+            return {
+                success: false,
+                error: 'RUT_INVALIDO',
+                mensaje: 'RUT inválido. Debe tener al menos 8 caracteres.'
+            };
+        }
+
+        // Validar tipo
+        if (!COLECCIONES_CUPOS[tipo]) {
+            return {
+                success: false,
+                error: 'TIPO_INVALIDO',
+                mensaje: `Tipo de compra '${tipo}' no válido.`
+            };
+        }
+
+        // Obtener fechas del mes actual
+        const { inicioMes, finMes } = obtenerRangoMesActual();
+        
+        // Consultar compras del mes
+        const comprasDelMes = await consultarComprasDelMes(rutLimpio, tipo, inicioMes, finMes);
+        
+        // Calcular totales según el tipo
+        const totalComprasDelMes = calcularTotalCompras(comprasDelMes, tipo);
+        
+        // Obtener límite
+        const limiteMaximo = obtenerLimitePorTipo(tipo);
+        const cupoDisponible = Math.max(0, limiteMaximo - totalComprasDelMes);
+        const puedeComprar = cupoDisponible > 0;
+        
+        // Información de temporada para gas
+        const infoTemporada = tipo === 'gas' ? {
+            esTemporadaAlta: esTemporadaAltaGas(),
+            periodoTemporada: esTemporadaAltaGas() ? 'Junio-Septiembre' : 'Octubre-Mayo'
+        } : null;
+
+        console.log(`📊 Cupo ${tipo}: ${totalComprasDelMes}/${limiteMaximo} (Disponible: ${cupoDisponible})`);
+        
+        return {
+            success: true,
+            tipo,
+            totalComprasDelMes,
+            limiteMaximo,
+            cupoDisponible,
+            puedeComprar,
+            comprasDetalle: comprasDelMes,
+            infoTemporada,
+            mensaje: puedeComprar ? 
+                `Tiene ${cupoDisponible} ${TIPOS_COMPRA[tipo]} disponibles este mes` :
+                `Ha alcanzado el límite mensual de ${limiteMaximo} ${TIPOS_COMPRA[tipo]}`,
+            mensajeDetallado: generarMensajeDetallado(tipo, totalComprasDelMes, limiteMaximo, cupoDisponible, infoTemporada)
+        };
+        
+    } catch (error) {
+        console.error(`❌ Error al validar cupo de ${tipo}:`, error);
+        return {
+            success: false,
+            error: 'ERROR_CONSULTA',
+            mensaje: `Error al verificar el cupo de ${tipo}. Inténtelo nuevamente.`,
+            detalleError: error.message
+        };
     }
 }
 
 /**
- * Obtiene el primer y último día del mes actual
+ * Valida cupos para múltiples tipos de compra
+ * @param {string} rut - RUT del usuario
+ * @param {Array<string>} tipos - Array de tipos a validar
+ * @returns {Promise<Object>} Resultado con todos los cupos
+ */
+export async function validarMultiplesCupos(rut, tipos = ['gas', 'cine', 'jumper', 'gimnasio']) {
+    try {
+        const resultados = {};
+        const promesas = tipos.map(async (tipo) => {
+            const resultado = await validarCupoMensual(rut, tipo);
+            resultados[tipo] = resultado;
+            return resultado;
+        });
+
+        await Promise.all(promesas);
+
+        const algunError = Object.values(resultados).some(r => !r.success);
+        const todosBloqueados = Object.values(resultados).every(r => r.success && !r.puedeComprar);
+
+        return {
+            success: !algunError,
+            resultados,
+            resumen: {
+                todosBloqueados,
+                algunDisponible: Object.values(resultados).some(r => r.success && r.puedeComprar),
+                totalConsultas: tipos.length,
+                exitosas: Object.values(resultados).filter(r => r.success).length
+            }
+        };
+
+    } catch (error) {
+        console.error('❌ Error en validación múltiple:', error);
+        return {
+            success: false,
+            error: 'ERROR_MULTIPLE',
+            mensaje: 'Error al validar múltiples cupos'
+        };
+    }
+}
+
+/**
+ * Valida si una cantidad específica puede ser comprada
+ * @param {string} rut - RUT del usuario
+ * @param {string} tipo - Tipo de compra
+ * @param {number} cantidadDeseada - Cantidad que se quiere comprar
+ * @returns {Promise<Object>} Resultado de la validación
+ */
+export async function validarCantidadDisponible(rut, tipo, cantidadDeseada) {
+    try {
+        const validacionCupo = await validarCupoMensual(rut, tipo);
+        
+        if (!validacionCupo.success) {
+            return validacionCupo;
+        }
+
+        const puedeComprarCantidad = cantidadDeseada <= validacionCupo.cupoDisponible;
+
+        return {
+            ...validacionCupo,
+            cantidadDeseada,
+            puedeComprarCantidad,
+            mensaje: puedeComprarCantidad ?
+                `Puede comprar ${cantidadDeseada} ${TIPOS_COMPRA[tipo]}` :
+                `No puede comprar ${cantidadDeseada} ${TIPOS_COMPRA[tipo]}. Solo tiene ${validacionCupo.cupoDisponible} disponibles.`
+        };
+
+    } catch (error) {
+        console.error('❌ Error al validar cantidad:', error);
+        return {
+            success: false,
+            error: 'ERROR_CANTIDAD',
+            mensaje: 'Error al validar la cantidad deseada'
+        };
+    }
+}
+
+// ========================================
+// FUNCIONES AUXILIARES PRIVADAS
+// ========================================
+
+/**
+ * Obtiene el rango de fechas del mes actual
+ * @returns {Object} Objeto con inicioMes y finMes como Timestamps
  */
 function obtenerRangoMesActual() {
     const ahora = new Date();
     const primerDia = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
-    const ultimoDia = new Date(ahora.getFullYear(), ahora.getMonth() + 1, 0, 23, 59, 59);
+    const ultimoDia = new Date(ahora.getFullYear(), ahora.getMonth() + 1, 0, 23, 59, 59, 999);
     
     return {
-        inicio: Timestamp.fromDate(primerDia),
-        fin: Timestamp.fromDate(ultimoDia)
+        inicioMes: Timestamp.fromDate(primerDia),
+        finMes: Timestamp.fromDate(ultimoDia)
     };
 }
 
-// ========================================
-// CONSULTAS A FIREBASE
-// ========================================
-
 /**
- * Consulta las compras del usuario en el mes actual para cualquier tipo
- * @param {string} rut - RUT del usuario
- * @param {string} tipoCompra - Tipo de compra (gas, cine, jumper, gimnasio)
- * @returns {Promise<Array>} Array de compras del mes
+ * Consulta las compras del mes para un usuario y tipo específico
+ * @param {string} rutLimpio - RUT limpio del usuario
+ * @param {string} tipo - Tipo de compra
+ * @param {Timestamp} inicioMes - Inicio del mes
+ * @param {Timestamp} finMes - Fin del mes
+ * @returns {Promise<Array>} Array de documentos de compras
  */
-async function obtenerComprasMesActual(rut, tipoCompra) {
-    try {
-        const rango = obtenerRangoMesActual();
-        
-        // Normalizar RUT (remover puntos y guión)
-        const rutNormalizado = rut.replace(/\./g, '').replace(/-/g, '');
-        
-        // Validar que el tipo de compra existe
-        if (!COLECCIONES[tipoCompra]) {
-            throw new Error(`Tipo de compra no válido: ${tipoCompra}`);
-        }
-        
-        // Consultar compras del mes en la colección correspondiente
-        const comprasRef = collection(db, COLECCIONES[tipoCompra]);
-        const q = query(
-            comprasRef,
-            where("rut", "==", rutNormalizado),
-            where("createdAt", ">=", rango.inicio),
-            where("createdAt", "<=", rango.fin)
-        );
-        
-        const querySnapshot = await getDocs(q);
-        const compras = [];
-        
-        querySnapshot.forEach((doc) => {
-            compras.push({
-                id: doc.id,
-                ...doc.data()
-            });
+async function consultarComprasDelMes(rutLimpio, tipo, inicioMes, finMes) {
+    const coleccion = COLECCIONES_CUPOS[tipo];
+    
+    const q = query(
+        collection(db, coleccion),
+        where("rut", "==", rutLimpio),
+        where("createdAt", ">=", inicioMes),
+        where("createdAt", "<=", finMes),
+        orderBy("createdAt", "desc")
+    );
+    
+    const querySnapshot = await getDocs(q);
+    const compras = [];
+    
+    querySnapshot.forEach((doc) => {
+        compras.push({
+            id: doc.id,
+            ...doc.data()
         });
-        
-        console.log(`📊 ${tipoCompra}: ${compras.length} compras encontradas en el mes actual`);
-        return compras;
-        
-    } catch (error) {
-        console.error(`Error al obtener compras de ${tipoCompra} del mes:`, error);
-        throw error;
-    }
+    });
+    
+    return compras;
 }
 
 /**
- * Obtiene todas las compras del usuario en el mes (todos los tipos)
- * @param {string} rut - RUT del usuario
- * @returns {Promise<Object>} Objeto con compras por tipo
- */
-export async function obtenerTodasLasComprasMes(rut) {
-    try {
-        const comprasPorTipo = {};
-        
-        // Consultar cada tipo de compra
-        for (const tipo of Object.keys(COLECCIONES)) {
-            try {
-                comprasPorTipo[tipo] = await obtenerComprasMesActual(rut, tipo);
-            } catch (error) {
-                console.error(`Error al obtener compras de ${tipo}:`, error);
-                comprasPorTipo[tipo] = [];
-            }
-        }
-        
-        return comprasPorTipo;
-    } catch (error) {
-        console.error("Error al obtener todas las compras del mes:", error);
-        return {};
-    }
-}
-
-// ========================================
-// CÁLCULOS DE TOTALES
-// ========================================
-
-/**
- * Calcula el total usado según el tipo de compra
+ * Calcula el total de compras según el tipo
  * @param {Array} compras - Array de compras
- * @param {string} tipoCompra - Tipo de compra
- * @returns {number} Total usado
+ * @param {string} tipo - Tipo de compra
+ * @returns {number} Total de compras/cargas
  */
-function calcularTotalUsado(compras, tipoCompra) {
-    if (tipoCompra === 'gas') {
-        // Para gas, sumar todas las cargas de ambas marcas
-        let total = 0;
-        
-        compras.forEach(compra => {
-            // Sumar cargas de Lipigas
+function calcularTotalCompras(compras, tipo) {
+    let total = 0;
+    
+    compras.forEach(compra => {
+        if (tipo === 'gas') {
+            // Para gas, sumar todas las cargas
             if (compra.cargas_lipigas) {
                 total += (compra.cargas_lipigas.kg5 || 0);
                 total += (compra.cargas_lipigas.kg11 || 0);
@@ -174,342 +312,240 @@ function calcularTotalUsado(compras, tipoCompra) {
                 total += (compra.cargas_lipigas.kg45 || 0);
             }
             
-            // Sumar cargas de Abastible
             if (compra.cargas_abastible) {
                 total += (compra.cargas_abastible.kg5 || 0);
                 total += (compra.cargas_abastible.kg11 || 0);
                 total += (compra.cargas_abastible.kg15 || 0);
                 total += (compra.cargas_abastible.kg45 || 0);
             }
-        });
-        
-        return total;
-    } else {
-        // Para entretenimiento, sumar las cantidades
-        return compras.reduce((total, compra) => total + (compra.cantidad || 0), 0);
-    }
-}
-
-/**
- * Calcula el detalle de cargas por tipo (solo para gas)
- * @param {Array} compras - Array de compras de gas
- * @returns {Object} Detalle de cargas por marca y tipo
- */
-function calcularDetalleCargasGas(compras) {
-    const detalle = {
-        lipigas: { kg5: 0, kg11: 0, kg15: 0, kg45: 0 },
-        abastible: { kg5: 0, kg11: 0, kg15: 0, kg45: 0 },
-        total: 0
-    };
-    
-    compras.forEach(compra => {
-        // Lipigas
-        if (compra.cargas_lipigas) {
-            detalle.lipigas.kg5 += (compra.cargas_lipigas.kg5 || 0);
-            detalle.lipigas.kg11 += (compra.cargas_lipigas.kg11 || 0);
-            detalle.lipigas.kg15 += (compra.cargas_lipigas.kg15 || 0);
-            detalle.lipigas.kg45 += (compra.cargas_lipigas.kg45 || 0);
-        }
-        
-        // Abastible
-        if (compra.cargas_abastible) {
-            detalle.abastible.kg5 += (compra.cargas_abastible.kg5 || 0);
-            detalle.abastible.kg11 += (compra.cargas_abastible.kg11 || 0);
-            detalle.abastible.kg15 += (compra.cargas_abastible.kg15 || 0);
-            detalle.abastible.kg45 += (compra.cargas_abastible.kg45 || 0);
+        } else {
+            // Para entretenimiento, sumar cantidad directamente
+            total += (compra.cantidad || 0);
         }
     });
     
-    // Calcular total
-    detalle.total = Object.values(detalle.lipigas).reduce((a, b) => a + b, 0) +
-                   Object.values(detalle.abastible).reduce((a, b) => a + b, 0);
+    return total;
+}
+
+/**
+ * Genera un mensaje detallado sobre el estado del cupo
+ * @param {string} tipo - Tipo de compra
+ * @param {number} usado - Cantidad usada
+ * @param {number} limite - Límite máximo
+ * @param {number} disponible - Cupo disponible
+ * @param {Object} infoTemporada - Información de temporada (solo gas)
+ * @returns {string} Mensaje detallado
+ */
+function generarMensajeDetallado(tipo, usado, limite, disponible, infoTemporada) {
+    let mensaje = `📊 Estado del cupo de ${TIPOS_COMPRA[tipo]}:\n`;
+    mensaje += `• Usado este mes: ${usado}\n`;
+    mensaje += `• Límite mensual: ${limite}\n`;
+    mensaje += `• Disponible: ${disponible}\n`;
     
-    return detalle;
+    if (infoTemporada && tipo === 'gas') {
+        mensaje += `• Temporada: ${infoTemporada.esTemporadaAlta ? '🔥 Alta' : '❄️ Normal'} (${infoTemporada.periodoTemporada})\n`;
+    }
+    
+    if (disponible === 0) {
+        mensaje += `\n❌ Ha alcanzado el límite mensual de ${TIPOS_COMPRA[tipo]}.`;
+    } else {
+        mensaje += `\n✅ Puede realizar ${disponible} compras más este mes.`;
+    }
+    
+    return mensaje;
 }
 
 // ========================================
-// VALIDACIÓN PRINCIPAL
+// FUNCIONES DE UTILIDAD PARA UI
 // ========================================
 
 /**
- * Valida si el usuario puede realizar una nueva compra de cualquier tipo
- * @param {string} rut - RUT del usuario
- * @param {string} tipoCompra - Tipo de compra (gas, cine, jumper, gimnasio)
- * @returns {Promise<Object>} Resultado de la validación
+ * Genera un resumen visual del estado de cupos para mostrar en UI
+ * @param {Object} resultados - Resultados de validarMultiplesCupos
+ * @returns {Object} Objeto con información para UI
  */
-export async function validarCupoDisponible(rut, tipoCompra) {
-    try {
-        console.log(`🔍 Validando cupo para ${tipoCompra} - RUT: ${rut}`);
-        
-        // Obtener compras del mes actual
-        const comprasMes = await obtenerComprasMesActual(rut, tipoCompra);
-        
-        // Calcular totales
-        const totalUsado = calcularTotalUsado(comprasMes, tipoCompra);
-        const limiteMaximo = obtenerLimiteMaximo(tipoCompra);
-        const cupoDisponible = limiteMaximo - totalUsado;
-        
-        // Información adicional según el tipo
-        let infoAdicional = {};
-        
-        if (tipoCompra === 'gas') {
-            infoAdicional = {
-                temporada: esTemporadaAlta() ? 'alta' : 'normal',
-                detalleCargasGas: calcularDetalleCargasGas(comprasMes)
-            };
-        }
-        
-        const resultado = {
-            success: true,
-            puedeComprar: cupoDisponible > 0,
-            totalUsado: totalUsado,
-            limiteMaximo: limiteMaximo,
-            cupoDisponible: cupoDisponible,
-            comprasPrevias: comprasMes.length,
-            tipoCompra: tipoCompra,
-            ...infoAdicional,
-            mensaje: cupoDisponible > 0 
-                ? `Tiene ${cupoDisponible} ${tipoCompra === 'gas' ? 'cargas' : 'entradas'} disponibles este mes` 
-                : `Ha alcanzado el límite mensual de ${limiteMaximo} ${tipoCompra === 'gas' ? 'cargas' : 'entradas'}`
-        };
-        
-        console.log(`✅ Validación completada:`, resultado);
-        return resultado;
-        
-    } catch (error) {
-        console.error("Error en validación de cupo:", error);
+export function generarResumenVisual(resultados) {
+    if (!resultados.success) {
         return {
-            success: false,
-            error: error.message,
-            puedeComprar: false,
-            tipoCompra: tipoCompra
+            html: '<div class="error">❌ Error al consultar cupos</div>',
+            clase: 'error'
         };
+    }
+
+    let html = '<div class="resumen-cupos">';
+    
+    Object.entries(resultados.resultados).forEach(([tipo, resultado]) => {
+        if (resultado.success) {
+            const porcentajeUsado = (resultado.totalComprasDelMes / resultado.limiteMaximo) * 100;
+            const claseEstado = resultado.puedeComprar ? 'disponible' : 'agotado';
+            const icono = resultado.puedeComprar ? '✅' : '❌';
+            
+            html += `
+                <div class="cupo-item ${claseEstado}">
+                    <h4>${icono} ${tipo.toUpperCase()}</h4>
+                    <div class="progreso">
+                        <div class="barra" style="width: ${porcentajeUsado}%"></div>
+                    </div>
+                    <p>${resultado.totalComprasDelMes}/${resultado.limiteMaximo} usados</p>
+                    <small>${resultado.cupoDisponible} disponibles</small>
+                </div>
+            `;
+        }
+    });
+    
+    html += '</div>';
+    
+    return {
+        html,
+        clase: 'resumen-cupos',
+        todosAgotados: resultados.resumen.todosBloqueados
+    };
+}
+
+/**
+ * Bloquea un formulario cuando no hay cupo disponible
+ * @param {HTMLElement} formulario - Elemento del formulario
+ * @param {string} tipo - Tipo de compra
+ * @param {string} mensaje - Mensaje a mostrar
+ */
+export function bloquearFormularioPorCupo(formulario, tipo, mensaje) {
+    if (!formulario) return;
+    
+    // Deshabilitar todos los inputs y selects
+    const elementos = formulario.querySelectorAll('input, select, button');
+    elementos.forEach(el => {
+        if (el.type !== 'submit') {
+            el.disabled = true;
+        }
+    });
+    
+    // Cambiar el botón de envío
+    const btnSubmit = formulario.querySelector('button[type="submit"]');
+    if (btnSubmit) {
+        btnSubmit.disabled = true;
+        btnSubmit.textContent = '❌ Cupo Agotado';
+        btnSubmit.style.cssText = 'background: #dc3545 !important; color: white;';
+    }
+    
+    // Mostrar mensaje de advertencia
+    mostrarAdvertenciaCupo(formulario, mensaje);
+}
+
+/**
+ * Habilita un formulario cuando hay cupo disponible
+ * @param {HTMLElement} formulario - Elemento del formulario
+ * @param {string} tipo - Tipo de compra
+ */
+export function habilitarFormularioPorCupo(formulario, tipo) {
+    if (!formulario) return;
+    
+    // Habilitar todos los elementos
+    const elementos = formulario.querySelectorAll('input, select, button');
+    elementos.forEach(el => el.disabled = false);
+    
+    // Restaurar el botón de envío
+    const btnSubmit = formulario.querySelector('button[type="submit"]');
+    if (btnSubmit) {
+        btnSubmit.textContent = `Enviar Compra de ${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`;
+        btnSubmit.style.cssText = '';
+    }
+    
+    // Quitar mensaje de advertencia
+    const advertencia = formulario.querySelector('.advertencia-cupo');
+    if (advertencia) {
+        advertencia.remove();
     }
 }
 
 /**
- * Valida si las cantidades solicitadas exceden el cupo disponible
- * @param {string} rut - RUT del usuario
- * @param {string} tipoCompra - Tipo de compra
- * @param {number|Object} cantidadSolicitada - Cantidad o detalle de lo que quiere comprar
- * @returns {Promise<Object>} Resultado de la validación
+ * Muestra una advertencia de cupo en el formulario
+ * @param {HTMLElement} formulario - Elemento del formulario
+ * @param {string} mensaje - Mensaje a mostrar
  */
-export async function validarCantidadSolicitada(rut, tipoCompra, cantidadSolicitada) {
-    try {
-        const validacion = await validarCupoDisponible(rut, tipoCompra);
-        
-        if (!validacion.success) {
-            return validacion;
-        }
-        
-        let totalSolicitado = 0;
-        
-        if (tipoCompra === 'gas' && typeof cantidadSolicitada === 'object') {
-            // Para gas, calcular total de cargas solicitadas
-            if (cantidadSolicitada.lipigas) {
-                totalSolicitado += (cantidadSolicitada.lipigas.kg5 || 0);
-                totalSolicitado += (cantidadSolicitada.lipigas.kg11 || 0);
-                totalSolicitado += (cantidadSolicitada.lipigas.kg15 || 0);
-                totalSolicitado += (cantidadSolicitada.lipigas.kg45 || 0);
-            }
-            
-            if (cantidadSolicitada.abastible) {
-                totalSolicitado += (cantidadSolicitada.abastible.kg5 || 0);
-                totalSolicitado += (cantidadSolicitada.abastible.kg11 || 0);
-                totalSolicitado += (cantidadSolicitada.abastible.kg15 || 0);
-                totalSolicitado += (cantidadSolicitada.abastible.kg45 || 0);
-            }
-        } else {
-            // Para entretenimiento, usar el número directamente
-            totalSolicitado = parseInt(cantidadSolicitada) || 0;
-        }
-        
-        const excedeCupo = totalSolicitado > validacion.cupoDisponible;
-        const totalFinal = validacion.totalUsado + totalSolicitado;
-        const unidad = tipoCompra === 'gas' ? 'cargas' : 'entradas';
-        
-        return {
-            success: true,
-            puedeComprar: !excedeCupo,
-            totalUsado: validacion.totalUsado,
-            totalSolicitado: totalSolicitado,
-            cupoDisponible: validacion.cupoDisponible,
-            limiteMaximo: validacion.limiteMaximo,
-            totalFinal: totalFinal,
-            excedeCupo: excedeCupo,
-            tipoCompra: tipoCompra,
-            mensaje: excedeCupo 
-                ? `La compra excede su cupo disponible. Tiene ${validacion.cupoDisponible} ${unidad} disponibles, pero intenta comprar ${totalSolicitado}` 
-                : `Compra válida. Usará ${totalSolicitado} de sus ${validacion.cupoDisponible} ${unidad} disponibles`
-        };
-        
-    } catch (error) {
-        console.error("Error en validación de cantidad:", error);
-        return {
-            success: false,
-            error: error.message,
-            puedeComprar: false,
-            tipoCompra: tipoCompra
-        };
+function mostrarAdvertenciaCupo(formulario, mensaje) {
+    // Quitar advertencia anterior si existe
+    const advertenciaAnterior = formulario.querySelector('.advertencia-cupo');
+    if (advertenciaAnterior) {
+        advertenciaAnterior.remove();
     }
+    
+    // Crear nueva advertencia
+    const advertencia = document.createElement('div');
+    advertencia.className = 'advertencia-cupo';
+    advertencia.style.cssText = `
+        background: #f8d7da;
+        color: #721c24;
+        padding: 12px 15px;
+        border: 1px solid #f5c6cb;
+        border-radius: 4px;
+        margin-bottom: 15px;
+        font-weight: 500;
+    `;
+    advertencia.textContent = mensaje;
+    
+    // Insertar al inicio del formulario
+    formulario.insertBefore(advertencia, formulario.firstChild);
 }
 
 // ========================================
-// OBTENER DETALLES PARA EL USUARIO
+// FUNCIÓN DE INICIALIZACIÓN AUTOMÁTICA
 // ========================================
 
 /**
- * Obtiene el detalle completo de las compras del mes para mostrar al usuario
- * @param {string} rut - RUT del usuario
- * @param {string} tipoCompra - Tipo específico o 'todos' para ver todas
- * @returns {Promise<Object>} Detalle de las compras
+ * Inicializa la validación automática de cupos para formularios
+ * @param {string} tipo - Tipo de compra a validar
+ * @param {string} selectorFormulario - Selector CSS del formulario
+ * @param {string} selectorRut - Selector CSS del input RUT
  */
-export async function obtenerDetalleComprasMes(rut, tipoCompra = 'todos') {
-    try {
-        if (tipoCompra !== 'todos') {
-            // Detalle de un tipo específico
-            const comprasMes = await obtenerComprasMesActual(rut, tipoCompra);
-            const validacion = await validarCupoDisponible(rut, tipoCompra);
+export function inicializarValidacionAutomatica(tipo, selectorFormulario = null, selectorRut = null) {
+    document.addEventListener('DOMContentLoaded', function() {
+        const formulario = document.querySelector(selectorFormulario || `#formCompra${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`);
+        const inputRut = document.querySelector(selectorRut || `#rut${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`);
+        
+        if (!formulario || !inputRut) {
+            console.warn(`⚠️ No se encontró formulario o input RUT para ${tipo}`);
+            return;
+        }
+        
+        // Validar al salir del campo RUT
+        inputRut.addEventListener('blur', async function() {
+            const rut = this.value.trim();
             
-            const detalle = comprasMes.map(compra => {
-                let descripcion = '';
-                const fecha = compra.fechaCompra || compra.createdAt?.toDate().toLocaleDateString('es-CL');
+            if (!rut || rut.length < 8) {
+                habilitarFormularioPorCupo(formulario, tipo);
+                return;
+            }
+            
+            try {
+                const validacion = await validarCupoMensual(rut, tipo);
                 
-                if (tipoCompra === 'gas') {
-                    let items = [];
-                    
-                    if (compra.cargas_lipigas) {
-                        const l = compra.cargas_lipigas;
-                        if (l.kg5 > 0) items.push(`${l.kg5} x 5kg Lipigas`);
-                        if (l.kg11 > 0) items.push(`${l.kg11} x 11kg Lipigas`);
-                        if (l.kg15 > 0) items.push(`${l.kg15} x 15kg Lipigas`);
-                        if (l.kg45 > 0) items.push(`${l.kg45} x 45kg Lipigas`);
-                    }
-                    
-                    if (compra.cargas_abastible) {
-                        const a = compra.cargas_abastible;
-                        if (a.kg5 > 0) items.push(`${a.kg5} x 5kg Abastible`);
-                        if (a.kg11 > 0) items.push(`${a.kg11} x 11kg Abastible`);
-                        if (a.kg15 > 0) items.push(`${a.kg15} x 15kg Abastible`);
-                        if (a.kg45 > 0) items.push(`${a.kg45} x 45kg Abastible`);
-                    }
-                    
-                    descripcion = items.join(', ');
+                if (validacion.success && !validacion.puedeComprar) {
+                    bloquearFormularioPorCupo(formulario, tipo, validacion.mensaje);
                 } else {
-                    const cantidad = compra.cantidad || 0;
-                    const tipoNombre = tipoCompra.charAt(0).toUpperCase() + tipoCompra.slice(1);
-                    descripcion = `${cantidad} entrada${cantidad !== 1 ? 's' : ''} de ${tipoNombre}`;
+                    habilitarFormularioPorCupo(formulario, tipo);
                 }
-                
-                return {
-                    fecha: fecha,
-                    descripcion: descripcion,
-                    estado: compra.estado || 'Procesada',
-                    id: compra.id
-                };
-            });
-            
-            return {
-                success: true,
-                tipoCompra: tipoCompra,
-                compras: detalle,
-                resumen: {
-                    totalCompras: comprasMes.length,
-                    totalUsado: validacion.totalUsado,
-                    cupoDisponible: validacion.cupoDisponible,
-                    limiteMaximo: validacion.limiteMaximo,
-                    temporada: validacion.temporada || null
-                }
-            };
-        } else {
-            // Detalle de todos los tipos
-            const todasLasCompras = await obtenerTodasLasComprasMes(rut);
-            const resumenPorTipo = {};
-            
-            for (const tipo of Object.keys(COLECCIONES)) {
-                const validacion = await validarCupoDisponible(rut, tipo);
-                resumenPorTipo[tipo] = {
-                    totalCompras: todasLasCompras[tipo]?.length || 0,
-                    totalUsado: validacion.totalUsado,
-                    cupoDisponible: validacion.cupoDisponible,
-                    limiteMaximo: validacion.limiteMaximo,
-                    temporada: validacion.temporada || null
-                };
+            } catch (error) {
+                console.error(`Error al validar cupo de ${tipo}:`, error);
+                habilitarFormularioPorCupo(formulario, tipo);
             }
-            
-            return {
-                success: true,
-                tipoCompra: 'todos',
-                comprasPorTipo: todasLasCompras,
-                resumenPorTipo: resumenPorTipo
-            };
-        }
+        });
         
-    } catch (error) {
-        console.error("Error al obtener detalle:", error);
-        return {
-            success: false,
-            error: error.message,
-            tipoCompra: tipoCompra
-        };
-    }
-}
-
-/**
- * Función auxiliar para validar múltiples tipos de compra a la vez
- * @param {string} rut - RUT del usuario
- * @param {Array<string>} tiposCompra - Array de tipos a validar
- * @returns {Promise<Object>} Validaciones por tipo
- */
-export async function validarMultiplesCupos(rut, tiposCompra = ['gas', 'cine', 'jumper', 'gimnasio']) {
-    try {
-        const validaciones = {};
-        
-        for (const tipo of tiposCompra) {
-            validaciones[tipo] = await validarCupoDisponible(rut, tipo);
-        }
-        
-        return {
-            success: true,
-            validaciones: validaciones,
-            resumen: {
-                tiposDisponibles: Object.keys(validaciones).filter(tipo => validaciones[tipo].puedeComprar),
-                tiposSinCupo: Object.keys(validaciones).filter(tipo => !validaciones[tipo].puedeComprar)
-            }
-        };
-    } catch (error) {
-        console.error("Error en validaciones múltiples:", error);
-        return {
-            success: false,
-            error: error.message
-        };
-    }
+        console.log(`✅ Validación automática de cupo inicializada para ${tipo}`);
+    });
 }
 
 // ========================================
-// EXPORTAR FUNCIONES
+// EXPORTACIONES ESPECIALIZADAS
 // ========================================
-export {
-    // Constantes
-    LIMITES_MENSUALES,
-    COLECCIONES,
-    
-    // Funciones de temporada
-    esTemporadaAlta,
-    obtenerLimiteMaximo,
-    
-    // Funciones de fechas
-    obtenerRangoMesActual,
-    
-    // Funciones de consulta
-    obtenerComprasMesActual,
-    calcularTotalUsado,
-    calcularDetalleCargasGas,
-    
-    // Funciones principales (ya exportadas arriba)
-    // validarCupoDisponible,
-    // validarCantidadSolicitada,
-    // obtenerDetalleComprasMes,
-    // obtenerTodasLasComprasMes,
-    // validarMultiplesCupos
+
+export default {
+    validarCupoMensual,
+    validarMultiplesCupos, 
+    validarCantidadDisponible,
+    generarResumenVisual,
+    inicializarValidacionAutomatica,
+    bloquearFormularioPorCupo,
+    habilitarFormularioPorCupo,
+    LIMITES_CUPOS,
+    TIPOS_COMPRA
 };
