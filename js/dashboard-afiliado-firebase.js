@@ -1,20 +1,12 @@
-// ========================================
-// DASHBOARD AFILIADO - VERSIÓN ACTUALIZADA
-// Con integración de compras de entretenimiento
-// ========================================
+// Dashboard del Afiliado - Versión Corregida Sin Notificaciones
 
 import { auth } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { 
     obtenerFuncionario,
-    obtenerSolicitudesFuncionario,
-    obtenerBeneficiosFuncionario,
-    calcularTotalBeneficios,
-    crearSolicitud
+    obtenerSolicitudesFuncionario
 } from './firestore-operations.js';
 import { cerrarSesion } from './auth.js';
-import { inicializarNotificaciones } from './notificaciones-compras.js';
-import { inicializarNotificacionesEntretenimiento } from './notificaciones-entretenimiento.js';
 
 // Verificar autenticación al cargar
 onAuthStateChanged(auth, async (user) => {
@@ -28,12 +20,6 @@ onAuthStateChanged(auth, async (user) => {
         
         // Cargar datos del usuario
         await cargarDatosUsuario(user.uid);
-        
-        // Inicializar notificaciones de compras de gas
-        await inicializarNotificaciones(user.uid);
-        
-        // Inicializar notificaciones de entretenimiento
-        await inicializarNotificacionesEntretenimiento(user.uid);
     } else {
         window.location.href = 'login.html';
     }
@@ -50,9 +36,16 @@ async function cargarDatosUsuario(uid) {
         }
         
         // Actualizar información en la UI
-        document.querySelector('.user-name').textContent = `👤 ${funcionario.nombre}`;
-        document.querySelector('.user-rut').textContent = `RUT: ${funcionario.rut}`;
-        document.getElementById('bienvenida-usuario').textContent = funcionario.genero === 'F' ? `¡Bienvenida, ${funcionario.nombre.split(" ")[0]}!` : `¡Bienvenido, ${funcionario.nombre.split(" ")[0]}!`;
+        const userNameEl = document.querySelector('.user-name');
+        const userRutEl = document.querySelector('.user-rut');
+        const bienvenidaEl = document.getElementById('bienvenida-usuario');
+        
+        if (userNameEl) userNameEl.textContent = `👤 ${funcionario.nombre}`;
+        if (userRutEl) userRutEl.textContent = `RUT: ${funcionario.rut}`;
+        if (bienvenidaEl) {
+            const primerNombre = funcionario.nombre.split(" ")[0];
+            bienvenidaEl.textContent = funcionario.genero === 'F' ? `¡Bienvenida, ${primerNombre}!` : `¡Bienvenido, ${primerNombre}!`;
+        }
 
         // Cargar estadísticas
         await cargarEstadisticas(uid, funcionario.fechaAfiliacion);
@@ -71,31 +64,29 @@ async function cargarDatosUsuario(uid) {
 // Cargar estadísticas del dashboard
 async function cargarEstadisticas(uid, fechaAfiliacion) {
     try {
-        const beneficios = await obtenerBeneficiosFuncionario(uid);
         const solicitudes = await obtenerSolicitudesFuncionario(uid);
         
-        const totalBeneficios2025 = await calcularTotalBeneficios(uid, 2025);
         const solicitudesPendientes = solicitudes.filter(s => 
             s.estado === 'pendiente' || s.estado === 'en_revision'
         ).length;
 
         // Actualizar cards de estadísticas
-        document.getElementById('beneficios-recibidos').textContent = `$${totalBeneficios2025.toLocaleString('es-CL')}`;
-        document.getElementById('solicitudes-pendientes').textContent = solicitudesPendientes;
-        
-        // Convenios disponibles (fijo)
+        const beneficiosEl = document.getElementById('beneficios-recibidos');
+        const solicitudesEl = document.getElementById('solicitudes-pendientes');
         const conveniosEl = document.getElementById('convenios-disponibles');
-        if (conveniosEl) {
-            conveniosEl.textContent = "24";
-        }
+        const tiempoEl = document.getElementById('tiempo-afiliacion');
+        
+        if (beneficiosEl) beneficiosEl.textContent = '$0';
+        if (solicitudesEl) solicitudesEl.textContent = solicitudesPendientes;
+        if (conveniosEl) conveniosEl.textContent = "24";
 
         // Tiempo de afiliación
-        if (fechaAfiliacion && fechaAfiliacion.toDate) {
+        if (fechaAfiliacion && fechaAfiliacion.toDate && tiempoEl) {
             const fecha = fechaAfiliacion.toDate();
             const hoy = new Date();
             const msPorMes = 1000 * 60 * 60 * 24 * 30.44;
             const meses = Math.floor((hoy - fecha) / msPorMes);
-            document.getElementById('tiempo-afiliacion').textContent = meses + (meses === 1 ? " mes" : " meses");
+            tiempoEl.textContent = meses + (meses === 1 ? " mes" : " meses");
         }
     } catch (error) {
         console.error('Error al cargar estadísticas:', error);
@@ -161,12 +152,9 @@ async function cargarSolicitudes(uid) {
 async function cargarPerfil(funcionario) {
     try {
         // Llenar formulario de información personal
-        const nombreInput = document.querySelector('#tab-perfil input[type="text"]');
-        if (nombreInput) {
-            nombreInput.value = funcionario.nombre || '';
-            const inputs = document.querySelectorAll('#tab-perfil input[type="text"]');
-            if (inputs[1]) inputs[1].value = funcionario.rut || '';
-        }
+        const inputs = document.querySelectorAll('#tab-perfil input[type="text"]');
+        if (inputs[0]) inputs[0].value = funcionario.nombre || '';
+        if (inputs[1]) inputs[1].value = funcionario.rut || '';
         
         const emailInput = document.querySelector('#tab-perfil input[type="email"]');
         if (emailInput) emailInput.value = funcionario.email || '';
@@ -211,7 +199,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             window.scrollTo({
-                top: document.querySelector('.dashboard-content').offsetTop - 100,
+                top: document.querySelector('.dashboard-content')?.offsetTop - 100 || 0,
                 behavior: 'smooth'
             });
         });
