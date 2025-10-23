@@ -1,5 +1,5 @@
 // ========================================
-// SISTEMA UNIFICADO DE COMPRAS
+// SISTEMA UNIFICADO DE COMPRAS - VERSIÓN CORREGIDA
 // Gas, Cine, Jumper Trampoline Park y Gimnasio
 // ========================================
 
@@ -19,7 +19,7 @@ import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstati
 // ========================================
 
 // Límites mensuales por tipo de compra
-const LIMITES_MENSUALES = {
+export const LIMITES_MENSUALES = {
     // Gas (por temporada)
     gas_temporada_normal: 4,
     gas_temporada_alta: 6,
@@ -31,14 +31,14 @@ const LIMITES_MENSUALES = {
 };
 
 // Precios por tipo
-const PRECIOS = {
+export const PRECIOS = {
     cine: 7000,        // $7.000 entrada + combo
     jumper: 6500,      // $6.500 entrada + combo  
     gimnasio: 18000    // $18.000 ticket mensual
 };
 
 // Colecciones de Firebase
-const COLECCIONES = {
+export const COLECCIONES = {
     gas: 'comprasGas',
     cine: 'comprasCine',
     jumper: 'comprasJumper',
@@ -46,7 +46,7 @@ const COLECCIONES = {
 };
 
 // Nombres descriptivos
-const NOMBRES_TIPOS = {
+export const NOMBRES_TIPOS = {
     gas: 'Compra de Gas',
     cine: 'Cine',
     jumper: 'Jumper Trampoline Park',
@@ -57,13 +57,13 @@ const NOMBRES_TIPOS = {
 // FUNCIONES DE TEMPORADA (GAS)
 // ========================================
 
-function esTemporadaAlta() {
+export function esTemporadaAlta() {
     const fecha = new Date();
     const mes = fecha.getMonth() + 1;
     return mes >= 6 && mes <= 9;
 }
 
-function obtenerLimiteMaximoGas() {
+export function obtenerLimiteMaximoGas() {
     return esTemporadaAlta() ? LIMITES_MENSUALES.gas_temporada_alta : LIMITES_MENSUALES.gas_temporada_normal;
 }
 
@@ -438,7 +438,9 @@ export async function obtenerEstadisticasCompras(tipoCompra) {
 /**
  * Inicializa cualquier formulario de compra
  */
-function inicializarFormulario(tipoCompra) {
+export function inicializarFormulario(tipoCompra) {
+    console.log(`🔄 Inicializando formulario de ${tipoCompra}...`);
+    
     if (tipoCompra === 'gas') {
         inicializarFormularioGas();
     } else {
@@ -451,7 +453,12 @@ function inicializarFormulario(tipoCompra) {
  */
 function inicializarFormularioGas() {
     const form = document.getElementById('formCompraGas');
-    if (!form) return;
+    if (!form) {
+        console.warn('❌ Formulario formCompraGas no encontrado');
+        return;
+    }
+    
+    console.log('✅ Inicializando formulario de gas');
     
     // Inicializar fecha
     const fechaInput = document.getElementById('fechaCompraGas');
@@ -486,7 +493,12 @@ function inicializarFormularioEntretenimiento(tipoCompra) {
     const formId = `formCompra${tipoCompra.charAt(0).toUpperCase() + tipoCompra.slice(1)}`;
     const form = document.getElementById(formId);
     
-    if (!form) return;
+    if (!form) {
+        console.warn(`❌ Formulario ${formId} no encontrado`);
+        return;
+    }
+    
+    console.log(`✅ Inicializando formulario de ${tipoCompra}`);
     
     // Inicializar fecha
     const tipoCapitalizado = tipoCompra.charAt(0).toUpperCase() + tipoCompra.slice(1);
@@ -698,9 +710,6 @@ async function handleFormSubmit(e, tipoCompra) {
  * Maneja envío específico de gas
  */
 async function handleSubmitGas(form, formData) {
-    // Lógica específica para gas (ya implementada en el archivo original)
-    // Aquí iría toda la validación de gas con Lipigas/Abastible
-    
     const comprandoLipigas = formData.get('compraLipigas') === 'si';
     const comprandoAbastible = formData.get('compraAbastible') === 'si';
     
@@ -786,31 +795,3 @@ async function handleSubmitEntretenimiento(form, formData, tipoCompra) {
         setTimeout(() => window.location.reload(), 2000);
     }
 }
-
-// ========================================
-// EXPORTAR FUNCIONES PRINCIPALES
-// ========================================
-export {
-    // Constantes
-    LIMITES_MENSUALES,
-    PRECIOS,
-    COLECCIONES,
-    NOMBRES_TIPOS,
-    
-    // Funciones de temporada
-    esTemporadaAlta,
-    obtenerLimiteMaximoGas,
-    
-    // Funciones principales
-    obtenerComprasMesActual,
-    calcularTotalUsado,
-    guardarCompraGas,
-    guardarCompraEntretenimiento,
-    
-    // Administración
-    obtenerComprasPorTipo,
-    obtenerEstadisticasCompras,
-    
-    // Inicialización
-    inicializarFormulario
-};
