@@ -1,8 +1,8 @@
-// Configuración de Firebase
+// Configuración de Firebase - Versión Corregida
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
+import { getStorage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 // Configuración de tu proyecto Firebase
 const firebaseConfig = {
@@ -15,10 +15,18 @@ const firebaseConfig = {
   measurementId: "G-G1MGN967WT"
 };
 
-// Inicializar Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const analytics = getAnalytics(app);
+// Inicializar Firebase con manejo de errores
+let app, auth, db, storage;
 
-export { app, auth, db, analytics };
+try {
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  db = getFirestore(app);
+  storage = getStorage(app);
+  
+  console.log('✅ Firebase inicializado correctamente');
+} catch (error) {
+  console.error('❌ Error al inicializar Firebase:', error);
+}
+
+export { app, auth, db, storage };
