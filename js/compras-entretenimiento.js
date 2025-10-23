@@ -542,7 +542,7 @@ export async function obtenerEstadisticasCompras(tipoCompra) {
 // EXPORTAR
 // ========================================
 export {
-    inicializarFormulario,
+
     LIMITES_MENSUALES,
     PRECIOS,
     COLECCIONES,
