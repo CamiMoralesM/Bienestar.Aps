@@ -1,5 +1,6 @@
 // ========================================
-// MÓDULO: Notificaciones de Compras de Gas
+// MÓDULO: Notificaciones de Compras
+// Gas, Cine, Jumper Trampoline Park y Gimnasio
 // ========================================
 
 import { db, auth } from './firebase-config.js';
@@ -13,24 +14,15 @@ import {
     Timestamp 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/**
- * Obtiene las últimas compras de gas del usuario para mostrar como notificaciones
- * @param {string} uid - ID del usuario
- * @param {number} limite - Número máximo de notificaciones a obtener
- * @returns {Promise<Array>} Array de notificaciones
- */
-export async function obtenerNotificacionesCompras(uid, limite = 5) {
-    try {
-        // Obtener datos del usuario
-        const userData = JSON.parse(sessionStorage.getItem('userData') || '{}');
-        const rutUsuario = userData.rut?.replace(/\./g, '').replace(/-/g, '');
-        
-        if (!rutUsuario) {
-            console.warn('No se pudo obtener el RUT del usuario');
-            return [];
-        }
+// ========================================
+// NOTIFICACIONES DE GAS
+// ========================================
 
-        // Consultar compras del usuario
+/**
+ * Obtiene las últimas compras de gas del usuario
+ */
+async function obtenerNotificacionesGas(rutUsuario, limite = 5) {
+    try {
         const comprasRef = collection(db, "comprasGas");
         const q = query(
             comprasRef,
@@ -44,24 +36,20 @@ export async function obtenerNotificacionesCompras(uid, limite = 5) {
         
         querySnapshot.forEach((doc) => {
             const compra = doc.data();
-            notificaciones.push(formatearNotificacionCompra(compra, doc.id));
+            notificaciones.push(formatearNotificacionGas(compra, doc.id));
         });
         
         return notificaciones;
-        
     } catch (error) {
-        console.error("Error al obtener notificaciones de compras:", error);
+        console.error("Error al obtener notificaciones de gas:", error);
         return [];
     }
 }
 
 /**
- * Formatea los datos de una compra en un objeto de notificación
- * @param {Object} compra - Datos de la compra
- * @param {string} id - ID del documento
- * @returns {Object} Notificación formateada
+ * Formatea los datos de una compra de gas en notificación
  */
-function formatearNotificacionCompra(compra, id) {
+function formatearNotificacionGas(compra, id) {
     const fecha = compra.createdAt?.toDate() || new Date();
     const fechaFormateada = fecha.toLocaleDateString('es-CL', {
         day: '2-digit',
@@ -166,10 +154,147 @@ function formatearNotificacionCompra(compra, id) {
     };
 }
 
+// ========================================
+// NOTIFICACIONES DE ENTRETENIMIENTO
+// ========================================
+
+/**
+ * Obtiene las últimas compras de entretenimiento del usuario
+ */
+async function obtenerNotificacionesEntretenimiento(rutUsuario, limite = 10) {
+    try {
+        const notificaciones = [];
+        
+        // Tipos de compras a consultar
+        const tiposCompra = [
+            { nombre: 'Cine', coleccion: 'comprasCine', icono: '🎬' },
+            { nombre: 'Jumper', coleccion: 'comprasJumper', icono: '🤸' },
+            { nombre: 'Gimnasio', coleccion: 'comprasGimnasio', icono: '💪' }
+        ];
+        
+        // Consultar cada tipo de compra
+        for (const tipo of tiposCompra) {
+            try {
+                const comprasRef = collection(db, tipo.coleccion);
+                const q = query(
+                    comprasRef,
+                    where("rut", "==", rutUsuario),
+                    orderBy("createdAt", "desc"),
+                    limit(3)
+                );
+                
+                const querySnapshot = await getDocs(q);
+                
+                querySnapshot.forEach((doc) => {
+                    const compra = doc.data();
+                    notificaciones.push(formatearNotificacionEntretenimiento(compra, doc.id, tipo));
+                });
+            } catch (error) {
+                console.error(`Error al obtener compras de ${tipo.nombre}:`, error);
+            }
+        }
+        
+        // Ordenar por fecha descendente
+        notificaciones.sort((a, b) => b.fechaTimestamp - a.fechaTimestamp);
+        
+        // Limitar al número solicitado
+        return notificaciones.slice(0, limite);
+        
+    } catch (error) {
+        console.error("Error al obtener notificaciones de entretenimiento:", error);
+        return [];
+    }
+}
+
+/**
+ * Formatea una compra de entretenimiento en notificación
+ */
+function formatearNotificacionEntretenimiento(compra, id, tipo) {
+    const fecha = compra.createdAt?.toDate() || new Date();
+    const fechaFormateada = fecha.toLocaleDateString('es-CL', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
+    
+    // Determinar estado
+    let estado = 'procesando';
+    let estadoTexto = 'En procesamiento';
+    let estadoClase = 'warning';
+    
+    if (compra.estado === 'pendiente') {
+        estado = 'pendiente';
+        estadoTexto = 'Pendiente de revisión';
+        estadoClase = 'warning';
+    } else if (compra.estado === 'aprobado') {
+        estado = 'aprobado';
+        estadoTexto = 'Aprobado';
+        estadoClase = 'success';
+    } else if (compra.estado === 'rechazado') {
+        estado = 'rechazado';
+        estadoTexto = 'Rechazado';
+        estadoClase = 'danger';
+    }
+    
+    const cantidad = compra.cantidad || 0;
+    const textoEntrada = cantidad === 1 ? 'entrada' : 'entradas';
+    
+    return {
+        id: id,
+        tipo: tipo.coleccion,
+        fecha: fechaFormateada,
+        fechaTimestamp: fecha,
+        titulo: `${tipo.nombre} - ${cantidad} ${textoEntrada}`,
+        descripcion: `Compra realizada el ${fechaFormateada}`,
+        estado: estado,
+        estadoTexto: estadoTexto,
+        estadoClase: estadoClase,
+        icono: tipo.icono,
+        detalles: {
+            cantidad: cantidad,
+            tipoCompra: tipo.nombre
+        }
+    };
+}
+
+// ========================================
+// FUNCIONES GENERALES
+// ========================================
+
+/**
+ * Obtiene todas las notificaciones (gas + entretenimiento)
+ */
+export async function obtenerTodasNotificaciones(uid, limite = 10) {
+    try {
+        const userData = JSON.parse(sessionStorage.getItem('userData') || '{}');
+        const rutUsuario = userData.rut?.replace(/\./g, '').replace(/-/g, '');
+        
+        if (!rutUsuario) {
+            console.warn('No se pudo obtener el RUT del usuario');
+            return [];
+        }
+
+        // Obtener notificaciones de gas
+        const notifGas = await obtenerNotificacionesGas(rutUsuario, 5);
+        
+        // Obtener notificaciones de entretenimiento
+        const notifEntretenimiento = await obtenerNotificacionesEntretenimiento(rutUsuario, 5);
+        
+        // Combinar y ordenar todas las notificaciones
+        const todasNotificaciones = [...notifGas, ...notifEntretenimiento];
+        todasNotificaciones.sort((a, b) => b.fechaTimestamp - a.fechaTimestamp);
+        
+        // Limitar al número solicitado
+        return todasNotificaciones.slice(0, limite);
+        
+    } catch (error) {
+        console.error("Error al obtener notificaciones:", error);
+        return [];
+    }
+}
+
 /**
  * Renderiza las notificaciones en el contenedor especificado
- * @param {string} containerId - ID del contenedor donde renderizar
- * @param {Array} notificaciones - Array de notificaciones a renderizar
  */
 export function renderizarNotificaciones(containerId, notificaciones) {
     const container = document.getElementById(containerId);
@@ -204,9 +329,9 @@ export function renderizarNotificaciones(containerId, notificaciones) {
                 <p class="notification-description">${notif.descripcion}</p>
                 <div class="notification-footer">
                     <span class="badge badge-${notif.estadoClase}">${notif.estadoTexto}</span>
-                    <button class="btn-link" onclick="verDetalleCompra('${notif.id}')">
-                        Ver detalles →
-                    </button>
+                    ${notif.tipo === 'compra_gas' ? 
+                        `<button class="btn-link" onclick="verDetalleCompra('${notif.id}')">Ver detalles →</button>` : 
+                        ''}
                 </div>
             </div>
         `;
@@ -217,8 +342,6 @@ export function renderizarNotificaciones(containerId, notificaciones) {
 
 /**
  * Función auxiliar para calcular el tiempo transcurrido
- * @param {Date} fecha - Fecha de la notificación
- * @returns {string} Tiempo transcurrido en formato legible
  */
 function calcularTiempoTranscurrido(fecha) {
     const ahora = new Date();
@@ -238,15 +361,14 @@ function calcularTiempoTranscurrido(fecha) {
 }
 
 /**
- * Inicializa el sistema de notificaciones
- * @param {string} uid - ID del usuario
+ * Inicializa el sistema de notificaciones (gas + entretenimiento)
  */
 export async function inicializarNotificaciones(uid) {
     try {
         console.log('🔔 Inicializando sistema de notificaciones...');
         
-        // Obtener notificaciones
-        const notificaciones = await obtenerNotificacionesCompras(uid);
+        // Obtener todas las notificaciones
+        const notificaciones = await obtenerTodasNotificaciones(uid, 10);
         
         console.log(`✅ ${notificaciones.length} notificaciones obtenidas`);
         
@@ -292,6 +414,8 @@ window.verDetalleCompra = function(compraId) {
 
 // Exportar funciones
 export {
-    formatearNotificacionCompra,
-    calcularTiempoTranscurrido
+    formatearNotificacionGas,
+    formatearNotificacionEntretenimiento,
+    calcularTiempoTranscurrido,
+    obtenerTodasNotificaciones
 };
