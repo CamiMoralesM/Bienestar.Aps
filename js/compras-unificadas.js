@@ -438,7 +438,7 @@ export async function obtenerEstadisticasCompras(tipoCompra) {
 /**
  * Inicializa cualquier formulario de compra
  */
-export function inicializarFormulario(tipoCompra) {
+function inicializarFormulario(tipoCompra) {
     if (tipoCompra === 'gas') {
         inicializarFormularioGas();
     } else {
