@@ -1,4 +1,7 @@
-// Dashboard del Afiliado con Sistema de Notificaciones de Compras
+// ========================================
+// DASHBOARD AFILIADO - VERSIÓN ACTUALIZADA
+// Con integración de compras de entretenimiento
+// ========================================
 
 import { auth } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -11,6 +14,7 @@ import {
 } from './firestore-operations.js';
 import { cerrarSesion } from './auth.js';
 import { inicializarNotificaciones } from './notificaciones-compras.js';
+import { inicializarNotificacionesEntretenimiento } from './notificaciones-entretenimiento.js';
 
 // Verificar autenticación al cargar
 onAuthStateChanged(auth, async (user) => {
@@ -27,6 +31,9 @@ onAuthStateChanged(auth, async (user) => {
         
         // Inicializar notificaciones de compras de gas
         await inicializarNotificaciones(user.uid);
+        
+        // Inicializar notificaciones de entretenimiento
+        await inicializarNotificacionesEntretenimiento(user.uid);
     } else {
         window.location.href = 'login.html';
     }
@@ -49,9 +56,6 @@ async function cargarDatosUsuario(uid) {
 
         // Cargar estadísticas
         await cargarEstadisticas(uid, funcionario.fechaAfiliacion);
-        
-        // Cargar beneficios
-        await cargarBeneficios(uid);
         
         // Cargar solicitudes
         await cargarSolicitudes(uid);
@@ -78,7 +82,12 @@ async function cargarEstadisticas(uid, fechaAfiliacion) {
         // Actualizar cards de estadísticas
         document.getElementById('beneficios-recibidos').textContent = `$${totalBeneficios2025.toLocaleString('es-CL')}`;
         document.getElementById('solicitudes-pendientes').textContent = solicitudesPendientes;
-        document.getElementById('convenios-disponibles').textContent = "12"; // Si tienes convenios dinámicos, cámbialo aquí
+        
+        // Convenios disponibles (fijo)
+        const conveniosEl = document.getElementById('convenios-disponibles');
+        if (conveniosEl) {
+            conveniosEl.textContent = "24";
+        }
 
         // Tiempo de afiliación
         if (fechaAfiliacion && fechaAfiliacion.toDate) {
@@ -90,50 +99,6 @@ async function cargarEstadisticas(uid, fechaAfiliacion) {
         }
     } catch (error) {
         console.error('Error al cargar estadísticas:', error);
-    }
-}
-
-// Cargar tabla de beneficios
-async function cargarBeneficios(uid) {
-    try {
-        const beneficios = await obtenerBeneficiosFuncionario(uid);
-        const tbody = document.querySelector('#tab-beneficios tbody');
-        
-        if (!tbody) return;
-        
-        tbody.innerHTML = '';
-        
-        beneficios.forEach(beneficio => {
-            const fecha = beneficio.createdAt?.toDate().toLocaleDateString('es-CL') || 'N/A';
-            const estadoBadge = beneficio.estado === 'pagado' 
-                ? '<span class="badge success">Pagado</span>'
-                : '<span class="badge warning">Pendiente</span>';
-            
-            const row = `
-                <tr>
-                    <td>${fecha}</td>
-                    <td>${beneficio.nombre}</td>
-                    <td>$${beneficio.monto.toLocaleString('es-CL')}</td>
-                    <td>${estadoBadge}</td>
-                    <td><button class="btn-small" onclick="verComprobante('${beneficio.id}')">📄 Ver</button></td>
-                </tr>
-            `;
-            
-            tbody.innerHTML += row;
-        });
-        
-        // Calcular total
-        const total = beneficios
-            .filter(b => b.estado === 'pagado')
-            .reduce((sum, b) => sum + b.monto, 0);
-        
-        const totalElement = document.querySelector('.total-benefits .highlight');
-        if (totalElement) {
-            totalElement.textContent = `$${total.toLocaleString('es-CL')}`;
-        }
-        
-    } catch (error) {
-        console.error('Error al cargar beneficios:', error);
     }
 }
 
@@ -199,10 +164,15 @@ async function cargarPerfil(funcionario) {
         const nombreInput = document.querySelector('#tab-perfil input[type="text"]');
         if (nombreInput) {
             nombreInput.value = funcionario.nombre || '';
-            document.querySelectorAll('#tab-perfil input[type="text"]')[1].value = funcionario.rut || '';
-            document.querySelector('#tab-perfil input[type="email"]').value = funcionario.email || '';
-            document.querySelector('#tab-perfil input[type="tel"]').value = funcionario.telefono || '';
+            const inputs = document.querySelectorAll('#tab-perfil input[type="text"]');
+            if (inputs[1]) inputs[1].value = funcionario.rut || '';
         }
+        
+        const emailInput = document.querySelector('#tab-perfil input[type="email"]');
+        if (emailInput) emailInput.value = funcionario.email || '';
+        
+        const telInput = document.querySelector('#tab-perfil input[type="tel"]');
+        if (telInput) telInput.value = funcionario.telefono || '';
         
         // Información de cuenta
         const infoItems = document.querySelectorAll('.info-item .info-value');
@@ -212,6 +182,7 @@ async function cargarPerfil(funcionario) {
             infoItems[1].textContent = funcionario.centroSalud || 'N/A';
             infoItems[2].textContent = funcionario.cargasFamiliares?.length || '0';
         }
+        
         const estadoBadge = document.querySelector('.info-item .badge.success');
         if (estadoBadge) {
             estadoBadge.textContent = funcionario.estado || '';
@@ -260,10 +231,6 @@ window.nuevaSolicitud = function() {
 }
 
 // Funciones auxiliares
-window.verComprobante = function(beneficioId) {
-    alert(`Ver comprobante del beneficio: ${beneficioId}`);
-}
-
 window.verDetalleSolicitud = function(solicitudId) {
     alert(`Ver detalle de solicitud: ${solicitudId}`);
 }
