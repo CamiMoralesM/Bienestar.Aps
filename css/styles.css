@@ -2849,3 +2849,42 @@ body.modal-open {
         grid-template-columns: 1fr !important;
     }
 }
+/* Ajuste de estilos para secciones de información (Cine, Jumper, Gimnasio) */
+#tab-compra-cine .info-box,
+#tab-compra-jumper .info-box,
+#tab-compra-gimnasio .info-box {
+    color: #1a1a1a; /* Letra más oscura */
+    background-color: #f9f9f9; /* Fallback si el color pastel es muy claro */
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* Títulos y negritas más visibles */
+#tab-compra-cine .info-box strong,
+#tab-compra-jumper .info-box strong,
+#tab-compra-gimnasio .info-box strong {
+    color: #0d47a1; /* Azul oscuro sobrio */
+    font-weight: 600;
+}
+
+/* Listas dentro de las secciones */
+#tab-compra-cine .info-box ul li,
+#tab-compra-jumper .info-box ul li,
+#tab-compra-gimnasio .info-box ul li {
+    color: #333;
+    font-size: 1em;
+    line-height: 1.6;
+}
+
+/* Mejor contraste entre fondo y texto */
+#tab-compra-cine .info-box {
+    background: #d9eafc; /* Azul pastel suave */
+}
+
+#tab-compra-jumper .info-box {
+    background: #ffe7c5; /* Naranja pastel cálido */
+}
+
+#tab-compra-gimnasio .info-box {
+    background: #dff5e1; /* Verde pastel suave */
+}
