@@ -90,42 +90,6 @@
                     <div class="notifications" id="notificaciones-recientes"></div>
                 </div>
             </div>
-            <!-- Tab: Mis Beneficios -->
-            <div class="tab-content" id="tab-beneficios">
-                <h2>💰 Beneficios Recibidos</h2>
-                <div class="benefits-table">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Fecha</th>
-                                <th>Beneficio</th>
-                                <th>Monto</th>
-                                <th>Estado</th>
-                                <th>Comprobante</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="total-benefits">
-                    <h3>Total Beneficios 2025: <span class="highlight"></span></h3>
-                </div>
-            </div>
-            <!-- Tab: Mis Convenios -->
-            <div class="tab-content" id="tab-convenios">
-                <h2>🏪 Convenios Activos</h2>
-                <div class="convenios-favoritos">
-                    <h3>⭐ Mis Convenios Favoritos</h3>
-                    <div class="convenios-grid-small"></div>
-                </div>
-                <div class="section-card">
-                    <button class="btn btn-primary" onclick="location.href='convenios.html'">
-                        Ver Todos los Convenios
-                    </button>
-                </div>
-            </div>
-
 
             <div class="tab-content" id="tab-compras-gas">
     <h2>🛒 Compra de Vales de Gas</h2>
@@ -263,7 +227,191 @@
         <button type="submit" class="btn btn-primary">Enviar Compra</button>
     </form>
 </div>
+          <!-- Tab: Compra de Cine -->
+<div class="tab-content" id="tab-compra-cine">
+    <h2>🎬 Compra de Entradas de Cine</h2>
+    <div class="info-box" style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <p><strong>📋 Información:</strong></p>
+        <ul style="margin: 10px 0; padding-left: 20px;">
+            <li>Máximo 4 entradas por mes</li>
+            <li>Valor: $6.800 (incluye entrada + combo)</li>
+            <li>Válido en cualquier complejo Cinépolis o Hoyts</li>
+            <li>Incluye películas en estreno</li>
+        </ul>
+    </div>
+    
+    <form id="formCompraCine" enctype="multipart/form-data">
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="rutCine">RUT *</label>
+                <input type="text" id="rutCine" name="rutCine" required placeholder="12.345.678-9">
+            </div>
             
+            <div class="form-group">
+                <label for="nombreCine">Nombre y Apellido Afiliado *</label>
+                <input type="text" id="nombreCine" name="nombreCine" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="telefonoCine">Teléfono *</label>
+                <input type="tel" id="telefonoCine" name="telefonoCine" required placeholder="+569...">
+            </div>
+            
+            <div class="form-group">
+                <label for="emailCine">Correo Electrónico *</label>
+                <input type="email" id="emailCine" name="emailCine" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="fechaCompraCine">Fecha de Compra *</label>
+                <input type="date" id="fechaCompraCine" name="fechaCompraCine" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="cantidadCine">Cantidad de Entradas *</label>
+                <select id="cantidadCine" name="cantidadCine" required>
+                    <option value="0">Seleccione cantidad</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                </select>
+            </div>
+            
+            <div class="form-group" style="grid-column: 1 / -1;">
+                <label for="comprobanteCine">Adjuntar Comprobante de Transferencia *</label>
+                <input type="file" id="comprobanteCine" name="comprobanteCine" required accept="image/*,.pdf">
+                <small>Formatos aceptados: JPG, PNG, PDF</small>
+            </div>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Enviar Compra</button>
+    </form>
+</div>  
+            <!-- Tab: Compra de Jumper Trampoline Park -->
+<div class="tab-content" id="tab-compra-jumper">
+    <h2>🤸 Compra de Entradas Jumper Trampoline Park</h2>
+    <div class="info-box" style="background: #fff3e0; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <p><strong>📋 Información:</strong></p>
+        <ul style="margin: 10px 0; padding-left: 20px;">
+            <li>Máximo 6 entradas por mes</li>
+            <li>Diversión garantizada para toda la familia</li>
+            <li>Incluye acceso a todas las áreas del parque</li>
+        </ul>
+    </div>
+    
+    <form id="formCompraJumper" enctype="multipart/form-data">
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="rutJumper">RUT *</label>
+                <input type="text" id="rutJumper" name="rutJumper" required placeholder="12.345.678-9">
+            </div>
+            
+            <div class="form-group">
+                <label for="nombreJumper">Nombre y Apellido Afiliado *</label>
+                <input type="text" id="nombreJumper" name="nombreJumper" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="telefonoJumper">Teléfono *</label>
+                <input type="tel" id="telefonoJumper" name="telefonoJumper" required placeholder="+569...">
+            </div>
+            
+            <div class="form-group">
+                <label for="emailJumper">Correo Electrónico *</label>
+                <input type="email" id="emailJumper" name="emailJumper" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="fechaCompraJumper">Fecha de Compra *</label>
+                <input type="date" id="fechaCompraJumper" name="fechaCompraJumper" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="cantidadJumper">Cantidad de Entradas *</label>
+                <select id="cantidadJumper" name="cantidadJumper" required>
+                    <option value="0">Seleccione cantidad</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                </select>
+            </div>
+            
+            <div class="form-group" style="grid-column: 1 / -1;">
+                <label for="comprobanteJumper">Adjuntar Comprobante de Transferencia *</label>
+                <input type="file" id="comprobanteJumper" name="comprobanteJumper" required accept="image/*,.pdf">
+                <small>Formatos aceptados: JPG, PNG, PDF</small>
+            </div>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Enviar Compra</button>
+    </form>
+</div>
+            <!-- Tab: Compra de Gimnasio -->
+<div class="tab-content" id="tab-compra-gimnasio">
+    <h2>💪 Compra de Entradas Gimnasio Energy</h2>
+    <div class="info-box" style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <p><strong>📋 Información:</strong></p>
+        <ul style="margin: 10px 0; padding-left: 20px;">
+            <li>Máximo 4 entradas por mes</li>
+            <li>Valor: $18.000 por ticket mensual</li>
+            <li>Válido en todas las sucursales Energy</li>
+            <li>Sin restricción de horarios</li>
+            <li>Incluye todos los servicios</li>
+        </ul>
+    </div>
+    
+    <form id="formCompraGimnasio" enctype="multipart/form-data">
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="rutGimnasio">RUT *</label>
+                <input type="text" id="rutGimnasio" name="rutGimnasio" required placeholder="12.345.678-9">
+            </div>
+            
+            <div class="form-group">
+                <label for="nombreGimnasio">Nombre y Apellido Afiliado *</label>
+                <input type="text" id="nombreGimnasio" name="nombreGimnasio" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="telefonoGimnasio">Teléfono *</label>
+                <input type="tel" id="telefonoGimnasio" name="telefonoGimnasio" required placeholder="+569...">
+            </div>
+            
+            <div class="form-group">
+                <label for="emailGimnasio">Correo Electrónico *</label>
+                <input type="email" id="emailGimnasio" name="emailGimnasio" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="fechaCompraGimnasio">Fecha de Compra *</label>
+                <input type="date" id="fechaCompraGimnasio" name="fechaCompraGimnasio" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="cantidadGimnasio">Cantidad de Tickets *</label>
+                <select id="cantidadGimnasio" name="cantidadGimnasio" required>
+                    <option value="0">Seleccione cantidad</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                </select>
+            </div>
+            
+            <div class="form-group" style="grid-column: 1 / -1;">
+                <label for="comprobanteGimnasio">Adjuntar Comprobante de Transferencia *</label>
+                <input type="file" id="comprobanteGimnasio" name="comprobanteGimnasio" required accept="image/*,.pdf">
+                <small>Formatos aceptados: JPG, PNG, PDF</small>
+            </div>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Enviar Compra</button>
+    </form>
+</div>
             <!-- Tab: Solicitudes -->
             <div class="tab-content" id="tab-solicitudes">
                 <h2>📝 Mis Solicitudes</h2>
@@ -350,7 +498,17 @@
             <p>&copy; 2025 Servicio Bienestar APS - Corporación Municipal de Puente Alto</p>
         </div>
     </footer>
-    <script type="module" src="../js/dashboard-afiliado-firebase.js"></script>
-    <script type="module" src="../js/compras-gas.js"></script>
+<script type="module" src="../js/dashboard-afiliado-firebase.js"></script>
+<script type="module" src="../js/compras-gas.js"></script>
+<script type="module">
+    import { inicializarFormulario } from '../js/compras-entretenimiento.js';
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inicializar formularios de entretenimiento
+        inicializarFormulario('cine');
+        inicializarFormulario('jumper');
+        inicializarFormulario('gimnasio');
+    });
+</script>
 </body>
 </html>
