@@ -12,7 +12,6 @@ import {
     getDocs, 
     Timestamp 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 // ========================================
 // CONSTANTES UNIFICADAS
