@@ -165,7 +165,7 @@ async function obtenerNotificacionesEntretenimiento(rutUsuario, limite = 10) {
     try {
         const notificaciones = [];
         
-        // Tipos de compras a consultar
+        // Tipos de compras a consultar con sus nuevas colecciones
         const tiposCompra = [
             { nombre: 'Cine', coleccion: 'comprasCine', icono: '🎬' },
             { nombre: 'Jumper', coleccion: 'comprasJumper', icono: '🤸' },
@@ -238,6 +238,7 @@ function formatearNotificacionEntretenimiento(compra, id, tipo) {
     
     const cantidad = compra.cantidad || 0;
     const textoEntrada = cantidad === 1 ? 'entrada' : 'entradas';
+    const montoTotal = compra.montoTotal || 0;
     
     return {
         id: id,
@@ -245,14 +246,15 @@ function formatearNotificacionEntretenimiento(compra, id, tipo) {
         fecha: fechaFormateada,
         fechaTimestamp: fecha,
         titulo: `${tipo.nombre} - ${cantidad} ${textoEntrada}`,
-        descripcion: `Compra realizada el ${fechaFormateada}`,
+        descripcion: `Compra por $${montoTotal.toLocaleString('es-CL')} realizada el ${fechaFormateada}`,
         estado: estado,
         estadoTexto: estadoTexto,
         estadoClase: estadoClase,
         icono: tipo.icono,
         detalles: {
             cantidad: cantidad,
-            tipoCompra: tipo.nombre
+            tipoCompra: tipo.nombre,
+            montoTotal: montoTotal
         }
     };
 }
