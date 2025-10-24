@@ -1,6 +1,6 @@
 // ========================================
-// SISTEMA DE PRÉSTAMOS Y DESCARGAS - CORREGIDO
-// Manejo completo de formularios PDF y solicitudes
+// SISTEMA DE PRÉSTAMOS - SOLO DESCARGA DIRECTA
+// Sin ventanas nuevas, solo descarga de archivos
 // ========================================
 
 import { db, storage } from './firebase-config.js';
@@ -23,7 +23,6 @@ import {
 // CONFIGURACIÓN DE FORMULARIOS
 // ========================================
 
-// IMPORTANTE: Reemplaza estas rutas con las ubicaciones reales de tus PDFs
 const FORMULARIOS_CONFIG = {
     'medico': {
         url: '/assets/formulario-prestamo.pdf',
@@ -36,7 +35,7 @@ const FORMULARIOS_CONFIG = {
         descripcion: 'Préstamos de Emergencia'
     },
     'libre-disposicion': {
-        url: '/assets/formulario-prestamo-libre-disposicion.pdf',
+        url: '/assets/formulario-Prestamo-libre-ddisposicion.pdf',
         nombre: 'Formulario_Prestamo_Libre_Disposicion.pdf',
         descripcion: 'Préstamos de Libre Disposición'
     },
@@ -47,28 +46,15 @@ const FORMULARIOS_CONFIG = {
     }
 };
 
-// Límites de préstamos
 const LIMITES_PRESTAMOS = {
-    'prestamo-medico': {
-        montoMaximo: 500000,
-        cuotasMaximas: 12
-    },
-    'prestamo-emergencia': {
-        montoMaximo: 500000,
-        cuotasMaximas: null
-    },
-    'prestamo-libre-disposicion': {
-        montoMaximo: 300000,
-        cuotasMaximas: 6
-    },
-    'fondo-solidario': {
-        montoMaximo: null,
-        cuotasMaximas: null
-    }
+    'prestamo-medico': { montoMaximo: 500000, cuotasMaximas: 12 },
+    'prestamo-emergencia': { montoMaximo: 500000, cuotasMaximas: null },
+    'prestamo-libre-disposicion': { montoMaximo: 300000, cuotasMaximas: 6 },
+    'fondo-solidario': { montoMaximo: null, cuotasMaximas: null }
 };
 
 // ========================================
-// CLASE PRINCIPAL DE PRÉSTAMOS
+// CLASE PRINCIPAL
 // ========================================
 
 class PrestamosHandler {
@@ -78,30 +64,29 @@ class PrestamosHandler {
     }
 
     inicializarEventListeners() {
-        console.log('🔄 Inicializando sistema de préstamos...');
+        console.log('🔄 Inicializando sistema de préstamos (solo descarga)...');
 
         // Event listeners para descarga de formularios
         document.querySelectorAll('.btn-download-form').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 const tipo = e.target.getAttribute('data-tipo');
-                this.descargarFormulario(tipo);
+                this.descargarFormularioDirecto(tipo);
             });
         });
 
-        // Event listener para envío de solicitud
+        // Resto de event listeners
         const form = document.getElementById('formSolicitudPrestamo');
         if (form) {
             form.addEventListener('submit', (e) => this.enviarSolicitudPrestamo(e));
         }
 
-        // Event listener para cambio de tipo de solicitud
         const tipoSelect = document.getElementById('tipoSolicitud');
         if (tipoSelect) {
             tipoSelect.addEventListener('change', (e) => this.manejarCambioTipo(e));
         }
 
-        // Event listener para validación de monto según tipo
         const montoInput = document.getElementById('montoSolicitado');
         if (montoInput) {
             montoInput.addEventListener('input', (e) => this.validarMonto(e));
@@ -111,7 +96,6 @@ class PrestamosHandler {
     }
 
     configurarValidaciones() {
-        // Formateo automático del RUT
         const rutInput = document.getElementById('rutPrestamo');
         if (rutInput) {
             rutInput.addEventListener('input', function(e) {
@@ -121,188 +105,87 @@ class PrestamosHandler {
     }
 
     // ========================================
-    // FUNCIONES DE DESCARGA DE FORMULARIOS
+    // DESCARGA DIRECTA ÚNICAMENTE
     // ========================================
 
-    async descargarFormulario(tipo) {
+    async descargarFormularioDirecto(tipo) {
         try {
-            console.log(`📄 Iniciando descarga de formulario: ${tipo}`);
+            console.log(`📄 Descargando formulario: ${tipo}`);
             
             const config = FORMULARIOS_CONFIG[tipo];
             if (!config) {
-                throw new Error(`Tipo de formulario no encontrado: ${tipo}`);
+                this.mostrarMensaje(`❌ Tipo de formulario no encontrado: ${tipo}`, 'error');
+                return;
             }
 
-            this.mostrarMensaje(`Descargando formulario de ${config.descripcion}...`, 'info');
+            // Mostrar mensaje de inicio
+            this.mostrarMensaje(`⬇️ Descargando ${config.descripcion}...`, 'info');
 
-            // Método 1: Intentar descarga directa
-            const success = await this.descargarArchivo(config.url, config.nombre);
+            // Intentar descarga directa
+            const exito = await this.ejecutarDescargaDirecta(config.url, config.nombre);
             
-            if (success) {
-                this.mostrarMensaje(`✅ Formulario de ${config.descripcion} descargado exitosamente`, 'success');
+            if (exito) {
+                this.mostrarMensaje(`✅ ${config.descripcion} descargado exitosamente`, 'success');
             } else {
-                // Método 2: Fallback - abrir en nueva pestaña
-                this.abrirFormularioEnNuevaPestana(config.url, tipo);
+                this.mostrarMensaje(`❌ No se pudo descargar ${config.descripcion}. Verifique que el archivo existe.`, 'error');
             }
 
         } catch (error) {
-            console.error('❌ Error al descargar formulario:', error);
-            this.mostrarMensaje(`Error al descargar formulario: ${error.message}`, 'error');
-            
-            // Fallback final: mostrar instrucciones manuales
-            this.mostrarInstruccionesDescargaManual(tipo);
+            console.error('❌ Error en descarga:', error);
+            this.mostrarMensaje(`❌ Error al descargar: ${error.message}`, 'error');
         }
     }
 
-    async descargarArchivo(url, nombreArchivo) {
+    async ejecutarDescargaDirecta(url, nombreArchivo) {
         try {
-            // Verificar si el archivo existe
-            const response = await fetch(url, { method: 'HEAD' });
+            console.log(`🔍 Verificando archivo: ${url}`);
             
-            if (!response.ok) {
-                console.warn(`Archivo no encontrado en: ${url}`);
+            // Verificar si el archivo existe (sin mostrar el archivo)
+            const checkResponse = await fetch(url, { method: 'HEAD' });
+            if (!checkResponse.ok) {
+                console.error(`❌ Archivo no encontrado: ${checkResponse.status}`);
                 return false;
             }
 
+            console.log(`📥 Descargando archivo...`);
+            
             // Descargar el archivo
-            const downloadResponse = await fetch(url);
-            if (!downloadResponse.ok) {
-                throw new Error(`Error al descargar: ${downloadResponse.status}`);
+            const response = await fetch(url);
+            if (!response.ok) {
+                console.error(`❌ Error al descargar: ${response.status}`);
+                return false;
             }
 
-            const blob = await downloadResponse.blob();
+            // Convertir a blob
+            const blob = await response.blob();
+            console.log(`📊 Archivo descargado: ${(blob.size / 1024).toFixed(2)} KB`);
+
+            // Crear enlace de descarga temporal
+            const urlTemporal = window.URL.createObjectURL(blob);
+            const enlaceDescarga = document.createElement('a');
             
-            // Crear URL temporal para descarga
-            const downloadUrl = window.URL.createObjectURL(blob);
+            // Configurar enlace para descarga forzada
+            enlaceDescarga.href = urlTemporal;
+            enlaceDescarga.download = nombreArchivo;
+            enlaceDescarga.style.display = 'none';
             
-            // Crear elemento de descarga
-            const link = document.createElement('a');
-            link.href = downloadUrl;
-            link.download = nombreArchivo;
-            link.style.display = 'none';
+            // Agregar al DOM, hacer clic y remover inmediatamente
+            document.body.appendChild(enlaceDescarga);
+            enlaceDescarga.click();
+            document.body.removeChild(enlaceDescarga);
             
-            // Agregar al DOM, hacer clic y remover
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            // Limpiar URL temporal
-            window.URL.revokeObjectURL(downloadUrl);
-            
+            // Limpiar URL temporal después de un momento
+            setTimeout(() => {
+                window.URL.revokeObjectURL(urlTemporal);
+            }, 1000);
+
+            console.log(`✅ Descarga completada: ${nombreArchivo}`);
             return true;
 
         } catch (error) {
-            console.error('Error en descarga directa:', error);
+            console.error('❌ Error en ejecutarDescargaDirecta:', error);
             return false;
         }
-    }
-
-    abrirFormularioEnNuevaPestana(url, tipo) {
-        try {
-            const config = FORMULARIOS_CONFIG[tipo];
-            
-            // Abrir en nueva pestaña
-            const nuevaPestana = window.open(url, '_blank');
-            
-            if (nuevaPestana) {
-                this.mostrarMensaje(
-                    `Formulario de ${config.descripcion} abierto en nueva pestaña. Use Ctrl+S para guardarlo.`,
-                    'info'
-                );
-            } else {
-                // Si no se puede abrir nueva pestaña (bloqueador de popups)
-                this.mostrarDialogoDescargaManual(url, tipo);
-            }
-
-        } catch (error) {
-            console.error('Error al abrir en nueva pestaña:', error);
-            this.mostrarInstruccionesDescargaManual(tipo);
-        }
-    }
-
-    mostrarDialogoDescargaManual(url, tipo) {
-        const config = FORMULARIOS_CONFIG[tipo];
-        
-        const modal = document.createElement('div');
-        modal.className = 'modal-descarga-manual';
-        modal.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-        `;
-
-        modal.innerHTML = `
-            <div style="
-                background: white;
-                padding: 30px;
-                border-radius: 10px;
-                max-width: 500px;
-                width: 90%;
-                text-align: center;
-            ">
-                <h3 style="color: #2c5aa0; margin-bottom: 20px;">
-                    📄 Descargar Formulario
-                </h3>
-                <p style="margin-bottom: 20px;">
-                    Para descargar el formulario de <strong>${config.descripcion}</strong>, 
-                    haga clic en el enlace siguiente:
-                </p>
-                <a href="${url}" target="_blank" download="${config.nombre}" 
-                   style="
-                       display: inline-block;
-                       background: #2c5aa0;
-                       color: white;
-                       padding: 12px 25px;
-                       text-decoration: none;
-                       border-radius: 5px;
-                       margin: 10px;
-                   ">
-                    📄 Descargar ${config.descripcion}
-                </a>
-                <br>
-                <button onclick="this.parentElement.parentElement.remove()" 
-                        style="
-                            background: #6c757d;
-                            color: white;
-                            border: none;
-                            padding: 10px 20px;
-                            border-radius: 5px;
-                            margin-top: 15px;
-                            cursor: pointer;
-                        ">
-                    Cerrar
-                </button>
-                <p style="font-size: 0.9em; color: #666; margin-top: 15px;">
-                    Si el enlace no funciona, contacte al administrador del sistema.
-                </p>
-            </div>
-        `;
-
-        document.body.appendChild(modal);
-
-        // Cerrar modal al hacer clic fuera
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.remove();
-            }
-        });
-    }
-
-    mostrarInstruccionesDescargaManual(tipo) {
-        const config = FORMULARIOS_CONFIG[tipo];
-        
-        this.mostrarMensaje(
-            `❌ No se pudo descargar automáticamente el formulario de ${config.descripcion}. ` +
-            `Por favor, contacte al administrador del sistema para obtener el formulario.`,
-            'error'
-        );
     }
 
     // ========================================
@@ -315,10 +198,10 @@ class PrestamosHandler {
         const documentosExtrasInfo = document.getElementById('documentosExtrasInfo');
         const montoInput = document.getElementById('montoSolicitado');
         
-        // Limpiar monto al cambiar tipo
+        // Limpiar monto
         montoInput.value = '';
         
-        // Configurar límites de monto según tipo
+        // Configurar límites
         const limites = LIMITES_PRESTAMOS[tipo];
         if (limites && limites.montoMaximo) {
             montoInput.max = limites.montoMaximo;
@@ -383,18 +266,15 @@ class PrestamosHandler {
         try {
             console.log('📤 Enviando solicitud de préstamo...');
             
-            // Mostrar loading
             this.mostrarLoading('Enviando solicitud...');
             
             const formData = new FormData(event.target);
             const userData = JSON.parse(sessionStorage.getItem('userData') || '{}');
             
-            // Validar que el usuario esté logueado
             if (!userData.rut) {
                 throw new Error('Usuario no autenticado');
             }
             
-            // Recopilar datos del formulario
             const solicitudData = {
                 rut: formData.get('rutPrestamo'),
                 nombre: formData.get('nombrePrestamo'),
@@ -408,50 +288,36 @@ class PrestamosHandler {
                 usuarioSolicitante: userData.rut
             };
             
-            // Validar datos antes de enviar
             this.validarDatosSolicitud(solicitudData);
             
-            // Subir archivos
             const archivos = await this.subirArchivos(formData);
             solicitudData.archivos = archivos;
             
-            // Guardar en Firestore
             const docRef = await addDoc(collection(db, 'solicitudes-prestamos'), solicitudData);
             
-            // Limpiar formulario
             event.target.reset();
             
-            // Ocultar loading y mostrar éxito
             this.ocultarLoading();
-            this.mostrarMensaje(
-                '✅ Solicitud enviada exitosamente. Recibirá una respuesta pronto.', 
-                'success'
-            );
+            this.mostrarMensaje('✅ Solicitud enviada exitosamente. Recibirá una respuesta pronto.', 'success');
             
             console.log('✅ Solicitud guardada con ID:', docRef.id);
             
         } catch (error) {
             console.error('❌ Error al enviar solicitud:', error);
             this.ocultarLoading();
-            this.mostrarMensaje(
-                `Error al enviar la solicitud: ${error.message}`, 
-                'error'
-            );
+            this.mostrarMensaje(`Error al enviar la solicitud: ${error.message}`, 'error');
         }
     }
 
     validarDatosSolicitud(datos) {
-        // Validar campos requeridos
         if (!datos.rut || !datos.nombre || !datos.email || !datos.telefono) {
             throw new Error('Todos los campos obligatorios deben estar completos');
         }
         
-        // Validar monto
         if (!datos.montoSolicitado || datos.montoSolicitado <= 0) {
             throw new Error('El monto solicitado debe ser mayor a 0');
         }
         
-        // Validar límites según tipo
         const limites = LIMITES_PRESTAMOS[datos.tipoSolicitud];
         if (limites && limites.montoMaximo && datos.montoSolicitado > limites.montoMaximo) {
             throw new Error(`El monto excede el límite máximo de $${limites.montoMaximo.toLocaleString('es-CL')}`);
@@ -460,12 +326,7 @@ class PrestamosHandler {
 
     async subirArchivos(formData) {
         const archivos = {};
-        const archivosASubir = [
-            'formularioCompleto',
-            'cedulaIdentidad', 
-            'liquidacionesSueldo',
-            'documentosExtras'
-        ];
+        const archivosASubir = ['formularioCompleto', 'cedulaIdentidad', 'liquidacionesSueldo', 'documentosExtras'];
         
         for (const campo of archivosASubir) {
             const files = formData.getAll(campo);
@@ -473,7 +334,6 @@ class PrestamosHandler {
                 archivos[campo] = [];
                 
                 for (const file of files) {
-                    // Validar archivo
                     this.validarArchivo(file);
                     
                     const timestamp = Date.now();
@@ -498,27 +358,19 @@ class PrestamosHandler {
 
     validarArchivo(file) {
         const maxSize = 10 * 1024 * 1024; // 10MB
-        const allowedTypes = [
-            'application/pdf',
-            'image/jpeg',
-            'image/jpg', 
-            'image/png',
-            'image/webp'
-        ];
+        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
-        // Validar tamaño
         if (file.size > maxSize) {
             throw new Error(`El archivo ${file.name} excede el tamaño máximo permitido (10MB)`);
         }
         
-        // Validar tipo
         if (!allowedTypes.includes(file.type)) {
             throw new Error(`El archivo ${file.name} no tiene un formato permitido`);
         }
     }
 
     // ========================================
-    // FUNCIONES DE UI
+    // UI - SOLO MENSAJES SIMPLES
     // ========================================
 
     mostrarMensaje(mensaje, tipo = 'info') {
@@ -526,7 +378,6 @@ class PrestamosHandler {
         const mensajesAnteriores = document.querySelectorAll('.alert-prestamos');
         mensajesAnteriores.forEach(msg => msg.remove());
 
-        // Crear elemento de mensaje
         const mensajeDiv = document.createElement('div');
         mensajeDiv.className = `alert-prestamos alert-${tipo}`;
         mensajeDiv.style.cssText = `
@@ -541,7 +392,6 @@ class PrestamosHandler {
             font-weight: 500;
         `;
         
-        // Estilos según tipo
         const estilos = {
             success: 'background: #d4edda; color: #155724; border: 1px solid #c3e6cb;',
             error: 'background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;',
@@ -554,16 +404,14 @@ class PrestamosHandler {
         
         document.body.appendChild(mensajeDiv);
         
-        // Remover después de 5 segundos
         setTimeout(() => {
             if (mensajeDiv.parentNode) {
                 mensajeDiv.parentNode.removeChild(mensajeDiv);
             }
-        }, 5000);
+        }, 4000);
     }
 
     mostrarLoading(mensaje = 'Cargando...') {
-        // Remover loading anterior si existe
         this.ocultarLoading();
 
         const loading = document.createElement('div');
@@ -582,36 +430,16 @@ class PrestamosHandler {
         `;
         
         loading.innerHTML = `
-            <div style="
-                background: white; 
-                padding: 30px; 
-                border-radius: 10px; 
-                text-align: center;
-                min-width: 200px;
-            ">
-                <div style="
-                    width: 40px; 
-                    height: 40px; 
-                    border: 4px solid #f3f3f3; 
-                    border-top: 4px solid #3498db; 
-                    border-radius: 50%; 
-                    animation: spin 1s linear infinite; 
-                    margin: 0 auto 20px;
-                "></div>
+            <div style="background: white; padding: 30px; border-radius: 10px; text-align: center;">
+                <div style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
                 <p style="margin: 0; font-weight: 600; color: #333;">${mensaje}</p>
             </div>
         `;
         
-        // Agregar animación CSS si no existe
         if (!document.getElementById('spinner-style')) {
             const style = document.createElement('style');
             style.id = 'spinner-style';
-            style.textContent = `
-                @keyframes spin {
-                    0% { transform: rotate(0deg); }
-                    100% { transform: rotate(360deg); }
-                }
-            `;
+            style.textContent = '@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }';
             document.head.appendChild(style);
         }
         
@@ -620,9 +448,7 @@ class PrestamosHandler {
 
     ocultarLoading() {
         const loading = document.getElementById('loading-prestamos');
-        if (loading) {
-            loading.remove();
-        }
+        if (loading) loading.remove();
     }
 }
 
@@ -645,13 +471,11 @@ function formatearRUT(rut) {
 // INICIALIZACIÓN
 // ========================================
 
-// Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 Inicializando sistema de préstamos...');
+    console.log('🚀 Inicializando sistema de préstamos (solo descarga directa)...');
     window.prestamosHandler = new PrestamosHandler();
-    console.log('✅ Sistema de préstamos inicializado');
+    console.log('✅ Sistema listo');
 });
 
-// Exportar para uso en otros módulos
 export default PrestamosHandler;
 export { FORMULARIOS_CONFIG, LIMITES_PRESTAMOS, formatearRUT };
