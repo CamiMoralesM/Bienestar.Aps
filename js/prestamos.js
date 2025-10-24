@@ -4,22 +4,22 @@ class FormulariosDownloadManager {
         // RUTAS DE IMÁGENES PNG que se convertirán a PDF
         this.formularios = {
             'medico': {
-                url: 'assets/formularios/formulario-prestamos.png',
+                url: 'assets/formulario-prestamos.png',
                 nombre: 'Formulario_Prestamo_Medico.pdf',
                 titulo: 'Préstamos Médicos'
             },
             'emergencia': {
-                url: 'assets/formularios/formulario-prestamos.png',
+                url: 'assets/formulario-prestamos.png',
                 nombre: 'Formulario_Prestamo_Emergencia.pdf',
                 titulo: 'Préstamos de Emergencia'
             },
             'libre-disposicion': {
-                url: 'assets/formularios/formulario-prestamos-libre-disposicion.png',
+                url: 'assets/formulario-prestamos-libre-disposicion.png',
                 nombre: 'Formulario_Prestamo_Libre_Disposicion.pdf',
                 titulo: 'Préstamos de Libre Disposición'
             },
             'fondo-solidario': {
-                url: 'assets/formularios/formulario-prestamos.png',
+                url: 'assets/formulario-prestamos.png',
                 nombre: 'Formulario_Fondo_Solidario.pdf',
                 titulo: 'Fondo Solidario'
             }
