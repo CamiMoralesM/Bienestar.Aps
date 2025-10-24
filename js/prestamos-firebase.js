@@ -31,8 +31,8 @@ export const prestamosConfig = {
     
     // URLs de los formularios PDF (estas deben apuntar a archivos reales)
     formulariosPDF: {
-        'medico': './assets/formularios/formulario-prestamo-medico.pdf',
-        'emergencia': './assets/formularios/formulario-prestamo-emergencia.pdf',
+        'medico': './assets/formulario/formulario-prestamos.pdf',
+        'emergencia': './assets/formulario/formulario-prestamos.pdf',
         'libre-disposicion': './assets/formularios/formulario-prestamo-libre-disposicion.pdf',
         'fondo-solidario': './assets/formularios/formulario-fondo-solidario.pdf'
     },
