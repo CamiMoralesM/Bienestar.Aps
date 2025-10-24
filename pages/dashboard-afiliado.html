@@ -751,6 +751,7 @@
     </footer>
 
     <!-- SCRIPTS CORREGIDOS -->
+    <script src="../js/formularios-download.js"></script>
     <script type="module" src="../js/dashboard-afiliado-firebase.js"></script>
     <script type="module" src="../js/compras-unificadas.js"></script>
     <script type="module" src="../js/prestamos.js"></script>
@@ -819,24 +820,6 @@
         // Hacer las funciones globales para que puedan ser llamadas desde HTML
         window.nuevaSolicitud = nuevaSolicitud;
         window.logout = logout;
-
-        // Manejo de descarga de formularios
-        document.querySelectorAll('.btn-download-form').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const tipo = this.dataset.tipo;
-                descargarFormulario(tipo);
-            });
-        });
-
-        function descargarFormulario(tipo) {
-            // Aquí implementarías la lógica para descargar el formulario correspondiente
-            // Por ahora solo mostramos un mensaje
-            alert(`Descargando formulario de ${tipo}`);
-            console.log(`Descargando formulario de tipo: ${tipo}`);
-        }
-
-        // Hacer función global
-        window.descargarFormulario = descargarFormulario;
     </script>
 </body>
 </html>
