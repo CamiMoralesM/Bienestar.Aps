@@ -2,13 +2,14 @@
 // Configuración de Firebase para el módulo de préstamos
 
 // IMPORTANTE: Reemplaza estos valores con tu configuración real de Firebase
-export const firebaseConfig = {
-    apiKey: "tu-api-key-aqui",
-    authDomain: "tu-proyecto.firebaseapp.com",
-    projectId: "tu-proyecto-id",
-    storageBucket: "tu-proyecto.appspot.com",
-    messagingSenderId: "123456789",
-    appId: "tu-app-id"
+const firebaseConfig = {
+  apiKey: "AIzaSyA9nXi619VOgT6mUYmYfu2jja8TRAj9QJE",
+  authDomain: "bienestaraps-c87f0.firebaseapp.com",
+  projectId: "bienestaraps-c87f0",
+  storageBucket: "bienestaraps-c87f0.firebasestorage.app",
+  messagingSenderId: "471175424877",
+  appId: "1:471175424877:web:7e1a44f77362d13f78c864",
+  measurementId: "G-G1MGN967WT"
 };
 
 // Configuración específica para préstamos
