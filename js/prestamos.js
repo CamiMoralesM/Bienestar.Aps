@@ -229,15 +229,6 @@ window.verConfiguracion = function() {
         window.formulariosManager.mostrarConfiguracion();
     }
 };
-
-// MÉTODO DE EMERGENCIA: Descarga ultra-simple
-window.descargarDirecto = function(tipo) {
-    const urls = {
-        'medico': '/Bienestar-Aps/assets/formulario/formulario-prestamos.pdf',
-        'emergencia': '/Bienestar-Aps/assets/formulario/formulario-prestamos.pdf',
-        'libre-disposicion': '/Bienestar-Aps/assets/formularios/formulario-prestamos-libre-disposicion.pdf',
-        'fondo-solidario': '/Bienestar-Aps/assets/formulario/formulario-prestamos.pdf'
-    };
     
     if (urls[tipo]) {
         const link = document.createElement('a');
