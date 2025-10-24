@@ -8,7 +8,7 @@ class FormulariosDownloadManager {
                 titulo: 'Préstamos Médicos'
             },
             'emergencia': {
-                url: './assets/formulario/formulario-prestamo.pdf',
+                url: './assets/formulario/formulario-prestamos.pdf',
                 nombre: 'Formulario_Prestamo_Emergencia.pdf',
                 titulo: 'Préstamos de Emergencia'
             },
