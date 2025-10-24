@@ -19,10 +19,10 @@ export const prestamosConfig = {
     // Rutas de los formularios en IMÁGENES PNG (se convierten a PDF en descarga)
     // IMPORTANTE: Actualizar estas rutas con la ubicación real de sus imágenes
     formulariosImagenes: {
-        'medico': './assets/formularios/formulario-prestamos.png',
-        'emergencia': './assets/formularios/formulario-prestamos.png',
-        'libre-disposicion': './assets/formularios/formulario-prestamos-libre-disposicion.png',
-        'fondo-solidario': './assets/formularios/formulario-prestamos.png'
+        'medico': './assets/formulario-prestamos.png',
+        'emergencia': './assets/formulario-prestamos.png',
+        'libre-disposicion': './assets/formulario-prestamos-libre-disposicion.png',
+        'fondo-solidario': './assets/formulario-prestamos.png'
     },
     
     // Nombres de descarga para los PDFs generados
