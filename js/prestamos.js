@@ -1,4 +1,4 @@
-// prestamos-handler.js
+// prestamos-handler-simple.js
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
 import { 
     getFirestore, 
@@ -17,14 +17,8 @@ import {
     getDownloadURL 
 } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js';
 
-// Configuración de Firebase (usar la misma configuración del proyecto)
-const firebaseConfig = {
-    // Aquí va tu configuración de Firebase
-    // apiKey: "...",
-    // authDomain: "...",
-    // projectId: "...",
-    // etc.
-};
+// Importar configuración (ajustar la ruta según sea necesario)
+import { firebaseConfig, prestamosConfig } from './firebase-config-prestamos.js';
 
 // Inicializar Firebase
 const app = initializeApp(firebaseConfig);
@@ -34,12 +28,9 @@ const storage = getStorage(app);
 class PrestamosHandler {
     constructor() {
         this.initializeEventListeners();
-        this.formularios = {
-            'medico': '/assets/formularios/formulario-prestamo-medico.pdf',
-            'emergencia': '/assets/formularios/formulario-prestamo-emergencia.pdf',
-            'libre-disposicion': '/assets/formularios/formulario-prestamo-libre-disposicion.pdf',
-            'fondo-solidario': '/assets/formularios/formulario-fondo-solidario.pdf'
-        };
+        // Usar formularios de la configuración
+        this.formularios = prestamosConfig.formulariosPDF;
+        this.nombresFormularios = prestamosConfig.nombresFormularios;
     }
 
     initializeEventListeners() {
@@ -71,261 +62,67 @@ class PrestamosHandler {
     }
 
     descargarFormulario(tipo) {
-        // Verificar si el generador de PDF está disponible
-        if (typeof window.PDFGenerator !== 'undefined') {
-            const pdfGenerator = new window.PDFGenerator();
-            
-            switch(tipo) {
-                case 'medico':
-                    pdfGenerator.generarFormularioMedico();
-                    break;
-                case 'emergencia':
-                    pdfGenerator.generarFormularioEmergencia();
-                    break;
-                case 'libre-disposicion':
-                    pdfGenerator.generarFormularioLibreDisposicion();
-                    break;
-                case 'fondo-solidario':
-                    pdfGenerator.generarFormularioFondoSolidario();
-                    break;
-                default:
-                    console.error('Tipo de formulario no encontrado:', tipo);
-                    this.mostrarMensaje('Error: Tipo de formulario no encontrado', 'error');
-                    return;
-            }
-            
-            this.mostrarMensaje('Formulario descargado exitosamente', 'success');
-        } else {
-            // Fallback a generación simple si PDF Generator no está disponible
-            this.generarFormularioSimple(tipo);
-        }
-    }
-
-    generarFormularioSimple(tipo) {
-        const formularios = {
-            'medico': this.generarFormularioMedico(),
-            'emergencia': this.generarFormularioEmergencia(),
-            'libre-disposicion': this.generarFormularioLibreDisposicion(),
-            'fondo-solidario': this.generarFormularioFondoSolidario()
-        };
-
-        if (formularios[tipo]) {
-            formularios[tipo]();
-        } else {
+        // Obtener la URL del formulario desde la configuración
+        const urlFormulario = this.formularios[tipo];
+        
+        if (!urlFormulario) {
             console.error('Tipo de formulario no encontrado:', tipo);
             this.mostrarMensaje('Error: Tipo de formulario no encontrado', 'error');
+            return;
+        }
+
+        // Verificar si el archivo existe antes de descargarlo
+        this.verificarYDescargarFormulario(urlFormulario, tipo);
+    }
+
+    async verificarYDescargarFormulario(url, tipo) {
+        try {
+            // Intentar acceder al archivo
+            const response = await fetch(url, { method: 'HEAD' });
+            
+            if (response.ok) {
+                // El archivo existe, proceder con la descarga
+                this.iniciarDescarga(url, tipo);
+                this.mostrarMensaje(`Descargando formulario de ${this.obtenerNombreTipo(tipo)}`, 'success');
+            } else {
+                // El archivo no existe
+                console.error('Formulario no encontrado en:', url);
+                this.mostrarMensaje('Error: El formulario no está disponible. Contacte al administrador.', 'error');
+            }
+        } catch (error) {
+            // Error de red o archivo no accesible
+            console.error('Error al verificar formulario:', error);
+            // Intentar descarga directa como fallback
+            this.iniciarDescarga(url, tipo);
+            this.mostrarMensaje(`Intentando descargar formulario de ${this.obtenerNombreTipo(tipo)}...`, 'info');
         }
     }
 
-    generarFormularioMedico() {
-        // Crear PDF para préstamo médico
-        this.crearPDFFormulario('Formulario de Préstamo Médico', {
-            titulo: 'SOLICITUD DE PRÉSTAMO MÉDICO',
-            subtitulo: 'Servicio de Bienestar APS - Corporación Municipal de Puente Alto',
-            campos: [
-                'DATOS DEL SOLICITANTE',
-                'Nombre completo: ____________________________________',
-                'RUT: ____________________',
-                'Teléfono: ____________________',
-                'Correo electrónico: ____________________________________',
-                'Dirección: ____________________________________',
-                '',
-                'DATOS DEL PRÉSTAMO',
-                'Monto solicitado: $____________________',
-                'Número de cuotas solicitadas (máx. 12): ____________________',
-                'Motivo médico: ____________________________________',
-                '________________________________________________',
-                '________________________________________________',
-                '',
-                'DOCUMENTOS ADJUNTOS (marcar con X)',
-                '☐ Fotocopia de cédula de identidad',
-                '☐ Últimas 3 liquidaciones de sueldo',
-                '☐ Informes médicos',
-                '☐ Cotizaciones de medicamentos/tratamientos',
-                '☐ Otros: ____________________________________',
-                '',
-                'DECLARACIÓN',
-                'Declaro que la información proporcionada es verdadera y me comprometo',
-                'a cumplir con las condiciones del préstamo aprobado.',
-                '',
-                'Fecha: ____________________',
-                '',
-                'Firma del solicitante: ____________________________________',
-                '',
-                'PARA USO EXCLUSIVO DEL SERVICIO DE BIENESTAR',
-                'Evaluado por: ____________________________________',
-                'Fecha de evaluación: ____________________',
-                'Aprobado: ☐ Sí  ☐ No',
-                'Observaciones: ____________________________________',
-                '________________________________________________'
-            ]
-        });
-    }
-
-    generarFormularioEmergencia() {
-        this.crearPDFFormulario('Formulario de Préstamo de Emergencia', {
-            titulo: 'SOLICITUD DE PRÉSTAMO DE EMERGENCIA',
-            subtitulo: 'Servicio de Bienestar APS - Corporación Municipal de Puente Alto',
-            campos: [
-                'DATOS DEL SOLICITANTE',
-                'Nombre completo: ____________________________________',
-                'RUT: ____________________',
-                'Teléfono: ____________________',
-                'Correo electrónico: ____________________________________',
-                'Dirección: ____________________________________',
-                '',
-                'DATOS DEL PRÉSTAMO DE EMERGENCIA',
-                'Monto solicitado: $____________________',
-                'Descripción de la emergencia: ____________________________________',
-                '________________________________________________',
-                '________________________________________________',
-                '________________________________________________',
-                '',
-                'DOCUMENTOS ADJUNTOS (marcar con X)',
-                '☐ Fotocopia de cédula de identidad',
-                '☐ Últimas 3 liquidaciones de sueldo',
-                '☐ Documentos que respalden la emergencia',
-                '☐ Otros: ____________________________________',
-                '',
-                'DECLARACIÓN',
-                'Declaro que la situación descrita constituye una emergencia real',
-                'y me comprometo a cumplir con las condiciones del préstamo.',
-                'El monto será descontado de mi liquidación de sueldo según',
-                'las condiciones contractuales establecidas.',
-                '',
-                'Fecha: ____________________',
-                '',
-                'Firma del solicitante: ____________________________________',
-                '',
-                'PARA USO EXCLUSIVO DEL SERVICIO DE BIENESTAR',
-                'Evaluado por: ____________________________________',
-                'Fecha de evaluación: ____________________',
-                'Aprobado: ☐ Sí  ☐ No',
-                'Observaciones: ____________________________________',
-                '________________________________________________'
-            ]
-        });
-    }
-
-    generarFormularioLibreDisposicion() {
-        this.crearPDFFormulario('Formulario de Préstamo de Libre Disposición', {
-            titulo: 'SOLICITUD DE PRÉSTAMO DE LIBRE DISPOSICIÓN',
-            subtitulo: 'Servicio de Bienestar APS - Corporación Municipal de Puente Alto',
-            campos: [
-                'DATOS DEL SOLICITANTE',
-                'Nombre completo: ____________________________________',
-                'RUT: ____________________',
-                'Teléfono: ____________________',
-                'Correo electrónico: ____________________________________',
-                'Dirección: ____________________________________',
-                '',
-                'DATOS DEL PRÉSTAMO',
-                'Monto solicitado (máx. $300.000): $____________________',
-                'Número de cuotas solicitadas (máx. 6): ____________________',
-                'Propósito del préstamo: ____________________________________',
-                '________________________________________________',
-                '',
-                'DOCUMENTOS ADJUNTOS (marcar con X)',
-                '☐ Fotocopia de cédula de identidad',
-                '☐ Últimas 3 liquidaciones de sueldo',
-                '☐ Formulario de préstamo de libre disposición',
-                '',
-                'REQUISITOS',
-                '✓ Tener al menos 3 descuentos del Servicio de Bienestar APS',
-                '✓ Presentar las últimas 3 liquidaciones',
-                '✓ Fotocopia de cédula de identidad vigente',
-                '',
-                'DECLARACIÓN',
-                'Declaro que cumplo con todos los requisitos y me comprometo',
-                'a cumplir con las condiciones del préstamo aprobado.',
-                '',
-                'Fecha: ____________________',
-                '',
-                'Firma del solicitante: ____________________________________',
-                '',
-                'PARA USO EXCLUSIVO DEL SERVICIO DE BIENESTAR',
-                'Evaluado por: ____________________________________',
-                'Fecha de evaluación: ____________________',
-                'Aprobado: ☐ Sí  ☐ No',
-                'Observaciones: ____________________________________',
-                '________________________________________________'
-            ]
-        });
-    }
-
-    generarFormularioFondoSolidario() {
-        this.crearPDFFormulario('Formulario de Fondo Solidario', {
-            titulo: 'SOLICITUD DE FONDO SOLIDARIO',
-            subtitulo: 'Servicio de Bienestar APS - Corporación Municipal de Puente Alto',
-            campos: [
-                'DATOS DEL SOLICITANTE',
-                'Nombre completo: ____________________________________',
-                'RUT: ____________________',
-                'Teléfono: ____________________',
-                'Correo electrónico: ____________________________________',
-                'Dirección: ____________________________________',
-                '',
-                'DATOS DE LA SOLICITUD',
-                'Monto solicitado: $____________________',
-                'Tipo de emergencia/situación:',
-                '☐ Emergencia de salud',
-                '☐ Situación familiar compleja',
-                '☐ Otro: ____________________________________',
-                '',
-                'Descripción detallada de la situación:',
-                '________________________________________________',
-                '________________________________________________',
-                '________________________________________________',
-                '________________________________________________',
-                '',
-                'DOCUMENTOS ADJUNTOS (marcar con X)',
-                '☐ Fotocopia de cédula de identidad',
-                '☐ Últimas 3 liquidaciones de sueldo',
-                '☐ Documentos que respalden la situación',
-                '☐ Informes médicos (si aplica)',
-                '☐ Otros: ____________________________________',
-                '',
-                'DECLARACIÓN',
-                'Declaro que la información proporcionada es verdadera',
-                'y que la situación descrita requiere apoyo solidario.',
-                'Entiendo que esta ayuda no tiene retorno y será evaluada',
-                'por el Trabajador/a Social en conjunto con el Comité',
-                'del Servicio de Bienestar APS.',
-                '',
-                'Fecha: ____________________',
-                '',
-                'Firma del solicitante: ____________________________________',
-                '',
-                'PARA USO EXCLUSIVO DEL SERVICIO DE BIENESTAR',
-                'Evaluado por: ____________________________________',
-                'Fecha de evaluación: ____________________',
-                'Aprobado por Comité: ☐ Sí  ☐ No',
-                'Observaciones: ____________________________________',
-                '________________________________________________'
-            ]
-        });
-    }
-
-    crearPDFFormulario(nombreArchivo, contenido) {
-        // Simular descarga de PDF
-        // En una implementación real, aquí usarías una librería como jsPDF
-        const element = document.createElement('a');
-        const contenidoTexto = [
-            contenido.titulo,
-            contenido.subtitulo,
-            '',
-            ...contenido.campos
-        ].join('\n');
+    iniciarDescarga(url, tipo) {
+        // Crear enlace de descarga
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = this.nombresFormularios[tipo] || `formulario-${tipo}.pdf`;
+        link.target = '_blank'; // Abrir en nueva pestaña como backup
         
-        const file = new Blob([contenidoTexto], { type: 'text/plain' });
-        element.href = URL.createObjectURL(file);
-        element.download = `${nombreArchivo}.txt`;
-        document.body.appendChild(element);
-        element.click();
-        document.body.removeChild(element);
+        // Agregar al DOM temporalmente
+        document.body.appendChild(link);
         
-        // Mostrar mensaje de éxito
-        this.mostrarMensaje('Formulario descargado exitosamente', 'success');
+        // Trigger de descarga
+        link.click();
+        
+        // Remover del DOM
+        document.body.removeChild(link);
+    }
+
+    obtenerNombreTipo(tipo) {
+        const nombres = {
+            'medico': 'Préstamos Médicos',
+            'emergencia': 'Préstamos de Emergencia',
+            'libre-disposicion': 'Préstamos de Libre Disposición',
+            'fondo-solidario': 'Fondo Solidario'
+        };
+        return nombres[tipo] || tipo;
     }
 
     manejarCambioTipo(event) {
@@ -337,47 +134,56 @@ class PrestamosHandler {
         // Limpiar monto al cambiar tipo
         montoInput.value = '';
         
-        // Configurar límites de monto según tipo
+        // Obtener límites desde la configuración
+        const limites = prestamosConfig.limitesPrestamos[tipo];
+        
+        if (limites) {
+            // Configurar límites de monto según tipo
+            if (limites.montoMaximo) {
+                montoInput.max = limites.montoMaximo;
+                montoInput.placeholder = `Máximo $${limites.montoMaximo.toLocaleString()}`;
+            } else {
+                montoInput.max = '';
+                montoInput.placeholder = 'Monto según necesidad';
+            }
+        }
+        
+        // Configurar documentos adicionales
         switch(tipo) {
             case 'prestamo-medico':
-            case 'prestamo-emergencia':
-                montoInput.max = 500000;
-                montoInput.placeholder = 'Máximo $500.000';
                 documentosAdicionales.style.display = 'block';
-                documentosExtrasInfo.textContent = tipo === 'prestamo-medico' 
-                    ? 'Informes médicos, cotizaciones de medicamentos o tratamientos'
-                    : 'Documentos que respalden la emergencia (facturas, informes, etc.)';
+                documentosExtrasInfo.textContent = 'Informes médicos, cotizaciones de medicamentos o tratamientos';
+                break;
+            case 'prestamo-emergencia':
+                documentosAdicionales.style.display = 'block';
+                documentosExtrasInfo.textContent = 'Documentos que respalden la emergencia (facturas, informes, etc.)';
                 break;
             case 'prestamo-libre-disposicion':
-                montoInput.max = 300000;
-                montoInput.placeholder = 'Máximo $300.000';
                 documentosAdicionales.style.display = 'none';
                 break;
             case 'fondo-solidario':
-                montoInput.max = 1000000; // Sin límite específico, pero ponemos uno alto
-                montoInput.placeholder = 'Monto según necesidad';
                 documentosAdicionales.style.display = 'block';
                 documentosExtrasInfo.textContent = 'Documentos que respalden la situación de emergencia familiar';
                 break;
             default:
                 documentosAdicionales.style.display = 'none';
-                montoInput.max = '';
-                montoInput.placeholder = 'Ingrese monto';
         }
     }
 
     validarMonto(event) {
         const monto = parseInt(event.target.value);
         const tipo = document.getElementById('tipoSolicitud').value;
-        const maximos = {
-            'prestamo-medico': 500000,
-            'prestamo-emergencia': 500000,
-            'prestamo-libre-disposicion': 300000
-        };
-
-        if (tipo && maximos[tipo] && monto > maximos[tipo]) {
-            this.mostrarMensaje(`El monto máximo para ${tipo} es $${maximos[tipo].toLocaleString()}`, 'warning');
-            event.target.value = maximos[tipo];
+        
+        if (tipo && prestamosConfig.limitesPrestamos[tipo]) {
+            const limites = prestamosConfig.limitesPrestamos[tipo];
+            
+            if (limites.montoMaximo && monto > limites.montoMaximo) {
+                this.mostrarMensaje(
+                    `El monto máximo para ${this.obtenerNombreTipo(tipo)} es $${limites.montoMaximo.toLocaleString()}`, 
+                    'warning'
+                );
+                event.target.value = limites.montoMaximo;
+            }
         }
     }
 
@@ -410,26 +216,56 @@ class PrestamosHandler {
                 usuarioSolicitante: userData.rut
             };
             
+            // Validar datos antes de enviar
+            this.validarDatosSolicitud(solicitudData);
+            
             // Subir archivos
             const archivos = await this.subirArchivos(formData);
             solicitudData.archivos = archivos;
             
             // Guardar en Firestore
-            const docRef = await addDoc(collection(db, 'solicitudes-prestamos'), solicitudData);
+            const docRef = await addDoc(
+                collection(db, prestamosConfig.coleccionSolicitudes), 
+                solicitudData
+            );
             
             // Limpiar formulario
             event.target.reset();
             
             // Mostrar mensaje de éxito
             this.ocultarLoading();
-            this.mostrarMensaje('Solicitud enviada exitosamente. Recibirá una respuesta pronto.', 'success');
+            this.mostrarMensaje(
+                'Solicitud enviada exitosamente. Recibirá una respuesta pronto.', 
+                'success'
+            );
             
             console.log('Solicitud guardada con ID:', docRef.id);
             
         } catch (error) {
             console.error('Error al enviar solicitud:', error);
             this.ocultarLoading();
-            this.mostrarMensaje('Error al enviar la solicitud. Inténtelo nuevamente.', 'error');
+            this.mostrarMensaje(
+                `Error al enviar la solicitud: ${error.message}`, 
+                'error'
+            );
+        }
+    }
+
+    validarDatosSolicitud(datos) {
+        // Validar campos requeridos
+        if (!datos.rut || !datos.nombre || !datos.email || !datos.telefono) {
+            throw new Error('Todos los campos obligatorios deben estar completos');
+        }
+        
+        // Validar monto
+        if (!datos.montoSolicitado || datos.montoSolicitado <= 0) {
+            throw new Error('El monto solicitado debe ser mayor a 0');
+        }
+        
+        // Validar límites según tipo
+        const limites = prestamosConfig.limitesPrestamos[datos.tipoSolicitud];
+        if (limites && limites.montoMaximo && datos.montoSolicitado > limites.montoMaximo) {
+            throw new Error(`El monto excede el límite máximo de $${limites.montoMaximo.toLocaleString()}`);
         }
     }
 
@@ -448,8 +284,11 @@ class PrestamosHandler {
                 archivos[campo] = [];
                 
                 for (const file of files) {
+                    // Validar archivo
+                    this.validarArchivo(file);
+                    
                     const timestamp = Date.now();
-                    const fileName = `prestamos/${timestamp}_${file.name}`;
+                    const fileName = `${prestamosConfig.carpetaStorage}/${timestamp}_${file.name}`;
                     const storageRef = ref(storage, fileName);
                     
                     const snapshot = await uploadBytes(storageRef, file);
@@ -458,7 +297,8 @@ class PrestamosHandler {
                     archivos[campo].push({
                         nombre: file.name,
                         url: downloadURL,
-                        fecha: new Date().toISOString()
+                        fecha: new Date().toISOString(),
+                        tamaño: file.size
                     });
                 }
             }
@@ -467,10 +307,22 @@ class PrestamosHandler {
         return archivos;
     }
 
+    validarArchivo(file) {
+        // Validar tamaño
+        if (file.size > prestamosConfig.maxFileSize) {
+            throw new Error(`El archivo ${file.name} excede el tamaño máximo permitido`);
+        }
+        
+        // Validar tipo
+        if (!prestamosConfig.allowedFileTypes.includes(file.type)) {
+            throw new Error(`El archivo ${file.name} no tiene un formato permitido`);
+        }
+    }
+
     async cargarSolicitudesUsuario(rutUsuario) {
         try {
             const q = query(
-                collection(db, 'solicitudes-prestamos'),
+                collection(db, prestamosConfig.coleccionSolicitudes),
                 where('usuarioSolicitante', '==', rutUsuario),
                 orderBy('fechaSolicitud', 'desc')
             );
