@@ -16,21 +16,45 @@ export const prestamosConfig = {
     // Subcarpeta en Storage para archivos de préstamos
     carpetaStorage: 'prestamos',
     
-    // Rutas de los formularios PDF reales
-    // IMPORTANTE: Actualizar estas rutas con la ubicación real de sus formularios
-    formulariosPDF: {
-        'medico': './assets/formulario/formulario-prestamos.pdf',
-        'emergencia': './assets/formulario/formulario-prestamos.pdf',
-        'libre-disposicion': './assets/formularios/formulario-prestamo-libre-disposicion.pdf',
-        'fondo-solidario': './assets/formularios/formulario-fondo-solidario.pdf'
+    // Rutas de los formularios en IMÁGENES PNG (se convierten a PDF en descarga)
+    // IMPORTANTE: Actualizar estas rutas con la ubicación real de sus imágenes
+    formulariosImagenes: {
+        'medico': './assets/formularios/formulario-prestamos.png',
+        'emergencia': './assets/formularios/formulario-prestamos.png',
+        'libre-disposicion': './assets/formularios/formulario-prestamos-libre-disposicion.png',
+        'fondo-solidario': './assets/formularios/formulario-prestamos.png'
     },
     
-    // Nombres de descarga para los formularios
+    // Nombres de descarga para los PDFs generados
     nombresFormularios: {
         'medico': 'Formulario_Prestamo_Medico.pdf',
         'emergencia': 'Formulario_Prestamo_Emergencia.pdf', 
         'libre-disposicion': 'Formulario_Prestamo_Libre_Disposicion.pdf',
         'fondo-solidario': 'Formulario_Fondo_Solidario.pdf'
+    },
+    
+    // Configuración para conversión imagen a PDF
+    conversionConfig: {
+        // Biblioteca para conversión
+        libreriaPDF: 'jspdf',
+        cdnJsPDF: 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+        
+        // Configuración de página PDF
+        formatoPagina: 'a4',
+        orientacion: 'portrait', // o 'landscape'
+        unidades: 'mm',
+        
+        // Calidad de imagen en PDF
+        calidadImagen: 'FAST', // FAST, MEDIUM, SLOW
+        tipoImagen: 'PNG',
+        
+        // Márgenes para centrar imagen
+        margenes: {
+            top: 10,
+            bottom: 10,
+            left: 10,
+            right: 10
+        }
     },
     
     // Límites de archivos
@@ -41,6 +65,13 @@ export const prestamosConfig = {
         'image/jpg', 
         'image/png',
         'image/webp'
+    ],
+    
+    // Tipos de archivos de formularios fuente
+    tiposFormulario: [
+        'image/png',
+        'image/jpeg',
+        'image/jpg'
     ],
     
     // Límites de préstamos por tipo
@@ -139,7 +170,12 @@ export const mensajesError = {
     archivoMuyGrande: 'El archivo excede el tamaño máximo permitido (10MB)',
     formatoArchivoInvalido: 'Formato de archivo no permitido',
     errorConexion: 'Error de conexión. Por favor intente nuevamente',
-    errorGeneral: 'Ha ocurrido un error inesperado'
+    errorGeneral: 'Ha ocurrido un error inesperado',
+    
+    // Nuevos mensajes para conversión imagen a PDF
+    errorCargandoImagen: 'Error al cargar la imagen del formulario',
+    errorConvirtiendoPDF: 'Error al convertir imagen a PDF',
+    bibliotecaPDFNoDisponible: 'Biblioteca PDF no disponible'
 };
 
 // Configuración de interfaz
