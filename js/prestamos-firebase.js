@@ -1,4 +1,13 @@
-import { db } from './firebase-config.js';
+// Configuración de tu proyecto Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyA9nXi619VOgT6mUYmYfu2jja8TRAj9QJE",
+  authDomain: "bienestaraps-c87f0.firebaseapp.com",
+  projectId: "bienestaraps-c87f0",
+  storageBucket: "bienestaraps-c87f0.firebasestorage.app",
+  messagingSenderId: "471175424877",
+  appId: "1:471175424877:web:7e1a44f77362d13f78c864",
+  measurementId: "G-G1MGN967WT"
+};
 export const prestamosConfig = {
     // Colección principal para solicitudes de préstamos
     coleccionSolicitudes: 'solicitudes-prestamos',
