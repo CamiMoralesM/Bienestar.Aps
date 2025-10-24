@@ -8,18 +8,6 @@ export const firebaseConfig = {
   appId: "1:471175424877:web:7e1a44f77362d13f78c864",
   measurementId: "G-G1MGN967WT"
 };
-// firebase-config-prestamos.js
-// Configuración de Firebase para el módulo de préstamos
-
-// IMPORTANTE: Reemplaza estos valores con tu configuración real de Firebase
-export const firebaseConfig = {
-    apiKey: "tu-api-key-aqui",
-    authDomain: "tu-proyecto.firebaseapp.com",
-    projectId: "tu-proyecto-id",
-    storageBucket: "tu-proyecto.appspot.com",
-    messagingSenderId: "123456789",
-    appId: "tu-app-id"
-};
 
 // Configuración específica para préstamos
 export const prestamosConfig = {
