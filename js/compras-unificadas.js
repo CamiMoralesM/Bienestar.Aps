@@ -1,6 +1,7 @@
 // ========================================
 // SISTEMA UNIFICADO DE COMPRAS - COMPLETO
 // Gas, Cine, Jumper Trampoline Park y Gimnasio
+// CON VALIDACIÓN AUTOMÁTICA DE CUPOS MENSUALES
 // ========================================
 
 import { db, auth } from './firebase-config.js';
@@ -13,6 +14,19 @@ import {
     Timestamp 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
+// IMPORTAR FUNCIONES DE VALIDACIÓN DE CUPOS
+import { 
+    validarCupoMensual,
+    validarCupoGas,
+    validarCupoCine,
+    validarCupoJumper,
+    validarCupoGimnasio,
+    inicializarValidacionCupoAutomatica,
+    bloquearFormularioPorCupo,
+    habilitarFormularioPorCupo,
+    validarCupoEnRUT
+} from './validacion-cupo-mensual.js';
 
 // ========================================
 // CONSTANTES UNIFICADAS
@@ -62,6 +76,9 @@ let compraLipigas, compraAbastible, lipigasOpciones, abastibleOpciones, rutInput
 let formCompraCine, formCompraJumper, formCompraGimnasio;
 let selectCantidadCine, selectCantidadJumper, selectCantidadGimnasio;
 
+// Variables para inputs de RUT de entretenimiento
+let rutInputCine, rutInputJumper, rutInputGimnasio;
+
 // ========================================
 // INICIALIZACIÓN UNIFICADA
 // ========================================
@@ -84,6 +101,11 @@ document.addEventListener('DOMContentLoaded', function() {
     selectCantidadCine = document.getElementById('cantidadCine');
     selectCantidadJumper = document.getElementById('cantidadJumper');
     selectCantidadGimnasio = document.getElementById('cantidadGimnasio');
+
+    // Inputs de RUT para entretenimiento
+    rutInputCine = document.getElementById('rutCine');
+    rutInputJumper = document.getElementById('rutJumper');
+    rutInputGimnasio = document.getElementById('rutGimnasio');
 
     // Inicializar según qué elementos estén presentes
     if (formCompraGas) {
@@ -219,6 +241,79 @@ function actualizarPrecioTotal(tipo, cantidad) {
     const elementoTotal = document.getElementById(`total${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`);
     if (elementoTotal) {
         elementoTotal.textContent = `$${total.toLocaleString('es-CL')}`;
+    }
+}
+
+// ========================================
+// FUNCIONES DE VALIDACIÓN ESPECÍFICAS PARA ENTRETENIMIENTO
+// ========================================
+
+/**
+ * Valida el cupo disponible y las cantidades seleccionadas en entretenimiento
+ */
+async function validarCompraEntretenimiento(rut, tipo, cantidad) {
+    try {
+        console.log(`🔍 Validando compra de ${tipo}: ${cantidad} entradas para RUT ${rut}`);
+        
+        // Validar cupo mensual
+        const validacionCupo = await validarCupoMensual(rut, tipo, cantidad);
+        
+        if (!validacionCupo.success) {
+            throw new Error(validacionCupo.error || `Error al validar cupo de ${tipo}`);
+        }
+        
+        if (!validacionCupo.puedeComprar) {
+            throw new Error(`❌ Cupo mensual de ${NOMBRES_TIPOS[tipo]} agotado (${validacionCupo.usoActual}/${validacionCupo.limiteCupo})`);
+        }
+        
+        if (!validacionCupo.puedeComprarCantidad) {
+            throw new Error(`❌ La cantidad solicitada (${cantidad}) excede su cupo disponible.\n\n` +
+                          `Disponible: ${validacionCupo.disponible} entradas\n` +
+                          `Límite mensual: ${validacionCupo.limiteCupo} entradas\n` +
+                          `Ya usado: ${validacionCupo.usoActual} entradas`);
+        }
+        
+        return {
+            success: true,
+            validacionCupo,
+            mensaje: `✅ Compra autorizada: ${cantidad} entradas de ${NOMBRES_TIPOS[tipo]}`
+        };
+        
+    } catch (error) {
+        console.error(`❌ Error en validación de ${tipo}:`, error);
+        return {
+            success: false,
+            error: error.message
+        };
+    }
+}
+
+/**
+ * Actualiza las opciones del select de cantidad según el cupo disponible
+ */
+function actualizarOpcionesSegunCupo(tipo, cupoDisponible) {
+    const selectCantidad = document.getElementById(`cantidad${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`);
+    if (!selectCantidad) return;
+    
+    const limiteMaximo = obtenerLimiteEntretenimiento(tipo);
+    const maxSeleccionable = Math.min(cupoDisponible, limiteMaximo);
+    
+    console.log(`📊 Actualizando opciones ${tipo}: cupo disponible=${cupoDisponible}, máximo=${maxSeleccionable}`);
+    
+    // Limpiar opciones existentes
+    selectCantidad.innerHTML = '<option value="0">Seleccionar cantidad</option>';
+    
+    // Agregar opciones según cupo disponible
+    for (let i = 1; i <= maxSeleccionable; i++) {
+        selectCantidad.innerHTML += `<option value="${i}">${i}</option>`;
+    }
+    
+    // Si no hay cupo, mostrar mensaje
+    if (cupoDisponible === 0) {
+        selectCantidad.innerHTML = '<option value="0">❌ Sin cupo disponible</option>';
+        selectCantidad.disabled = true;
+    } else {
+        selectCantidad.disabled = false;
     }
 }
 
@@ -506,7 +601,11 @@ function inicializarSistemaGas() {
     
     inicializarEventListenersGas();
     inicializarFecha('fechaCompraGas');
-    inicializarValidacionCupo();
+    
+    // Inicializar validación automática de cupo para gas
+    if (rutInput) {
+        inicializarValidacionCupoAutomatica('rutGas', 'formCompraGas', 'gas');
+    }
 }
 
 function inicializarSistemaEntretenimiento(tipo) {
@@ -514,6 +613,8 @@ function inicializarSistemaEntretenimiento(tipo) {
     if (!form) return;
     
     const selectCantidad = document.getElementById(`cantidad${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`);
+    const rutInputElement = document.getElementById(`rut${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`);
+    
     if (selectCantidad) {
         generarOpcionesEntretenimiento(tipo, selectCantidad);
         
@@ -525,7 +626,93 @@ function inicializarSistemaEntretenimiento(tipo) {
     
     inicializarFecha(`fechaCompra${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`);
     
+    // Inicializar validación automática de cupo para entretenimiento
+    if (rutInputElement) {
+        console.log(`🎯 Inicializando validación automática para ${tipo}`);
+        
+        // Evento blur para validar cuando pierde el foco
+        rutInputElement.addEventListener('blur', async () => {
+            await validarCupoEntretenimiento(rutInputElement, form, tipo, selectCantidad);
+        });
+        
+        // Evento input con delay para validar mientras escribe
+        let timeoutId;
+        rutInputElement.addEventListener('input', () => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(async () => {
+                await validarCupoEntretenimiento(rutInputElement, form, tipo, selectCantidad);
+            }, 1500);
+        });
+        
+        // Validar inmediatamente si ya hay un valor
+        if (rutInputElement.value.trim()) {
+            validarCupoEntretenimiento(rutInputElement, form, tipo, selectCantidad);
+        }
+    }
+    
     form.addEventListener('submit', (e) => handleFormSubmitEntretenimiento(e, tipo));
+}
+
+/**
+ * Valida el cupo para entretenimiento y actualiza la UI
+ */
+async function validarCupoEntretenimiento(rutInputElement, form, tipo, selectCantidad) {
+    const rut = rutInputElement.value.trim();
+    
+    if (!rut || rut.length < 8) {
+        // RUT incompleto, habilitar formulario
+        habilitarFormularioEntretenimiento(form, tipo, selectCantidad, {
+            mensaje: 'Ingrese su RUT para verificar el cupo disponible',
+            cupoDisponible: obtenerLimiteEntretenimiento(tipo)
+        });
+        return null;
+    }
+    
+    try {
+        console.log(`🔍 [${tipo.toUpperCase()}] Validando cupo para RUT: ${rut}`);
+        
+        // Mostrar indicador de carga
+        mostrarIndicadorCarga(form, `Verificando cupo de ${NOMBRES_TIPOS[tipo]}...`);
+        
+        // Validar cupo usando la función del módulo de validación
+        const validacion = await validarCupoMensual(rut, tipo);
+        
+        // Remover indicador de carga
+        removerIndicadorCarga(form);
+        
+        if (validacion.success) {
+            if (validacion.puedeComprar) {
+                habilitarFormularioEntretenimiento(form, tipo, selectCantidad, validacion);
+                
+                // Actualizar opciones del select según cupo disponible
+                if (selectCantidad) {
+                    actualizarOpcionesSegunCupo(tipo, validacion.disponible);
+                }
+            } else {
+                bloquearFormularioEntretenimiento(form, tipo, selectCantidad, validacion);
+            }
+        } else {
+            // Error en la validación
+            habilitarFormularioEntretenimiento(form, tipo, selectCantidad, {
+                mensaje: 'Error al verificar cupo. Inténtelo nuevamente.',
+                error: true
+            });
+        }
+        
+        return validacion;
+        
+    } catch (error) {
+        console.error(`❌ [${tipo.toUpperCase()}] Error al validar cupo:`, error);
+        
+        removerIndicadorCarga(form);
+        
+        habilitarFormularioEntretenimiento(form, tipo, selectCantidad, {
+            mensaje: 'Error al verificar cupo. Inténtelo nuevamente.',
+            error: true
+        });
+        
+        return null;
+    }
 }
 
 function inicializarEventListenersGas() {
@@ -569,10 +756,6 @@ function inicializarEventListenersGas() {
         });
     }
 
-    if (rutInput) {
-        rutInput.addEventListener('blur', () => verificarCupoUsuario('gas'));
-    }
-
     if (formCompraGas) {
         formCompraGas.addEventListener('submit', handleFormSubmitGas);
     }
@@ -587,14 +770,183 @@ function inicializarFecha(inputId) {
     }
 }
 
-function inicializarValidacionCupo() {
-    if (rutInput && rutInput.value.trim()) {
-        verificarCupoUsuario('gas');
+// ========================================
+// FUNCIONES DE HABILITACIÓN/DESHABILITACIÓN PARA ENTRETENIMIENTO
+// ========================================
+
+function bloquearFormularioEntretenimiento(form, tipo, selectCantidad, validacion) {
+    if (!form) return;
+    
+    console.log(`🔒 [${tipo.toUpperCase()}] Bloqueando formulario por cupo agotado`);
+    
+    // Deshabilitar elementos del formulario
+    const elementos = form.querySelectorAll('input:not([type="submit"]), select, textarea');
+    elementos.forEach(el => {
+        if (el.id !== `rut${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`) { // Mantener RUT habilitado
+            el.disabled = true;
+            el.style.backgroundColor = '#f8f9fa';
+            el.style.color = '#6c757d';
+        }
+    });
+    
+    // Deshabilitar select de cantidad específicamente
+    if (selectCantidad) {
+        selectCantidad.innerHTML = '<option value="0">❌ Sin cupo disponible</option>';
+        selectCantidad.disabled = true;
     }
+    
+    // Modificar botón de envío
+    const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = `❌ Cupo ${NOMBRES_TIPOS[tipo]} Agotado`;
+        submitBtn.style.backgroundColor = '#dc3545';
+        submitBtn.style.color = 'white';
+        submitBtn.style.border = '1px solid #dc3545';
+        submitBtn.style.cursor = 'not-allowed';
+    }
+    
+    // Mostrar mensaje de estado
+    mostrarMensajeCupoEnFormulario(form, validacion, 'agotado', tipo);
+}
+
+function habilitarFormularioEntretenimiento(form, tipo, selectCantidad, validacion) {
+    if (!form) return;
+    
+    console.log(`🔓 [${tipo.toUpperCase()}] Habilitando formulario`);
+    
+    // Habilitar elementos del formulario
+    const elementos = form.querySelectorAll('input, select, textarea, button');
+    elementos.forEach(el => {
+        el.disabled = false;
+        el.style.backgroundColor = '';
+        el.style.color = '';
+    });
+    
+    // Restaurar select de cantidad
+    if (selectCantidad && validacion.cupoDisponible !== undefined) {
+        generarOpcionesEntretenimiento(tipo, selectCantidad);
+        actualizarOpcionesSegunCupo(tipo, validacion.cupoDisponible);
+    }
+    
+    // Restaurar botón de envío
+    const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
+    if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = `Enviar Compra de ${NOMBRES_TIPOS[tipo]}`;
+        submitBtn.style.backgroundColor = '';
+        submitBtn.style.color = '';
+        submitBtn.style.border = '';
+        submitBtn.style.cursor = 'pointer';
+    }
+    
+    // Mostrar mensaje de estado
+    const estado = validacion.error ? 'error' : (validacion.estadoCupo || 'disponible');
+    mostrarMensajeCupoEnFormulario(form, validacion, estado, tipo);
+}
+
+function mostrarMensajeCupoEnFormulario(form, validacion, estado, tipo) {
+    if (!form) return;
+    
+    let mensajeCupo = form.querySelector('.mensaje-cupo-estado');
+    if (!mensajeCupo) {
+        mensajeCupo = document.createElement('div');
+        mensajeCupo.className = 'mensaje-cupo-estado';
+        form.insertBefore(mensajeCupo, form.firstElementChild);
+    }
+    
+    let color, icono, titulo, contenido;
+    
+    switch (estado) {
+        case 'agotado':
+            color = '#dc3545';
+            icono = '❌';
+            titulo = 'Cupo Mensual Agotado';
+            contenido = `
+                <strong>${titulo}</strong><br>
+                <small>${validacion.mensaje || `Ha agotado su cupo mensual de ${NOMBRES_TIPOS[tipo]}`}</small><br>
+                <small style="opacity: 0.8;">Podrá realizar nuevas compras el próximo mes.</small>
+            `;
+            break;
+            
+        case 'critico':
+            color = '#fd7e14';
+            icono = '⚠️';
+            titulo = 'Cupo Crítico';
+            contenido = `
+                <strong>${titulo}</strong><br>
+                <small>${validacion.mensaje || 'Quedan pocas entradas disponibles'}</small>
+            `;
+            break;
+            
+        case 'error':
+            color = '#dc3545';
+            icono = '⚠️';
+            titulo = 'Error de Verificación';
+            contenido = `
+                <strong>${titulo}</strong><br>
+                <small>${validacion.mensaje || 'Error al verificar cupo disponible'}</small>
+            `;
+            break;
+            
+        default: // disponible
+            color = '#28a745';
+            icono = '✅';
+            titulo = 'Cupo Disponible';
+            contenido = `
+                <strong>${titulo}</strong><br>
+                <small>${validacion.mensaje || `Cupo disponible para ${NOMBRES_TIPOS[tipo]}`}</small>
+            `;
+    }
+    
+    mensajeCupo.style.cssText = `
+        padding: 12px 16px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 14px;
+        border: 2px solid ${color};
+        background-color: ${color}15;
+        color: ${color};
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    `;
+    
+    mensajeCupo.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 18px;">${icono}</span>
+            <div>${contenido}</div>
+        </div>
+    `;
+}
+
+function mostrarIndicadorCarga(form, mensaje) {
+    let loader = form.querySelector('.cupo-loader');
+    if (!loader) {
+        loader = document.createElement('div');
+        loader.className = 'cupo-loader';
+        loader.style.cssText = `
+            padding: 8px 16px;
+            text-align: center;
+            color: #6c757d;
+            font-size: 14px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        `;
+        form.insertBefore(loader, form.firstElementChild);
+    }
+    loader.innerHTML = `⏳ ${mensaje}`;
+}
+
+function removerIndicadorCarga(form) {
+    const loader = form?.querySelector('.cupo-loader');
+    if (loader) loader.remove();
 }
 
 // ========================================
-// FUNCIONES DE HABILITACIÓN/DESHABILITACIÓN
+// FUNCIONES DE HABILITACIÓN/DESHABILITACIÓN (HEREDADAS)
 // ========================================
 
 function bloquearFormulario(tipo = 'gas') {
@@ -689,15 +1041,19 @@ async function handleFormSubmitGas(e) {
             return false;
         }
 
-        const validacion = await validarCupoDisponible(rut, 'gas');
+        // Usar la nueva función de validación
+        const validacion = await validarCupoGas(rut, totalCargas);
 
         if (!validacion.success || !validacion.puedeComprar) {
             alert(`❌ ${validacion.mensaje}\n\nNo puede realizar más compras este mes.`);
             return false;
         }
 
-        if (totalCargas > validacion.cupoDisponible) {
-            alert(`❌ La compra excede su cupo disponible.\n\nDisponible: ${validacion.cupoDisponible} cargas\nIntenta comprar: ${totalCargas} cargas`);
+        if (!validacion.puedeComprarCantidad) {
+            alert(`❌ La compra excede su cupo disponible.\n\n` +
+                  `Disponible: ${validacion.disponible} cargas\n` +
+                  `Intenta comprar: ${totalCargas} cargas\n` +
+                  `Límite mensual: ${validacion.limiteCupo} cargas`);
             return false;
         }
 
@@ -760,15 +1116,11 @@ async function handleFormSubmitEntretenimiento(e, tipo) {
             return false;
         }
 
-        const validacion = await validarCupoDisponible(rut, tipo);
+        // VALIDACIÓN ESPECÍFICA PARA ENTRETENIMIENTO CON LA NUEVA FUNCIÓN
+        const validacionCompra = await validarCompraEntretenimiento(rut, tipo, cantidad);
 
-        if (!validacion.success || !validacion.puedeComprar) {
-            alert(`❌ ${validacion.mensaje}\n\nNo puede realizar más compras este mes.`);
-            return false;
-        }
-
-        if (cantidad > validacion.cupoDisponible) {
-            alert(`❌ La compra excede su cupo disponible.\n\nDisponible: ${validacion.cupoDisponible} entradas\nIntenta comprar: ${cantidad} entradas`);
+        if (!validacionCompra.success) {
+            alert(validacionCompra.error);
             return false;
         }
 
@@ -789,7 +1141,13 @@ async function handleFormSubmitEntretenimiento(e, tipo) {
         const resultado = await guardarCompraEnFirebase(formData, comprobanteFile, tipo);
 
         if (resultado.success) {
-            alert(`✅ ${resultado.message}\n\nID: ${resultado.id}\n\n⚠️ Envíe el comprobante por email mencionando este ID.`);
+            const detalleCompra = `\n\n📋 DETALLES DE LA COMPRA:\n` +
+                                `Tipo: ${NOMBRES_TIPOS[tipo]}\n` +
+                                `Cantidad: ${cantidad} entradas\n` +
+                                `Precio: $${(cantidad * obtenerPrecioEntretenimiento(tipo)).toLocaleString('es-CL')}\n` +
+                                `Cupo restante: ${validacionCompra.validacionCupo.disponible - cantidad} entradas`;
+            
+            alert(`✅ ${resultado.message}${detalleCompra}\n\nID: ${resultado.id}\n\n⚠️ Envíe el comprobante por email mencionando este ID.`);
             
             form.reset();
             actualizarPrecioTotal(tipo, 0);
@@ -832,11 +1190,18 @@ export {
     // Funciones de validación
     validarCupoDisponible,
     validarLimitesFormulario,
+    validarCompraEntretenimiento,
     
     // Funciones de guardado
     guardarCompraEnFirebase,
     
     // Funciones de inicialización
     inicializarSistemaGas,
-    inicializarSistemaEntretenimiento
+    inicializarSistemaEntretenimiento,
+    
+    // Funciones de UI para entretenimiento
+    bloquearFormularioEntretenimiento,
+    habilitarFormularioEntretenimiento,
+    validarCupoEntretenimiento,
+    actualizarOpcionesSegunCupo
 };
