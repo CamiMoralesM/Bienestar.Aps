@@ -24,7 +24,7 @@ export const prestamosConfig = {
     // IMPORTANTE: Actualizar estas rutas con la ubicación real de sus formularios
     formulariosPDF: {
         'medico': '/assets/Formulario-prestamo-medico.pdf',
-        'emergencia': '/assets/Formulario-prestamo-emergencia.pdf',
+        'emergencia': '/assets/formularios/Formulario-prestamo-emergencia.pdf',
         'libre-disposicion': '/assets/Formulario-prestamo-libre-disposicion.pdf',
         'fondo-solidario': '/assets/formulario-fondo-solidario.pdf'
     },
