@@ -1,434 +1,162 @@
-// prestamos-handler-simple.js
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
-import { 
-    getFirestore, 
-    collection, 
-    addDoc, 
-    serverTimestamp,
-    query,
-    where,
-    orderBy,
-    getDocs
-} from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
-import { 
-    getStorage, 
-    ref, 
-    uploadBytes, 
-    getDownloadURL 
-} from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js';
+// firebase-config-prestamos.js
+// Configuración de Firebase para el módulo de préstamos
 
-// Importar configuración (ajustar la ruta según sea necesario)
-import { firebaseConfig, prestamosConfig } from './firebase-config-prestamos.js';
+// IMPORTANTE: Reemplaza estos valores con tu configuración real de Firebase
+export const firebaseConfig = {
+    apiKey: "tu-api-key-aqui",
+    authDomain: "tu-proyecto.firebaseapp.com",
+    projectId: "tu-proyecto-id",
+    storageBucket: "tu-proyecto.appspot.com",
+    messagingSenderId: "123456789",
+    appId: "tu-app-id"
+};
 
-// Inicializar Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const storage = getStorage(app);
-
-class PrestamosHandler {
-    constructor() {
-        this.initializeEventListeners();
-        // Usar formularios de la configuración
-        this.formularios = prestamosConfig.formulariosPDF;
-        this.nombresFormularios = prestamosConfig.nombresFormularios;
-    }
-
-    initializeEventListeners() {
-        // Event listeners para descarga de formularios
-        document.querySelectorAll('.btn-download-form').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const tipo = e.target.getAttribute('data-tipo');
-                this.descargarFormulario(tipo);
-            });
-        });
-
-        // Event listener para envío de solicitud de préstamo
-        const form = document.getElementById('formSolicitudPrestamo');
-        if (form) {
-            form.addEventListener('submit', (e) => this.enviarSolicitudPrestamo(e));
+// Configuración específica para préstamos
+export const prestamosConfig = {
+    // Colección principal para solicitudes de préstamos
+    coleccionSolicitudes: 'solicitudes-prestamos',
+    
+    // Subcarpeta en Storage para archivos de préstamos
+    carpetaStorage: 'prestamos',
+    
+    // Rutas de los formularios PDF reales
+    // IMPORTANTE: Actualizar estas rutas con la ubicación real de sus formularios
+    formulariosPDF: {
+        'medico': '/assets/formularios/formulario-prestamo-medico.pdf',
+        'emergencia': '/assets/formularios/formulario-prestamo-emergencia.pdf',
+        'libre-disposicion': '/assets/formularios/formulario-prestamo-libre-disposicion.pdf',
+        'fondo-solidario': '/assets/formularios/formulario-fondo-solidario.pdf'
+    },
+    
+    // Nombres de descarga para los formularios
+    nombresFormularios: {
+        'medico': 'Formulario_Prestamo_Medico.pdf',
+        'emergencia': 'Formulario_Prestamo_Emergencia.pdf', 
+        'libre-disposicion': 'Formulario_Prestamo_Libre_Disposicion.pdf',
+        'fondo-solidario': 'Formulario_Fondo_Solidario.pdf'
+    },
+    
+    // Límites de archivos
+    maxFileSize: 10 * 1024 * 1024, // 10MB en bytes
+    allowedFileTypes: [
+        'application/pdf',
+        'image/jpeg',
+        'image/jpg', 
+        'image/png',
+        'image/webp'
+    ],
+    
+    // Límites de préstamos por tipo
+    limitesPrestamos: {
+        'prestamo-medico': {
+            montoMaximo: 500000,
+            cuotasMaximas: 12
+        },
+        'prestamo-emergencia': {
+            montoMaximo: 500000,
+            cuotasMaximas: null // Según condiciones contractuales
+        },
+        'prestamo-libre-disposicion': {
+            montoMaximo: 300000,
+            cuotasMaximas: 6
+        },
+        'fondo-solidario': {
+            montoMaximo: null, // Sin límite específico
+            cuotasMaximas: null // No aplica
         }
-
-        // Event listener para cambio de tipo de solicitud
-        const tipoSelect = document.getElementById('tipoSolicitud');
-        if (tipoSelect) {
-            tipoSelect.addEventListener('change', (e) => this.manejarCambioTipo(e));
-        }
-
-        // Event listener para validación de monto según tipo
-        const montoInput = document.getElementById('montoSolicitado');
-        if (montoInput) {
-            montoInput.addEventListener('input', (e) => this.validarMonto(e));
-        }
-    }
-
-    descargarFormulario(tipo) {
-        // Obtener la URL del formulario desde la configuración
-        const urlFormulario = this.formularios[tipo];
-        
-        if (!urlFormulario) {
-            console.error('Tipo de formulario no encontrado:', tipo);
-            this.mostrarMensaje('Error: Tipo de formulario no encontrado', 'error');
-            return;
-        }
-
-        // Verificar si el archivo existe antes de descargarlo
-        this.verificarYDescargarFormulario(urlFormulario, tipo);
-    }
-
-    async verificarYDescargarFormulario(url, tipo) {
-        try {
-            // Intentar acceder al archivo
-            const response = await fetch(url, { method: 'HEAD' });
-            
-            if (response.ok) {
-                // El archivo existe, proceder con la descarga
-                this.iniciarDescarga(url, tipo);
-                this.mostrarMensaje(`Descargando formulario de ${this.obtenerNombreTipo(tipo)}`, 'success');
-            } else {
-                // El archivo no existe
-                console.error('Formulario no encontrado en:', url);
-                this.mostrarMensaje('Error: El formulario no está disponible. Contacte al administrador.', 'error');
-            }
-        } catch (error) {
-            // Error de red o archivo no accesible
-            console.error('Error al verificar formulario:', error);
-            // Intentar descarga directa como fallback
-            this.iniciarDescarga(url, tipo);
-            this.mostrarMensaje(`Intentando descargar formulario de ${this.obtenerNombreTipo(tipo)}...`, 'info');
-        }
-    }
-
-    iniciarDescarga(url, tipo) {
-        // Crear enlace de descarga
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = this.nombresFormularios[tipo] || `formulario-${tipo}.pdf`;
-        link.target = '_blank'; // Abrir en nueva pestaña como backup
-        
-        // Agregar al DOM temporalmente
-        document.body.appendChild(link);
-        
-        // Trigger de descarga
-        link.click();
-        
-        // Remover del DOM
-        document.body.removeChild(link);
-    }
-
-    obtenerNombreTipo(tipo) {
-        const nombres = {
-            'medico': 'Préstamos Médicos',
-            'emergencia': 'Préstamos de Emergencia',
-            'libre-disposicion': 'Préstamos de Libre Disposición',
-            'fondo-solidario': 'Fondo Solidario'
-        };
-        return nombres[tipo] || tipo;
-    }
-
-    manejarCambioTipo(event) {
-        const tipo = event.target.value;
-        const documentosAdicionales = document.getElementById('documentosAdicionales');
-        const documentosExtrasInfo = document.getElementById('documentosExtrasInfo');
-        const montoInput = document.getElementById('montoSolicitado');
-        
-        // Limpiar monto al cambiar tipo
-        montoInput.value = '';
-        
-        // Obtener límites desde la configuración
-        const limites = prestamosConfig.limitesPrestamos[tipo];
-        
-        if (limites) {
-            // Configurar límites de monto según tipo
-            if (limites.montoMaximo) {
-                montoInput.max = limites.montoMaximo;
-                montoInput.placeholder = `Máximo $${limites.montoMaximo.toLocaleString()}`;
-            } else {
-                montoInput.max = '';
-                montoInput.placeholder = 'Monto según necesidad';
-            }
-        }
-        
-        // Configurar documentos adicionales
-        switch(tipo) {
-            case 'prestamo-medico':
-                documentosAdicionales.style.display = 'block';
-                documentosExtrasInfo.textContent = 'Informes médicos, cotizaciones de medicamentos o tratamientos';
-                break;
-            case 'prestamo-emergencia':
-                documentosAdicionales.style.display = 'block';
-                documentosExtrasInfo.textContent = 'Documentos que respalden la emergencia (facturas, informes, etc.)';
-                break;
-            case 'prestamo-libre-disposicion':
-                documentosAdicionales.style.display = 'none';
-                break;
-            case 'fondo-solidario':
-                documentosAdicionales.style.display = 'block';
-                documentosExtrasInfo.textContent = 'Documentos que respalden la situación de emergencia familiar';
-                break;
-            default:
-                documentosAdicionales.style.display = 'none';
-        }
-    }
-
-    validarMonto(event) {
-        const monto = parseInt(event.target.value);
-        const tipo = document.getElementById('tipoSolicitud').value;
-        
-        if (tipo && prestamosConfig.limitesPrestamos[tipo]) {
-            const limites = prestamosConfig.limitesPrestamos[tipo];
-            
-            if (limites.montoMaximo && monto > limites.montoMaximo) {
-                this.mostrarMensaje(
-                    `El monto máximo para ${this.obtenerNombreTipo(tipo)} es $${limites.montoMaximo.toLocaleString()}`, 
-                    'warning'
-                );
-                event.target.value = limites.montoMaximo;
-            }
-        }
-    }
-
-    async enviarSolicitudPrestamo(event) {
-        event.preventDefault();
-        
-        try {
-            // Mostrar loading
-            this.mostrarLoading('Enviando solicitud...');
-            
-            const formData = new FormData(event.target);
-            const userData = JSON.parse(sessionStorage.getItem('userData') || '{}');
-            
-            // Validar que el usuario esté logueado
-            if (!userData.rut) {
-                throw new Error('Usuario no autenticado');
-            }
-            
-            // Recopilar datos del formulario
-            const solicitudData = {
-                rut: formData.get('rutPrestamo'),
-                nombre: formData.get('nombrePrestamo'),
-                email: formData.get('emailPrestamo'),
-                telefono: formData.get('telefonoPrestamo'),
-                tipoSolicitud: formData.get('tipoSolicitud'),
-                montoSolicitado: parseInt(formData.get('montoSolicitado')),
-                descripcion: formData.get('descripcionSolicitud'),
-                fechaSolicitud: serverTimestamp(),
-                estado: 'pendiente',
-                usuarioSolicitante: userData.rut
-            };
-            
-            // Validar datos antes de enviar
-            this.validarDatosSolicitud(solicitudData);
-            
-            // Subir archivos
-            const archivos = await this.subirArchivos(formData);
-            solicitudData.archivos = archivos;
-            
-            // Guardar en Firestore
-            const docRef = await addDoc(
-                collection(db, prestamosConfig.coleccionSolicitudes), 
-                solicitudData
-            );
-            
-            // Limpiar formulario
-            event.target.reset();
-            
-            // Mostrar mensaje de éxito
-            this.ocultarLoading();
-            this.mostrarMensaje(
-                'Solicitud enviada exitosamente. Recibirá una respuesta pronto.', 
-                'success'
-            );
-            
-            console.log('Solicitud guardada con ID:', docRef.id);
-            
-        } catch (error) {
-            console.error('Error al enviar solicitud:', error);
-            this.ocultarLoading();
-            this.mostrarMensaje(
-                `Error al enviar la solicitud: ${error.message}`, 
-                'error'
-            );
-        }
-    }
-
-    validarDatosSolicitud(datos) {
-        // Validar campos requeridos
-        if (!datos.rut || !datos.nombre || !datos.email || !datos.telefono) {
-            throw new Error('Todos los campos obligatorios deben estar completos');
-        }
-        
-        // Validar monto
-        if (!datos.montoSolicitado || datos.montoSolicitado <= 0) {
-            throw new Error('El monto solicitado debe ser mayor a 0');
-        }
-        
-        // Validar límites según tipo
-        const limites = prestamosConfig.limitesPrestamos[datos.tipoSolicitud];
-        if (limites && limites.montoMaximo && datos.montoSolicitado > limites.montoMaximo) {
-            throw new Error(`El monto excede el límite máximo de $${limites.montoMaximo.toLocaleString()}`);
-        }
-    }
-
-    async subirArchivos(formData) {
-        const archivos = {};
-        const archivosASubir = [
+    },
+    
+    // Estados posibles de las solicitudes
+    estadosSolicitud: [
+        'pendiente',
+        'en-revision',
+        'aprobado',
+        'rechazado',
+        'completado'
+    ],
+    
+    // Campos requeridos por tipo de préstamo
+    documentosRequeridos: {
+        'prestamo-medico': [
             'formularioCompleto',
-            'cedulaIdentidad', 
+            'cedulaIdentidad',
             'liquidacionesSueldo',
-            'documentosExtras'
-        ];
-        
-        for (const campo of archivosASubir) {
-            const files = formData.getAll(campo);
-            if (files && files.length > 0 && files[0].size > 0) {
-                archivos[campo] = [];
-                
-                for (const file of files) {
-                    // Validar archivo
-                    this.validarArchivo(file);
-                    
-                    const timestamp = Date.now();
-                    const fileName = `${prestamosConfig.carpetaStorage}/${timestamp}_${file.name}`;
-                    const storageRef = ref(storage, fileName);
-                    
-                    const snapshot = await uploadBytes(storageRef, file);
-                    const downloadURL = await getDownloadURL(snapshot.ref);
-                    
-                    archivos[campo].push({
-                        nombre: file.name,
-                        url: downloadURL,
-                        fecha: new Date().toISOString(),
-                        tamaño: file.size
-                    });
-                }
-            }
-        }
-        
-        return archivos;
-    }
-
-    validarArchivo(file) {
-        // Validar tamaño
-        if (file.size > prestamosConfig.maxFileSize) {
-            throw new Error(`El archivo ${file.name} excede el tamaño máximo permitido`);
-        }
-        
-        // Validar tipo
-        if (!prestamosConfig.allowedFileTypes.includes(file.type)) {
-            throw new Error(`El archivo ${file.name} no tiene un formato permitido`);
+            'informesMedicos'
+        ],
+        'prestamo-emergencia': [
+            'formularioCompleto',
+            'cedulaIdentidad',
+            'liquidacionesSueldo',
+            'documentosEmergencia'
+        ],
+        'prestamo-libre-disposicion': [
+            'formularioCompleto',
+            'cedulaIdentidad',
+            'liquidacionesSueldo'
+        ],
+        'fondo-solidario': [
+            'formularioCompleto',
+            'cedulaIdentidad',
+            'liquidacionesSueldo',
+            'documentosSituacion'
+        ]
+    },
+    
+    // Configuración de notificaciones
+    notificaciones: {
+        emailAdmin: 'admin@bienestaraps.cl',
+        emailTemplate: {
+            confirmacion: 'Su solicitud ha sido recibida correctamente',
+            aprobacion: 'Su solicitud ha sido aprobada',
+            rechazo: 'Su solicitud ha sido rechazada'
         }
     }
+};
 
-    async cargarSolicitudesUsuario(rutUsuario) {
-        try {
-            const q = query(
-                collection(db, prestamosConfig.coleccionSolicitudes),
-                where('usuarioSolicitante', '==', rutUsuario),
-                orderBy('fechaSolicitud', 'desc')
-            );
-            
-            const querySnapshot = await getDocs(q);
-            const solicitudes = [];
-            
-            querySnapshot.forEach((doc) => {
-                solicitudes.push({
-                    id: doc.id,
-                    ...doc.data()
-                });
-            });
-            
-            return solicitudes;
-            
-        } catch (error) {
-            console.error('Error al cargar solicitudes:', error);
-            return [];
-        }
+// Reglas de validación
+export const validacionPrestamos = {
+    rut: {
+        required: true,
+        pattern: /^[\d]{1,2}\.?[\d]{3}\.?[\d]{3}[-]?[\dkK]$/
+    },
+    email: {
+        required: true,
+        pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    },
+    telefono: {
+        required: true,
+        pattern: /^(\+?56)?[0-9]{8,9}$/
+    },
+    monto: {
+        required: true,
+        min: 1,
+        validateAgainstType: true
     }
+};
 
-    mostrarMensaje(mensaje, tipo = 'info') {
-        // Crear elemento de mensaje
-        const mensajeDiv = document.createElement('div');
-        mensajeDiv.className = `alert alert-${tipo}`;
-        mensajeDiv.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            border-radius: 8px;
-            z-index: 9999;
-            max-width: 400px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        `;
-        
-        // Estilos según tipo
-        const estilos = {
-            success: 'background: #d4edda; color: #155724; border: 1px solid #c3e6cb;',
-            error: 'background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;',
-            warning: 'background: #fff3cd; color: #856404; border: 1px solid #ffeaa7;',
-            info: 'background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb;'
-        };
-        
-        mensajeDiv.style.cssText += estilos[tipo];
-        mensajeDiv.textContent = mensaje;
-        
-        document.body.appendChild(mensajeDiv);
-        
-        // Remover después de 5 segundos
-        setTimeout(() => {
-            if (mensajeDiv.parentNode) {
-                mensajeDiv.parentNode.removeChild(mensajeDiv);
-            }
-        }, 5000);
+// Mensajes de error personalizados
+export const mensajesError = {
+    campoRequerido: 'Este campo es obligatorio',
+    formatoInvalido: 'El formato ingresado no es válido',
+    montoExcedido: 'El monto excede el límite permitido para este tipo de préstamo',
+    archivoMuyGrande: 'El archivo excede el tamaño máximo permitido (10MB)',
+    formatoArchivoInvalido: 'Formato de archivo no permitido',
+    errorConexion: 'Error de conexión. Por favor intente nuevamente',
+    errorGeneral: 'Ha ocurrido un error inesperado'
+};
+
+// Configuración de interfaz
+export const uiConfig = {
+    colores: {
+        prestamo_medico: '#ff6b6b',
+        prestamo_emergencia: '#ff9500',
+        prestamo_libre_disposicion: '#4facfe',
+        fondo_solidario: '#56ab2f'
+    },
+    iconos: {
+        prestamo_medico: '🏥',
+        prestamo_emergencia: '🚨',
+        prestamo_libre_disposicion: '💳',
+        fondo_solidario: '🤝'
     }
-
-    mostrarLoading(mensaje = 'Cargando...') {
-        const loading = document.createElement('div');
-        loading.id = 'loading-prestamos';
-        loading.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-        `;
-        
-        loading.innerHTML = `
-            <div style="background: white; padding: 30px; border-radius: 10px; text-align: center;">
-                <div style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
-                <p style="margin: 0; font-weight: 600;">${mensaje}</p>
-            </div>
-        `;
-        
-        // Agregar animación CSS
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-            }
-        `;
-        document.head.appendChild(style);
-        
-        document.body.appendChild(loading);
-    }
-
-    ocultarLoading() {
-        const loading = document.getElementById('loading-prestamos');
-        if (loading) {
-            loading.remove();
-        }
-    }
-}
-
-// Inicializar cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', () => {
-    window.prestamosHandler = new PrestamosHandler();
-});
-
-// Exportar para uso en otros módulos
-export default PrestamosHandler;
+};
