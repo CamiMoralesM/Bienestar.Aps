@@ -235,10 +235,10 @@ window.descargarImagenDirecta = function(tipo) {
     } else {
         // Fallback básico
         const urls = {
-            'medico': 'assets/formularios/formulario-prestamos.png',
-            'emergencia': 'assets/formularios/formulario-prestamos.png',
-            'libre-disposicion': 'assets/formularios/formulario-prestamos-libre-disposicion.png',
-            'fondo-solidario': 'assets/formularios/formulario-prestamos.png'
+            'medico': 'assets/formulario-prestamos.png',
+            'emergencia': 'assets/formulario-prestamos.png',
+            'libre-disposicion': 'assets/formulario-prestamos-libre-disposicion.png',
+            'fondo-solidario': 'assets/formulario-prestamos.png'
         };
         
         if (urls[tipo]) {
