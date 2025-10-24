@@ -1,10 +1,4 @@
-// Configuración unificada de Firebase y Préstamos
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getStorage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-// Configuración de Firebase
 export const firebaseConfig = {
   apiKey: "AIzaSyA9nXi619VOgT6mUYmYfu2jja8TRAj9QJE",
   authDomain: "bienestaraps-c87f0.firebaseapp.com",
