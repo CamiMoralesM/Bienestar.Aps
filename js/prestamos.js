@@ -1,14 +1,15 @@
-// Gestor de descarga de formularios
+// Gestor de descarga de formularios - CONFIGURADO PARA TU ESTRUCTURA
 class FormulariosDownloadManager {
     constructor() {
+        // CONFIGURACIÓN ESPECÍFICA PARA TU ESTRUCTURA DE ARCHIVOS
         this.formularios = {
             'medico': {
-                url: './assets/formulario/formulario-prestamos.pdf',
+                url: './assets/formulario/formulario-prestamos.pdf', // El que está en la carpeta "formulario"
                 nombre: 'Formulario_Prestamo_Medico.pdf',
                 titulo: 'Préstamos Médicos'
             },
             'emergencia': {
-                url: './assets/formulario/formulario-prestamos.pdf',
+                url: './assets/formulario/formulario-prestamos.pdf', // Mismo archivo para emergencia
                 nombre: 'Formulario_Prestamo_Emergencia.pdf',
                 titulo: 'Préstamos de Emergencia'
             },
@@ -18,13 +19,15 @@ class FormulariosDownloadManager {
                 titulo: 'Préstamos de Libre Disposición'
             },
             'fondo-solidario': {
-                url: './assets/formularios/formulario-fondo-solidario.pdf',
+                // Si no tienes este archivo específico, usa el general
+                url: './assets/formulario/formulario-prestamos.pdf',
                 nombre: 'Formulario_Fondo_Solidario.pdf',
                 titulo: 'Fondo Solidario'
             }
         };
         
         this.initializeEventListeners();
+        this.debugMode = true; // Para ver qué está pasando en la consola
     }
 
     initializeEventListeners() {
@@ -47,157 +50,112 @@ class FormulariosDownloadManager {
             return;
         }
 
+        if (this.debugMode) {
+            console.log('🔍 Intentando descargar:', formulario.url);
+        }
+
         try {
-            this.mostrarMensaje(`Iniciando descarga de ${formulario.titulo}...`, 'info');
+            this.mostrarMensaje(`Descargando formulario de ${formulario.titulo}...`, 'info');
             
-            // Verificar si el archivo existe
-            const response = await fetch(formulario.url, { method: 'HEAD' });
+            // Intentar descarga directa (método más compatible)
+            this.iniciarDescarga(formulario.url, formulario.nombre);
             
-            if (response.ok) {
-                // El archivo existe, proceder con la descarga
-                this.iniciarDescarga(formulario.url, formulario.nombre);
-                this.mostrarMensaje(`Descargando formulario de ${formulario.titulo}`, 'success');
-            } else {
-                // Archivo no encontrado - crear un formulario genérico como fallback
-                console.warn('Formulario no encontrado en:', formulario.url);
-                this.crearFormularioGenerico(tipo, formulario.titulo);
+            // Mensaje de éxito después de un momento
+            setTimeout(() => {
+                this.mostrarMensaje(`✅ Formulario de ${formulario.titulo} descargado`, 'success');
+            }, 500);
+            
+            if (this.debugMode) {
+                console.log('✅ Descarga iniciada para:', formulario.titulo);
             }
             
         } catch (error) {
-            console.error('Error al verificar formulario:', error);
-            // En caso de error de red, intentar descarga directa
-            this.iniciarDescarga(formulario.url, formulario.nombre);
-            this.mostrarMensaje(`Intentando descargar formulario de ${formulario.titulo}...`, 'warning');
+            console.error('❌ Error al descargar formulario:', error);
+            this.mostrarMensaje(
+                `❌ Error al descargar ${formulario.titulo}. Intente nuevamente.`, 
+                'error'
+            );
         }
     }
 
     iniciarDescarga(url, nombreArchivo) {
         try {
+            if (this.debugMode) {
+                console.log('🚀 Iniciando descarga:', { url, nombreArchivo });
+            }
+
             // Método 1: Crear enlace de descarga
             const link = document.createElement('a');
             link.href = url;
             link.download = nombreArchivo;
-            link.target = '_blank'; // Abrir en nueva pestaña como backup
+            link.style.display = 'none';
             
-            // Agregar al DOM temporalmente
+            // Agregar al DOM
             document.body.appendChild(link);
             
-            // Trigger de descarga
+            // Simular click
             link.click();
             
-            // Remover del DOM
-            document.body.removeChild(link);
+            // Limpiar después de un momento
+            setTimeout(() => {
+                if (document.body.contains(link)) {
+                    document.body.removeChild(link);
+                }
+            }, 100);
+            
+            if (this.debugMode) {
+                console.log('✅ Link de descarga creado y ejecutado');
+            }
             
         } catch (error) {
-            console.error('Error en descarga directa:', error);
-            // Método alternativo: abrir en nueva pestaña
-            window.open(url, '_blank');
+            console.error('❌ Error en método de descarga principal:', error);
+            
+            // Método de respaldo: abrir en nueva pestaña
+            try {
+                window.open(url, '_blank');
+                this.mostrarMensaje('Abriendo archivo en nueva pestaña...', 'info');
+                
+                if (this.debugMode) {
+                    console.log('🔄 Usando método de respaldo: nueva pestaña');
+                }
+            } catch (error2) {
+                console.error('❌ Error en método de respaldo:', error2);
+                this.mostrarMensaje('Error al abrir archivo. Verifique la ruta.', 'error');
+            }
         }
     }
 
-    crearFormularioGenerico(tipo, titulo) {
-        // Crear un PDF básico o redirigir a una página de información
-        this.mostrarMensaje(
-            `El formulario específico de ${titulo} no está disponible. Contacte al administrador para obtenerlo.`, 
-            'warning'
-        );
+    // Método para probar todas las rutas
+    async probarRutas() {
+        console.log('🔍 Probando todas las rutas de formularios...');
         
-        // Opción alternativa: crear un documento con instrucciones
-        this.generarInstruccionesFormulario(tipo, titulo);
-    }
-
-    generarInstruccionesFormulario(tipo, titulo) {
-        const instrucciones = this.getInstruccionesFormulario(tipo);
+        for (const [tipo, formulario] of Object.entries(this.formularios)) {
+            try {
+                const response = await fetch(formulario.url, { method: 'HEAD' });
+                const status = response.ok ? '✅ ENCONTRADO' : '❌ NO ENCONTRADO';
+                console.log(`${tipo}: ${status} (${response.status}) - ${formulario.url}`);
+            } catch (error) {
+                console.log(`${tipo}: ❌ ERROR DE RED - ${formulario.url}`, error.message);
+            }
+        }
         
-        // Crear un blob con las instrucciones
-        const contenido = `
-FORMULARIO DE SOLICITUD - ${titulo.toUpperCase()}
-Servicio de Bienestar APS
-
-${instrucciones}
-
-Para obtener el formulario oficial, contacte:
-- Teléfono: [Número de contacto]
-- Email: admin@bienestaraps.cl
-- Oficina: [Dirección de oficina]
-
-Fecha de generación: ${new Date().toLocaleString()}
-        `.trim();
-
-        const blob = new Blob([contenido], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `Instrucciones_${tipo}.txt`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        URL.revokeObjectURL(url);
-        
-        this.mostrarMensaje('Se ha descargado un archivo con instrucciones temporales', 'info');
-    }
-
-    getInstruccionesFormulario(tipo) {
-        const instrucciones = {
-            'medico': `
-DOCUMENTOS REQUERIDOS:
-- Formulario de solicitud completo y firmado
-- Fotocopia de cédula de identidad (ambas caras)
-- Últimas 3 liquidaciones de sueldo
-- Informes médicos que justifiquen la solicitud
-- Cotizaciones de medicamentos o tratamientos
-
-LÍMITES:
-- Monto máximo: $500.000
-- Plazo máximo: 12 cuotas
-- Sujeto a evaluación del Trabajador Social
-            `,
-            'emergencia': `
-DOCUMENTOS REQUERIDOS:
-- Formulario de solicitud completo y firmado
-- Fotocopia de cédula de identidad (ambas caras)
-- Últimas 3 liquidaciones de sueldo
-- Documentos que respalden la emergencia
-
-LÍMITES:
-- Monto máximo: $500.000
-- Cuotas según condiciones contractuales
-- Sujeto a evaluación del Trabajador Social
-            `,
-            'libre-disposicion': `
-DOCUMENTOS REQUERIDOS:
-- Formulario de solicitud completo y firmado
-- Fotocopia de cédula de identidad (ambas caras)
-- Últimas 3 liquidaciones de sueldo
-
-LÍMITES:
-- Monto máximo: $300.000
-- Plazo máximo: 6 cuotas
-            `,
-            'fondo-solidario': `
-DOCUMENTOS REQUERIDOS:
-- Formulario de solicitud completo y firmado
-- Fotocopia de cédula de identidad (ambas caras)
-- Últimas 3 liquidaciones de sueldo
-- Documentos que respalden la situación familiar
-
-CARACTERÍSTICAS:
-- Ayudas sin retorno
-- Para emergencias de salud y situaciones familiares complejas
-- Evaluación por Trabajador Social y Comité del Servicio
-            `
-        };
-        
-        return instrucciones[tipo] || 'Consulte los requisitos con el administrador.';
+        console.log('\n📝 Si algún archivo muestra "NO ENCONTRADO", verifica:');
+        console.log('1. Que el archivo existe en esa ruta');
+        console.log('2. Que el nombre del archivo sea exacto (case-sensitive)');
+        console.log('3. Que la ruta relativa sea correcta desde tu HTML');
     }
 
     mostrarMensaje(mensaje, tipo = 'info') {
+        // Remover mensajes anteriores
+        const mensajesAnteriores = document.querySelectorAll('.formulario-mensaje');
+        mensajesAnteriores.forEach(msg => msg.remove());
+        
         // Crear elemento de mensaje
         const mensajeDiv = document.createElement('div');
         mensajeDiv.className = `alert alert-${tipo} formulario-mensaje`;
-        mensajeDiv.style.cssText = `
+        
+        // Estilos base
+        const estilosBase = `
             position: fixed;
             top: 20px;
             right: 20px;
@@ -206,67 +164,106 @@ CARACTERÍSTICAS:
             z-index: 9999;
             max-width: 400px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            font-family: Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
             font-size: 14px;
             line-height: 1.4;
+            animation: slideInRight 0.3s ease-out;
         `;
         
-        // Estilos según tipo
-        const estilos = {
-            success: 'background: #d4edda; color: #155724; border: 2px solid #c3e6cb;',
-            error: 'background: #f8d7da; color: #721c24; border: 2px solid #f5c6cb;',
-            warning: 'background: #fff3cd; color: #856404; border: 2px solid #ffeaa7;',
-            info: 'background: #d1ecf1; color: #0c5460; border: 2px solid #bee5eb;'
+        // Estilos por tipo
+        const estilosTipo = {
+            success: 'background: #d4edda; color: #155724; border-left: 4px solid #28a745;',
+            error: 'background: #f8d7da; color: #721c24; border-left: 4px solid #dc3545;',
+            warning: 'background: #fff3cd; color: #856404; border-left: 4px solid #ffc107;',
+            info: 'background: #d1ecf1; color: #0c5460; border-left: 4px solid #17a2b8;'
         };
         
-        mensajeDiv.style.cssText += estilos[tipo];
-        mensajeDiv.textContent = mensaje;
+        mensajeDiv.style.cssText = estilosBase + estilosTipo[tipo];
         
-        // Agregar botón de cerrar
-        const btnCerrar = document.createElement('button');
-        btnCerrar.innerHTML = '×';
-        btnCerrar.style.cssText = `
-            position: absolute;
-            top: 5px;
-            right: 10px;
-            background: none;
-            border: none;
-            font-size: 18px;
-            cursor: pointer;
-            color: inherit;
-            opacity: 0.7;
+        // Contenido del mensaje con botón de cerrar
+        mensajeDiv.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;">
+                <span style="flex-grow: 1;">${mensaje}</span>
+                <button onclick="this.parentElement.parentElement.remove()" 
+                        style="background: none; border: none; font-size: 18px; cursor: pointer; 
+                               opacity: 0.7; color: inherit; padding: 0; line-height: 1;">×</button>
+            </div>
         `;
-        btnCerrar.onclick = () => mensajeDiv.remove();
         
-        mensajeDiv.appendChild(btnCerrar);
+        // Agregar CSS de animación si no existe
+        if (!document.getElementById('toast-animations')) {
+            const style = document.createElement('style');
+            style.id = 'toast-animations';
+            style.textContent = `
+                @keyframes slideInRight {
+                    from { 
+                        transform: translateX(100%); 
+                        opacity: 0; 
+                    }
+                    to { 
+                        transform: translateX(0); 
+                        opacity: 1; 
+                    }
+                }
+                @keyframes slideOutRight {
+                    from { 
+                        transform: translateX(0); 
+                        opacity: 1; 
+                    }
+                    to { 
+                        transform: translateX(100%); 
+                        opacity: 0; 
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
         document.body.appendChild(mensajeDiv);
         
-        // Remover después de 5 segundos
+        // Auto-remover después de 4 segundos
         setTimeout(() => {
             if (mensajeDiv.parentNode) {
-                mensajeDiv.parentNode.removeChild(mensajeDiv);
+                mensajeDiv.style.animation = 'slideOutRight 0.3s ease-in forwards';
+                setTimeout(() => {
+                    if (mensajeDiv.parentNode) {
+                        mensajeDiv.remove();
+                    }
+                }, 300);
             }
-        }, 5000);
+        }, 4000);
     }
 }
 
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
     window.formulariosManager = new FormulariosDownloadManager();
-    console.log('Gestor de formularios inicializado correctamente');
+    console.log('✅ Gestor de formularios inicializado para tu estructura de archivos');
+    
+    // Probar rutas automáticamente en modo debug
+    setTimeout(() => {
+        window.formulariosManager.probarRutas();
+    }, 1000);
 });
 
-// Función global para compatibilidad
+// Funciones globales para compatibilidad y debugging
 window.descargarFormulario = function(tipo) {
     if (window.formulariosManager) {
         window.formulariosManager.descargarFormulario(tipo);
     } else {
-        console.error('Gestor de formularios no inicializado');
+        console.error('❌ Gestor de formularios no inicializado');
         alert('Error: Sistema de formularios no disponible. Recargue la página.');
     }
 };
 
-// Exportar para uso en módulos
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = FormulariosDownloadManager;
-}
+window.probarRutasFormularios = function() {
+    if (window.formulariosManager) {
+        window.formulariosManager.probarRutas();
+    }
+};
+
+// Función para debug manual
+window.debugFormularios = function() {
+    console.log('📋 Configuración actual de formularios:');
+    console.table(window.formulariosManager.formularios);
+};
