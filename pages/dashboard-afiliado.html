@@ -753,8 +753,7 @@
     <!-- SCRIPTS CORREGIDOS -->
     <script type="module" src="../js/dashboard-afiliado-firebase.js"></script>
     <script type="module" src="../js/compras-unificadas.js"></script>
-    <script type="module" src="../js/prestamos.js"></script>
-    <script type="module" src="../js/prestamos-firebase.js"></script>
+    <script type="module" src="../js/prestamos-corregido.js"></script>
     <script type="module">
         // Sistema de pestañas mejorado
         const tabs = document.querySelectorAll('.nav-tab');
@@ -779,29 +778,6 @@
             });
         });
 
-        // Manejo de documentos adicionales según tipo de préstamo
-        document.getElementById('tipoSolicitud').addEventListener('change', function() {
-            const documentosAdicionales = document.getElementById('documentosAdicionales');
-            const documentosExtrasInfo = document.getElementById('documentosExtrasInfo');
-            
-            switch(this.value) {
-                case 'prestamo-medico':
-                    documentosAdicionales.style.display = 'block';
-                    documentosExtrasInfo.textContent = 'Informes médicos, cotizaciones de medicamentos o tratamientos';
-                    break;
-                case 'prestamo-emergencia':
-                    documentosAdicionales.style.display = 'block';
-                    documentosExtrasInfo.textContent = 'Documentos que respalden la emergencia (facturas, informes, etc.)';
-                    break;
-                case 'fondo-solidario':
-                    documentosAdicionales.style.display = 'block';
-                    documentosExtrasInfo.textContent = 'Documentos que respalden la situación de emergencia familiar';
-                    break;
-                default:
-                    documentosAdicionales.style.display = 'none';
-            }
-        });
-
         // Función para nueva solicitud
         function nuevaSolicitud() {
             console.log('Nueva solicitud clickeada');
@@ -820,24 +796,6 @@
         // Hacer las funciones globales para que puedan ser llamadas desde HTML
         window.nuevaSolicitud = nuevaSolicitud;
         window.logout = logout;
-
-        // Manejo de descarga de formularios
-        document.querySelectorAll('.btn-download-form').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const tipo = this.dataset.tipo;
-                descargarFormulario(tipo);
-            });
-        });
-
-        function descargarFormulario(tipo) {
-            // Aquí implementarías la lógica para descargar el formulario correspondiente
-            // Por ahora solo mostramos un mensaje
-            alert(`Descargando formulario de ${tipo}`);
-            console.log(`Descargando formulario de tipo: ${tipo}`);
-        }
-
-        // Hacer función global
-        window.descargarFormulario = descargarFormulario;
     </script>
 </body>
 </html>
