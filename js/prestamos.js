@@ -1,12 +1,7 @@
-// Manejador de Préstamos con descarga de formularios corregida
+// prestamos-handler-simple.js
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
 import { 
-    db, 
-    storage, 
-    prestamosConfig, 
-    mensajesError 
-} from './firebase-config-prestamos.js';
-
-import { 
+    getFirestore, 
     collection, 
     addDoc, 
     serverTimestamp,
@@ -14,25 +9,34 @@ import {
     where,
     orderBy,
     getDocs
-} from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-
+} from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 import { 
+    getStorage, 
     ref, 
     uploadBytes, 
     getDownloadURL 
-} from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
+} from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js';
+
+// Importar configuración (ajustar la ruta según sea necesario)
+import { firebaseConfig, prestamosConfig } from './firebase-config-prestamos.js';
+
+// Inicializar Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const storage = getStorage(app);
 
 class PrestamosHandler {
     constructor() {
         this.initializeEventListeners();
-        console.log('✅ PrestamosHandler inicializado');
+        // Usar formularios de la configuración
+        this.formularios = prestamosConfig.formulariosPDF;
+        this.nombresFormularios = prestamosConfig.nombresFormularios;
     }
 
     initializeEventListeners() {
         // Event listeners para descarga de formularios
         document.querySelectorAll('.btn-download-form').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                e.preventDefault();
                 const tipo = e.target.getAttribute('data-tipo');
                 this.descargarFormulario(tipo);
             });
@@ -57,209 +61,58 @@ class PrestamosHandler {
         }
     }
 
-    async descargarFormulario(tipo) {
+    descargarFormulario(tipo) {
+        // Obtener la URL del formulario desde la configuración
+        const urlFormulario = this.formularios[tipo];
+        
+        if (!urlFormulario) {
+            console.error('Tipo de formulario no encontrado:', tipo);
+            this.mostrarMensaje('Error: Tipo de formulario no encontrado', 'error');
+            return;
+        }
+
+        // Verificar si el archivo existe antes de descargarlo
+        this.verificarYDescargarFormulario(urlFormulario, tipo);
+    }
+
+    async verificarYDescargarFormulario(url, tipo) {
         try {
-            this.mostrarMensaje(`Preparando descarga del formulario de ${this.obtenerNombreTipo(tipo)}...`, 'info');
+            // Intentar acceder al archivo
+            const response = await fetch(url, { method: 'HEAD' });
             
-            // Crear formulario temporal como fallback
-            const formContent = this.generarFormularioTemporalPDF(tipo);
-            
-            // Crear blob con el contenido del formulario
-            const blob = new Blob([formContent], { type: 'text/html' });
-            
-            // Crear URL temporal
-            const url = window.URL.createObjectURL(blob);
-            
-            // Crear enlace de descarga
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = prestamosConfig.nombresFormularios[tipo] || `formulario-${tipo}.html`;
-            
-            // Agregar al DOM temporalmente
-            document.body.appendChild(link);
-            
-            // Trigger de descarga
-            link.click();
-            
-            // Limpiar
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
-            
-            this.mostrarMensaje(`Formulario de ${this.obtenerNombreTipo(tipo)} descargado correctamente`, 'success');
-            
+            if (response.ok) {
+                // El archivo existe, proceder con la descarga
+                this.iniciarDescarga(url, tipo);
+                this.mostrarMensaje(`Descargando formulario de ${this.obtenerNombreTipo(tipo)}`, 'success');
+            } else {
+                // El archivo no existe
+                console.error('Formulario no encontrado en:', url);
+                this.mostrarMensaje('Error: El formulario no está disponible. Contacte al administrador.', 'error');
+            }
         } catch (error) {
-            console.error('Error al descargar formulario:', error);
-            this.mostrarMensaje('Error al descargar el formulario. Por favor contacte al administrador.', 'error');
+            // Error de red o archivo no accesible
+            console.error('Error al verificar formulario:', error);
+            // Intentar descarga directa como fallback
+            this.iniciarDescarga(url, tipo);
+            this.mostrarMensaje(`Intentando descargar formulario de ${this.obtenerNombreTipo(tipo)}...`, 'info');
         }
     }
 
-    generarFormularioTemporalPDF(tipo) {
-        const fecha = new Date().toLocaleDateString('es-CL');
-        const nombreTipo = this.obtenerNombreTipo(tipo);
+    iniciarDescarga(url, tipo) {
+        // Crear enlace de descarga
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = this.nombresFormularios[tipo] || `formulario-${tipo}.pdf`;
+        link.target = '_blank'; // Abrir en nueva pestaña como backup
         
-        let contenidoEspecifico = '';
+        // Agregar al DOM temporalmente
+        document.body.appendChild(link);
         
-        switch(tipo) {
-            case 'medico':
-                contenidoEspecifico = `
-                    <h3>Información Médica</h3>
-                    <p><strong>Diagnóstico médico:</strong> _________________________________</p>
-                    <p><strong>Médico tratante:</strong> _________________________________</p>
-                    <p><strong>Centro de salud:</strong> _________________________________</p>
-                    <p><strong>Tratamiento requerido:</strong> _________________________________</p>
-                    <p><strong>Costo estimado del tratamiento:</strong> $_______________________</p>
-                `;
-                break;
-            case 'emergencia':
-                contenidoEspecifico = `
-                    <h3>Información de Emergencia</h3>
-                    <p><strong>Tipo de emergencia:</strong> _________________________________</p>
-                    <p><strong>Fecha de la emergencia:</strong> _________________________________</p>
-                    <p><strong>Descripción detallada:</strong> _________________________________</p>
-                    <p><strong>Documentos de respaldo:</strong> _________________________________</p>
-                    <p><strong>Monto total requerido:</strong> $_______________________</p>
-                `;
-                break;
-            case 'libre-disposicion':
-                contenidoEspecifico = `
-                    <h3>Préstamo de Libre Disposición</h3>
-                    <p><strong>Destino del préstamo:</strong> _________________________________</p>
-                    <p><strong>Monto solicitado:</strong> $_______________________</p>
-                    <p><strong>Plazo de pago preferido:</strong> _______ cuotas (máx. 6)</p>
-                `;
-                break;
-            case 'fondo-solidario':
-                contenidoEspecifico = `
-                    <h3>Solicitud de Fondo Solidario</h3>
-                    <p><strong>Situación que motiva la solicitud:</strong> _________________________________</p>
-                    <p><strong>Personas afectadas:</strong> _________________________________</p>
-                    <p><strong>Ayuda económica solicitada:</strong> $_______________________</p>
-                    <p><strong>Otros apoyos recibidos:</strong> _________________________________</p>
-                `;
-                break;
-        }
+        // Trigger de descarga
+        link.click();
         
-        return `
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Formulario - ${nombreTipo}</title>
-    <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; line-height: 1.6; }
-        .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px; }
-        .logo { font-size: 24px; font-weight: bold; color: #007bff; }
-        .form-section { margin-bottom: 30px; }
-        .form-section h3 { background-color: #f8f9fa; padding: 10px; border-left: 4px solid #007bff; }
-        .form-row { display: flex; margin-bottom: 15px; }
-        .form-field { flex: 1; margin-right: 20px; }
-        .form-field:last-child { margin-right: 0; }
-        p { margin-bottom: 15px; }
-        .signature-section { margin-top: 50px; display: flex; justify-content: space-between; }
-        .signature-box { text-align: center; width: 200px; }
-        .signature-line { border-bottom: 1px solid #333; margin-bottom: 5px; height: 50px; }
-        .checkbox { margin-right: 10px; }
-        .instructions { background-color: #e9ecef; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
-        @media print { body { margin: 0; } }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <div class="logo">SERVICIO BIENESTAR APS</div>
-        <h2>FORMULARIO DE SOLICITUD</h2>
-        <h3>${nombreTipo.toUpperCase()}</h3>
-        <p>Fecha: ${fecha}</p>
-    </div>
-
-    <div class="instructions">
-        <h4>📋 INSTRUCCIONES:</h4>
-        <ul>
-            <li>Complete todos los campos requeridos con letra clara</li>
-            <li>Adjunte toda la documentación solicitada</li>
-            <li>Firme el formulario en los espacios indicados</li>
-            <li>Entregue en oficinas del Servicio Bienestar APS</li>
-        </ul>
-    </div>
-
-    <div class="form-section">
-        <h3>Datos del Solicitante</h3>
-        <div class="form-row">
-            <div class="form-field">
-                <p><strong>Nombre completo:</strong> _________________________________</p>
-            </div>
-        </div>
-        <div class="form-row">
-            <div class="form-field">
-                <p><strong>RUT:</strong> _____________________</p>
-            </div>
-            <div class="form-field">
-                <p><strong>Fecha de nacimiento:</strong> _____________________</p>
-            </div>
-        </div>
-        <div class="form-row">
-            <div class="form-field">
-                <p><strong>Dirección:</strong> _________________________________</p>
-            </div>
-        </div>
-        <div class="form-row">
-            <div class="form-field">
-                <p><strong>Teléfono:</strong> _____________________</p>
-            </div>
-            <div class="form-field">
-                <p><strong>Email:</strong> _____________________</p>
-            </div>
-        </div>
-        <div class="form-row">
-            <div class="form-field">
-                <p><strong>Centro de Salud:</strong> _________________________________</p>
-            </div>
-        </div>
-        <div class="form-row">
-            <div class="form-field">
-                <p><strong>Fecha de afiliación APS:</strong> _____________________</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="form-section">
-        ${contenidoEspecifico}
-    </div>
-
-    <div class="form-section">
-        <h3>Documentos Adjuntos</h3>
-        <p><input type="checkbox" class="checkbox"> Formulario completo y firmado</p>
-        <p><input type="checkbox" class="checkbox"> Fotocopia de cédula de identidad (ambas caras)</p>
-        <p><input type="checkbox" class="checkbox"> Últimas 3 liquidaciones de sueldo</p>
-        <p><input type="checkbox" class="checkbox"> Documentos adicionales según tipo de solicitud</p>
-    </div>
-
-    <div class="form-section">
-        <h3>Declaración y Compromiso</h3>
-        <p>Declaro bajo juramento que la información proporcionada es veraz y completa. Me comprometo a proporcionar cualquier documentación adicional que sea requerida y acepto las condiciones establecidas por el Servicio Bienestar APS.</p>
-        <p><input type="checkbox" class="checkbox"> Acepto los términos y condiciones</p>
-        <p><input type="checkbox" class="checkbox"> Autorizo la verificación de la información proporcionada</p>
-    </div>
-
-    <div class="signature-section">
-        <div class="signature-box">
-            <div class="signature-line"></div>
-            <p><strong>Firma del Solicitante</strong></p>
-            <p>Fecha: ___________</p>
-        </div>
-        <div class="signature-box">
-            <div class="signature-line"></div>
-            <p><strong>Firma Trabajador/a Social</strong></p>
-            <p>Fecha: ___________</p>
-        </div>
-    </div>
-
-    <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #666;">
-        <p>Servicio Bienestar APS - Corporación Municipal de Puente Alto</p>
-        <p>Para uso exclusivo del funcionario: Este formulario debe ser entregado junto con toda la documentación requerida</p>
-    </div>
-</body>
-</html>`;
+        // Remover del DOM
+        document.body.removeChild(link);
     }
 
     obtenerNombreTipo(tipo) {
@@ -279,14 +132,12 @@ class PrestamosHandler {
         const montoInput = document.getElementById('montoSolicitado');
         
         // Limpiar monto al cambiar tipo
-        if (montoInput) {
-            montoInput.value = '';
-        }
+        montoInput.value = '';
         
         // Obtener límites desde la configuración
         const limites = prestamosConfig.limitesPrestamos[tipo];
         
-        if (limites && montoInput) {
+        if (limites) {
             // Configurar límites de monto según tipo
             if (limites.montoMaximo) {
                 montoInput.max = limites.montoMaximo;
@@ -298,36 +149,30 @@ class PrestamosHandler {
         }
         
         // Configurar documentos adicionales
-        if (documentosAdicionales && documentosExtrasInfo) {
-            switch(tipo) {
-                case 'prestamo-medico':
-                    documentosAdicionales.style.display = 'block';
-                    documentosExtrasInfo.textContent = 'Informes médicos, cotizaciones de medicamentos o tratamientos';
-                    break;
-                case 'prestamo-emergencia':
-                    documentosAdicionales.style.display = 'block';
-                    documentosExtrasInfo.textContent = 'Documentos que respalden la emergencia (facturas, informes, etc.)';
-                    break;
-                case 'prestamo-libre-disposicion':
-                    documentosAdicionales.style.display = 'none';
-                    break;
-                case 'fondo-solidario':
-                    documentosAdicionales.style.display = 'block';
-                    documentosExtrasInfo.textContent = 'Documentos que respalden la situación de emergencia familiar';
-                    break;
-                default:
-                    documentosAdicionales.style.display = 'none';
-            }
+        switch(tipo) {
+            case 'prestamo-medico':
+                documentosAdicionales.style.display = 'block';
+                documentosExtrasInfo.textContent = 'Informes médicos, cotizaciones de medicamentos o tratamientos';
+                break;
+            case 'prestamo-emergencia':
+                documentosAdicionales.style.display = 'block';
+                documentosExtrasInfo.textContent = 'Documentos que respalden la emergencia (facturas, informes, etc.)';
+                break;
+            case 'prestamo-libre-disposicion':
+                documentosAdicionales.style.display = 'none';
+                break;
+            case 'fondo-solidario':
+                documentosAdicionales.style.display = 'block';
+                documentosExtrasInfo.textContent = 'Documentos que respalden la situación de emergencia familiar';
+                break;
+            default:
+                documentosAdicionales.style.display = 'none';
         }
     }
 
     validarMonto(event) {
         const monto = parseInt(event.target.value);
-        const tipoSelect = document.getElementById('tipoSolicitud');
-        
-        if (!tipoSelect) return;
-        
-        const tipo = tipoSelect.value;
+        const tipo = document.getElementById('tipoSolicitud').value;
         
         if (tipo && prestamosConfig.limitesPrestamos[tipo]) {
             const limites = prestamosConfig.limitesPrestamos[tipo];
@@ -409,7 +254,7 @@ class PrestamosHandler {
     validarDatosSolicitud(datos) {
         // Validar campos requeridos
         if (!datos.rut || !datos.nombre || !datos.email || !datos.telefono) {
-            throw new Error(mensajesError.campoRequerido);
+            throw new Error('Todos los campos obligatorios deben estar completos');
         }
         
         // Validar monto
@@ -420,7 +265,7 @@ class PrestamosHandler {
         // Validar límites según tipo
         const limites = prestamosConfig.limitesPrestamos[datos.tipoSolicitud];
         if (limites && limites.montoMaximo && datos.montoSolicitado > limites.montoMaximo) {
-            throw new Error(mensajesError.montoExcedido);
+            throw new Error(`El monto excede el límite máximo de $${limites.montoMaximo.toLocaleString()}`);
         }
     }
 
@@ -465,25 +310,45 @@ class PrestamosHandler {
     validarArchivo(file) {
         // Validar tamaño
         if (file.size > prestamosConfig.maxFileSize) {
-            throw new Error(mensajesError.archivoMuyGrande);
+            throw new Error(`El archivo ${file.name} excede el tamaño máximo permitido`);
         }
         
         // Validar tipo
         if (!prestamosConfig.allowedFileTypes.includes(file.type)) {
-            throw new Error(mensajesError.formatoArchivoInvalido);
+            throw new Error(`El archivo ${file.name} no tiene un formato permitido`);
+        }
+    }
+
+    async cargarSolicitudesUsuario(rutUsuario) {
+        try {
+            const q = query(
+                collection(db, prestamosConfig.coleccionSolicitudes),
+                where('usuarioSolicitante', '==', rutUsuario),
+                orderBy('fechaSolicitud', 'desc')
+            );
+            
+            const querySnapshot = await getDocs(q);
+            const solicitudes = [];
+            
+            querySnapshot.forEach((doc) => {
+                solicitudes.push({
+                    id: doc.id,
+                    ...doc.data()
+                });
+            });
+            
+            return solicitudes;
+            
+        } catch (error) {
+            console.error('Error al cargar solicitudes:', error);
+            return [];
         }
     }
 
     mostrarMensaje(mensaje, tipo = 'info') {
-        // Remover mensajes anteriores
-        const mensajeAnterior = document.querySelector('.alert-message');
-        if (mensajeAnterior) {
-            mensajeAnterior.remove();
-        }
-        
         // Crear elemento de mensaje
         const mensajeDiv = document.createElement('div');
-        mensajeDiv.className = `alert alert-${tipo} alert-message`;
+        mensajeDiv.className = `alert alert-${tipo}`;
         mensajeDiv.style.cssText = `
             position: fixed;
             top: 20px;
@@ -493,7 +358,6 @@ class PrestamosHandler {
             z-index: 9999;
             max-width: 400px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            font-weight: 500;
         `;
         
         // Estilos según tipo
@@ -518,9 +382,6 @@ class PrestamosHandler {
     }
 
     mostrarLoading(mensaje = 'Cargando...') {
-        // Remover loading anterior si existe
-        this.ocultarLoading();
-        
         const loading = document.createElement('div');
         loading.id = 'loading-prestamos';
         loading.style.cssText = `
@@ -537,24 +398,21 @@ class PrestamosHandler {
         `;
         
         loading.innerHTML = `
-            <div style="background: white; padding: 30px; border-radius: 10px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+            <div style="background: white; padding: 30px; border-radius: 10px; text-align: center;">
                 <div style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
-                <p style="margin: 0; font-weight: 600; color: #333;">${mensaje}</p>
+                <p style="margin: 0; font-weight: 600;">${mensaje}</p>
             </div>
         `;
         
-        // Agregar animación CSS si no existe
-        if (!document.querySelector('#loading-animation-style')) {
-            const style = document.createElement('style');
-            style.id = 'loading-animation-style';
-            style.textContent = `
-                @keyframes spin {
-                    0% { transform: rotate(0deg); }
-                    100% { transform: rotate(360deg); }
-                }
-            `;
-            document.head.appendChild(style);
-        }
+        // Agregar animación CSS
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
         
         document.body.appendChild(loading);
     }
@@ -569,12 +427,7 @@ class PrestamosHandler {
 
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
-    try {
-        window.prestamosHandler = new PrestamosHandler();
-        console.log('✅ PrestamosHandler inicializado correctamente');
-    } catch (error) {
-        console.error('❌ Error al inicializar PrestamosHandler:', error);
-    }
+    window.prestamosHandler = new PrestamosHandler();
 });
 
 // Exportar para uso en otros módulos
