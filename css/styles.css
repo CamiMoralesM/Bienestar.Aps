@@ -2921,3 +2921,75 @@ body.modal-open {
     color: #333;
     font-size: 0.95rem;
 }
+  /* Estilos para mostrar/ocultar botones según la pestaña activa */
+        .btn-enviar-gas,
+        .btn-enviar-cine,
+        .btn-enviar-jumper,
+        .btn-enviar-gimnasio,
+        .btn-enviar-prestamo {
+            margin-top: 20px;
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+
+        /* Solo mostrar los botones cuando su pestaña correspondiente está activa */
+        #tab-compras-gas:not(.active) .btn-enviar-gas,
+        #tab-compra-cine:not(.active) .btn-enviar-cine,
+        #tab-compra-jumper:not(.active) .btn-enviar-jumper,
+        #tab-compra-gimnasio:not(.active) .btn-enviar-gimnasio,
+        #tab-prestamos:not(.active) .btn-enviar-prestamo {
+            display: none !important;
+        }
+
+        /* Asegurar que el contenido de las pestañas solo se muestre cuando está activo */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Estilos específicos para préstamos */
+        .btn-download-form:hover {
+            background: rgba(255, 255, 255, 0.3) !important;
+            transform: translateY(-2px);
+        }
+
+        .prestamo-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .prestamo-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .form-group small {
+            display: block;
+            margin-top: 5px;
+            font-size: 0.85em;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .prestamos-grid {
+                grid-template-columns: 1fr !important;
+            }
+            
+            .documentos-grid {
+                grid-template-columns: 1fr !important;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr !important;
+            }
