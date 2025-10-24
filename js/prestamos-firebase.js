@@ -19,6 +19,23 @@ export const prestamosConfig = {
     // Subcarpeta en Storage para archivos de préstamos
     carpetaStorage: 'prestamos',
     
+    // Rutas de los formularios PDF reales
+    // IMPORTANTE: Actualizar estas rutas con la ubicación real de sus formularios
+    formulariosPDF: {
+        'medico': '/assets/formularios/formulario-prestamo-medico.pdf',
+        'emergencia': '/assets/formularios/formulario-prestamo-emergencia.pdf',
+        'libre-disposicion': '/assets/formularios/formulario-prestamo-libre-disposicion.pdf',
+        'fondo-solidario': '/assets/formularios/formulario-fondo-solidario.pdf'
+    },
+    
+    // Nombres de descarga para los formularios
+    nombresFormularios: {
+        'medico': 'Formulario_Prestamo_Medico.pdf',
+        'emergencia': 'Formulario_Prestamo_Emergencia.pdf', 
+        'libre-disposicion': 'Formulario_Prestamo_Libre_Disposicion.pdf',
+        'fondo-solidario': 'Formulario_Fondo_Solidario.pdf'
+    },
+    
     // Límites de archivos
     maxFileSize: 10 * 1024 * 1024, // 10MB en bytes
     allowedFileTypes: [
