@@ -1,4 +1,4 @@
-
+import { db } from './firebase-config.js';
 export const prestamosConfig = {
     // Colección principal para solicitudes de préstamos
     coleccionSolicitudes: 'solicitudes-prestamos',
