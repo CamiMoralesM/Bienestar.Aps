@@ -3,17 +3,17 @@ class FormulariosDownloadManager {
     constructor() {
         this.formularios = {
             'medico': {
-                url: './assets/formularios/formulario-prestamo-medico.pdf',
+                url: './assets/formulario/formulario-prestamos.pdf',
                 nombre: 'Formulario_Prestamo_Medico.pdf',
                 titulo: 'Préstamos Médicos'
             },
             'emergencia': {
-                url: './assets/formularios/formulario-prestamo-emergencia.pdf',
+                url: './assets/formulario/formulario-prestamo.pdf',
                 nombre: 'Formulario_Prestamo_Emergencia.pdf',
                 titulo: 'Préstamos de Emergencia'
             },
             'libre-disposicion': {
-                url: './assets/formularios/formulario-prestamo-libre-disposicion.pdf',
+                url: './assets/formularios/formulario-prestamos-libre-disposicion.pdf',
                 nombre: 'Formulario_Prestamo_Libre_Disposicion.pdf',
                 titulo: 'Préstamos de Libre Disposición'
             },
