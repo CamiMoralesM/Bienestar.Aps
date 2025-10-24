@@ -26,7 +26,7 @@ import {
 // IMPORTANTE: Reemplaza estas rutas con las ubicaciones reales de tus PDFs
 const FORMULARIOS_CONFIG = {
     'medico': {
-        url: '/assets/Formulario-Prestamo-medico.pdf',
+        url: '/assets/Formulario-prestamo-medico.pdf',
         nombre: 'Formulario_Prestamo_Medico.pdf',
         descripcion: 'Préstamos Médicos'
     },
