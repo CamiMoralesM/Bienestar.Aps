@@ -31,7 +31,7 @@ const FORMULARIOS_CONFIG = {
         descripcion: 'Préstamos Médicos'
     },
     'emergencia': {
-        url: '/assets/Formulario-prestamo-emergencia.pdf',
+        url: '/assets/formularios/Formulario-prestamo-emergencia.pdf',
         nombre: 'Formulario_Prestamo_Emergencia.pdf',
         descripcion: 'Préstamos de Emergencia'
     },
