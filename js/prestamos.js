@@ -26,17 +26,17 @@ import {
 // IMPORTANTE: Reemplaza estas rutas con las ubicaciones reales de tus PDFs
 const FORMULARIOS_CONFIG = {
     'medico': {
-        url: '/assets/formularios/Formulario-Prestamo-medico.pdf',
+        url: '/assets/Formulario-Préstamo-medico.pdf',
         nombre: 'Formulario_Prestamo_Medico.pdf',
         descripcion: 'Préstamos Médicos'
     },
     'emergencia': {
-        url: '/assets/formularios/Formulario-Prestamo-emergencia.pdf',
+        url: '/assets/Formulario-Préstamo-emergencia.pdf',
         nombre: 'Formulario_Prestamo_Emergencia.pdf',
         descripcion: 'Préstamos de Emergencia'
     },
     'libre-disposicion': {
-        url: '/assets/formularios/Formulario-Prestamo-de-Libre-Disposicion.pdf',
+        url: '/assets/Formulario-Prestamo-de-Libre-Disposición.pdf',
         nombre: 'Formulario_Prestamo_Libre_Disposicion.pdf',
         descripcion: 'Préstamos de Libre Disposición'
     },
