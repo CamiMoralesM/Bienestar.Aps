@@ -1,18 +1,4 @@
-// firebase-config-prestamos.js
-// Configuración de Firebase para el módulo de préstamos
 
-// IMPORTANTE: Reemplaza estos valores con tu configuración real de Firebase
-const firebaseConfig = {
-  apiKey: "AIzaSyA9nXi619VOgT6mUYmYfu2jja8TRAj9QJE",
-  authDomain: "bienestaraps-c87f0.firebaseapp.com",
-  projectId: "bienestaraps-c87f0",
-  storageBucket: "bienestaraps-c87f0.firebasestorage.app",
-  messagingSenderId: "471175424877",
-  appId: "1:471175424877:web:7e1a44f77362d13f78c864",
-  measurementId: "G-G1MGN967WT"
-};
-
-// Configuración específica para préstamos
 export const prestamosConfig = {
     // Colección principal para solicitudes de préstamos
     coleccionSolicitudes: 'solicitudes-prestamos',
@@ -23,10 +9,10 @@ export const prestamosConfig = {
     // Rutas de los formularios PDF reales
     // IMPORTANTE: Actualizar estas rutas con la ubicación real de sus formularios
     formulariosPDF: {
-        'medico': '/assets/formulario-prestamo.pdf',
-        'emergencia': '/assets/formulario-prestamo.pdf',
-        'libre-disposicion': '/assets/formulario-prestamo-libre-disposicion.pdf',
-        'fondo-solidario': '/assets/formulario-fondo-solidario.pdf'
+        'medico': '/assets/formularios/formulario-prestamo-medico.pdf',
+        'emergencia': '/assets/formularios/formulario-prestamo-emergencia.pdf',
+        'libre-disposicion': '/assets/formularios/formulario-prestamo-libre-disposicion.pdf',
+        'fondo-solidario': '/assets/formularios/formulario-fondo-solidario.pdf'
     },
     
     // Nombres de descarga para los formularios
