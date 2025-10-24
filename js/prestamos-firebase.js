@@ -1,5 +1,5 @@
 // firebase-config-prestamos.js
-// Configuración de Firebase para el módulo de préstamos con Google Drive
+// Configuración de Firebase para el módulo de préstamos
 
 // IMPORTANTE: Reemplaza estos valores con tu configuración real de Firebase
 const firebaseConfig = {
@@ -20,27 +20,13 @@ export const prestamosConfig = {
     // Subcarpeta en Storage para archivos de préstamos
     carpetaStorage: 'prestamos',
     
-    // Enlaces de descarga directa desde Google Drive
-    // INSTRUCCIONES PARA OBTENER LOS IDs:
-    // 1. Sube el PDF a Google Drive
-    // 2. Haz clic derecho → "Obtener enlace" 
-    // 3. Cambia a "Cualquier persona con el enlace puede ver"
-    // 4. Copia el ID (parte entre /d/ y /view en la URL)
-    // 5. Reemplaza "TU_ID_AQUI" con el ID real
-    
+    // Rutas de los formularios PDF reales
+    // IMPORTANTE: Actualizar estas rutas con la ubicación real de sus formularios
     formulariosPDF: {
-        'medico': 'https://drive.google.com/uc?export=download&id=TU_ID_FORMULARIO_MEDICO',
-        'emergencia': 'https://drive.google.com/uc?export=download&id=TU_ID_FORMULARIO_EMERGENCIA',
-        'libre-disposicion': 'https://drive.google.com/uc?export=download&id=TU_ID_FORMULARIO_LIBRE_DISPOSICION',
-        'fondo-solidario': 'https://drive.google.com/uc?export=download&id=TU_ID_FORMULARIO_FONDO_SOLIDARIO'
-    },
-    
-    // URLs de vista previa (opcional, para mostrar antes de descargar)
-    formulariosPDFVista: {
-        'medico': 'https://drive.google.com/file/d/TU_ID_FORMULARIO_MEDICO/view',
-        'emergencia': 'https://drive.google.com/file/d/TU_ID_FORMULARIO_EMERGENCIA/view',
-        'libre-disposicion': 'https://drive.google.com/file/d/TU_ID_FORMULARIO_LIBRE_DISPOSICION/view',
-        'fondo-solidario': 'https://drive.google.com/file/d/TU_ID_FORMULARIO_FONDO_SOLIDARIO/view'
+        'medico': '/assets/formulario-prestamo.pdf',
+        'emergencia': '/assets/formulario-prestamo.pdf',
+        'libre-disposicion': '/assets/formulario-prestamo-libre-disposicion.pdf',
+        'fondo-solidario': '/assets/formulario-fondo-solidario.pdf'
     },
     
     // Nombres de descarga para los formularios
@@ -157,9 +143,7 @@ export const mensajesError = {
     archivoMuyGrande: 'El archivo excede el tamaño máximo permitido (10MB)',
     formatoArchivoInvalido: 'Formato de archivo no permitido',
     errorConexion: 'Error de conexión. Por favor intente nuevamente',
-    errorGeneral: 'Ha ocurrido un error inesperado',
-    errorDescarga: 'Error al descargar el archivo desde Google Drive',
-    archivoNoEncontrado: 'Archivo no encontrado en Google Drive'
+    errorGeneral: 'Ha ocurrido un error inesperado'
 };
 
 // Configuración de interfaz
@@ -175,33 +159,5 @@ export const uiConfig = {
         prestamo_emergencia: '🚨',
         prestamo_libre_disposicion: '💳',
         fondo_solidario: '🤝'
-    }
-};
-
-// Función helper para generar URLs de Google Drive
-export const googleDriveHelper = {
-    // Convierte URL de vista a URL de descarga
-    vistaADescarga: (urlVista) => {
-        const match = urlVista.match(/\/d\/([a-zA-Z0-9-_]+)/);
-        if (match) {
-            return `https://drive.google.com/uc?export=download&id=${match[1]}`;
-        }
-        return urlVista;
-    },
-    
-    // Extrae ID del archivo de cualquier URL de Google Drive
-    extraerID: (url) => {
-        const match = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
-        return match ? match[1] : null;
-    },
-    
-    // Genera URL de descarga directa desde ID
-    urlDescarga: (fileId) => {
-        return `https://drive.google.com/uc?export=download&id=${fileId}`;
-    },
-    
-    // Genera URL de vista previa desde ID
-    urlVista: (fileId) => {
-        return `https://drive.google.com/file/d/${fileId}/view`;
     }
 };
