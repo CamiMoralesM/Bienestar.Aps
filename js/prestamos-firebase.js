@@ -14,14 +14,20 @@ export const firebaseConfig = {
   appId: "1:471175424877:web:7e1a44f77362d13f78c864",
   measurementId: "G-G1MGN967WT"
 };
+// firebase-config-prestamos.js
+// Configuración de Firebase para el módulo de préstamos
 
-// Inicializar Firebase
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const storage = getStorage(app);
+// IMPORTANTE: Reemplaza estos valores con tu configuración real de Firebase
+export const firebaseConfig = {
+    apiKey: "tu-api-key-aqui",
+    authDomain: "tu-proyecto.firebaseapp.com",
+    projectId: "tu-proyecto-id",
+    storageBucket: "tu-proyecto.appspot.com",
+    messagingSenderId: "123456789",
+    appId: "tu-app-id"
+};
 
-// Configuración de préstamos
+// Configuración específica para préstamos
 export const prestamosConfig = {
     // Colección principal para solicitudes de préstamos
     coleccionSolicitudes: 'solicitudes-prestamos',
@@ -29,12 +35,13 @@ export const prestamosConfig = {
     // Subcarpeta en Storage para archivos de préstamos
     carpetaStorage: 'prestamos',
     
-    // URLs de los formularios PDF (estas deben apuntar a archivos reales)
+    // Rutas de los formularios PDF reales
+    // IMPORTANTE: Actualizar estas rutas con la ubicación real de sus formularios
     formulariosPDF: {
-        'medico': './assets/formulario/formulario-prestamos.pdf',
-        'emergencia': './assets/formulario/formulario-prestamos.pdf',
-        'libre-disposicion': './assets/formularios/formulario-prestamo-libre-disposicion.pdf',
-        'fondo-solidario': './assets/formularios/formulario-fondo-solidario.pdf'
+        'medico': '/assets/formulario//formulario-prestamos.pdf',
+        'emergencia': '/assets/formulario/formulario-prestamos.pdf',
+        'libre-disposicion': '/assets/formularios/formulario-prestamo-libre-disposicion.pdf',
+        'fondo-solidario': '/assets/formularios/formulario-fondo-solidario.pdf'
     },
     
     // Nombres de descarga para los formularios
@@ -84,6 +91,33 @@ export const prestamosConfig = {
         'completado'
     ],
     
+    // Campos requeridos por tipo de préstamo
+    documentosRequeridos: {
+        'prestamo-medico': [
+            'formularioCompleto',
+            'cedulaIdentidad',
+            'liquidacionesSueldo',
+            'informesMedicos'
+        ],
+        'prestamo-emergencia': [
+            'formularioCompleto',
+            'cedulaIdentidad',
+            'liquidacionesSueldo',
+            'documentosEmergencia'
+        ],
+        'prestamo-libre-disposicion': [
+            'formularioCompleto',
+            'cedulaIdentidad',
+            'liquidacionesSueldo'
+        ],
+        'fondo-solidario': [
+            'formularioCompleto',
+            'cedulaIdentidad',
+            'liquidacionesSueldo',
+            'documentosSituacion'
+        ]
+    },
+    
     // Configuración de notificaciones
     notificaciones: {
         emailAdmin: 'admin@bienestaraps.cl',
@@ -95,6 +129,27 @@ export const prestamosConfig = {
     }
 };
 
+// Reglas de validación
+export const validacionPrestamos = {
+    rut: {
+        required: true,
+        pattern: /^[\d]{1,2}\.?[\d]{3}\.?[\d]{3}[-]?[\dkK]$/
+    },
+    email: {
+        required: true,
+        pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    },
+    telefono: {
+        required: true,
+        pattern: /^(\+?56)?[0-9]{8,9}$/
+    },
+    monto: {
+        required: true,
+        min: 1,
+        validateAgainstType: true
+    }
+};
+
 // Mensajes de error personalizados
 export const mensajesError = {
     campoRequerido: 'Este campo es obligatorio',
@@ -103,8 +158,21 @@ export const mensajesError = {
     archivoMuyGrande: 'El archivo excede el tamaño máximo permitido (10MB)',
     formatoArchivoInvalido: 'Formato de archivo no permitido',
     errorConexion: 'Error de conexión. Por favor intente nuevamente',
-    errorGeneral: 'Ha ocurrido un error inesperado',
-    formularioNoDisponible: 'El formulario no está disponible en este momento'
+    errorGeneral: 'Ha ocurrido un error inesperado'
 };
 
-console.log('✅ Configuración de Firebase y préstamos cargada correctamente');
+// Configuración de interfaz
+export const uiConfig = {
+    colores: {
+        prestamo_medico: '#ff6b6b',
+        prestamo_emergencia: '#ff9500',
+        prestamo_libre_disposicion: '#4facfe',
+        fondo_solidario: '#56ab2f'
+    },
+    iconos: {
+        prestamo_medico: '🏥',
+        prestamo_emergencia: '🚨',
+        prestamo_libre_disposicion: '💳',
+        fondo_solidario: '🤝'
+    }
+};
