@@ -1,37 +1,55 @@
-// Gestor de descarga de formularios - CONFIGURADO PARA TU ESTRUCTURA
+// Gestor de descarga de formularios - CONFIGURADO PARA GITHUB PAGES
 class FormulariosDownloadManager {
     constructor() {
+        // Detectar si estamos en GitHub Pages o localhost
+        const isGitHubPages = window.location.hostname.includes('github.io');
+        const isLocalHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        
+        // Configurar base path según el entorno
+        let basePath = './';
+        
+        if (isGitHubPages) {
+            // Para GitHub Pages, usar la ruta completa del repositorio
+            // Ajusta 'Bienestar-Aps' por el nombre real de tu repositorio si es diferente
+            basePath = '/Bienestar-Aps/';
+        }
+        
+        console.log('🌐 Entorno detectado:', {
+            isGitHubPages,
+            isLocalHost,
+            hostname: window.location.hostname,
+            basePath: basePath
+        });
+        
         // CONFIGURACIÓN ESPECÍFICA PARA TU ESTRUCTURA DE ARCHIVOS
         this.formularios = {
             'medico': {
-                url: './assets/formulario/formulario-prestamos.pdf', // El que está en la carpeta "formulario"
+                url: basePath + 'assets/formulario/formulario-prestamos.pdf',
                 nombre: 'Formulario_Prestamo_Medico.pdf',
                 titulo: 'Préstamos Médicos'
             },
             'emergencia': {
-                url: './assets/formulario/formulario-prestamos.pdf', // Mismo archivo para emergencia
+                url: basePath + 'assets/formulario/formulario-prestamos.pdf',
                 nombre: 'Formulario_Prestamo_Emergencia.pdf',
                 titulo: 'Préstamos de Emergencia'
             },
             'libre-disposicion': {
-                url: './assets/formularios/formulario-prestamos-libre-disposicion.pdf',
+                url: basePath + 'assets/formularios/formulario-prestamos-libre-disposicion.pdf',
                 nombre: 'Formulario_Prestamo_Libre_Disposicion.pdf',
                 titulo: 'Préstamos de Libre Disposición'
             },
             'fondo-solidario': {
-                // Si no tienes este archivo específico, usa el general
-                url: './assets/formulario/formulario-prestamos.pdf',
+                url: basePath + 'assets/formulario/formulario-prestamos.pdf',
                 nombre: 'Formulario_Fondo_Solidario.pdf',
                 titulo: 'Fondo Solidario'
             }
         };
         
         this.initializeEventListeners();
-        this.debugMode = true; // Para ver qué está pasando en la consola
+        this.debugMode = true;
     }
 
     initializeEventListeners() {
-        // Agregar event listeners a todos los botones de descarga
         document.addEventListener('click', (e) => {
             if (e.target.classList.contains('btn-download-form')) {
                 e.preventDefault();
@@ -46,45 +64,99 @@ class FormulariosDownloadManager {
         
         if (!formulario) {
             this.mostrarMensaje('Error: Tipo de formulario no encontrado', 'error');
-            console.error('Tipo de formulario no encontrado:', tipo);
+            console.error('❌ Tipo de formulario no encontrado:', tipo);
             return;
         }
 
-        if (this.debugMode) {
-            console.log('🔍 Intentando descargar:', formulario.url);
-        }
+        console.log('🔍 Intentando descargar:', formulario.url);
 
         try {
-            this.mostrarMensaje(`Descargando formulario de ${formulario.titulo}...`, 'info');
+            this.mostrarMensaje(`Verificando formulario de ${formulario.titulo}...`, 'info');
             
-            // Intentar descarga directa (método más compatible)
-            this.iniciarDescarga(formulario.url, formulario.nombre);
+            // Verificar si el archivo existe
+            const response = await fetch(formulario.url, { method: 'HEAD' });
             
-            // Mensaje de éxito después de un momento
-            setTimeout(() => {
-                this.mostrarMensaje(`✅ Formulario de ${formulario.titulo} descargado`, 'success');
-            }, 500);
+            console.log('📡 Respuesta del servidor:', {
+                url: formulario.url,
+                status: response.status,
+                ok: response.ok,
+                statusText: response.statusText
+            });
             
-            if (this.debugMode) {
-                console.log('✅ Descarga iniciada para:', formulario.titulo);
+            if (response.ok) {
+                // El archivo existe, proceder con la descarga
+                this.iniciarDescarga(formulario.url, formulario.nombre);
+                this.mostrarMensaje(`✅ Descargando formulario de ${formulario.titulo}`, 'success');
+                console.log('✅ Archivo encontrado y descarga iniciada');
+            } else {
+                // Archivo no encontrado
+                console.error('❌ Archivo no encontrado:', {
+                    url: formulario.url,
+                    status: response.status
+                });
+                
+                this.mostrarMensaje(
+                    `❌ El formulario de ${formulario.titulo} no está disponible (Error ${response.status})`, 
+                    'error'
+                );
+                
+                // Intentar con diferentes rutas como fallback
+                this.intentarRutasAlternativas(tipo, formulario);
             }
             
         } catch (error) {
-            console.error('❌ Error al descargar formulario:', error);
+            console.error('❌ Error de red:', error);
             this.mostrarMensaje(
-                `❌ Error al descargar ${formulario.titulo}. Intente nuevamente.`, 
-                'error'
+                `⚠️ Error de conexión. Intentando descarga directa...`, 
+                'warning'
             );
+            
+            // Intentar descarga directa como último recurso
+            this.iniciarDescarga(formulario.url, formulario.nombre);
         }
+    }
+
+    async intentarRutasAlternativas(tipo, formularioOriginal) {
+        const rutasAlternativas = [
+            // Rutas sin el prefijo del repositorio
+            `./assets/formulario/formulario-prestamos.pdf`,
+            `assets/formulario/formulario-prestamos.pdf`,
+            `/assets/formulario/formulario-prestamos.pdf`,
+            
+            // Para libre disposición
+            `./assets/formularios/formulario-prestamos-libre-disposicion.pdf`,
+            `assets/formularios/formulario-prestamos-libre-disposicion.pdf`,
+            `/assets/formularios/formulario-prestamos-libre-disposicion.pdf`
+        ];
+        
+        console.log('🔄 Probando rutas alternativas...');
+        
+        for (const ruta of rutasAlternativas) {
+            try {
+                const response = await fetch(ruta, { method: 'HEAD' });
+                if (response.ok) {
+                    console.log('✅ Ruta alternativa encontrada:', ruta);
+                    this.iniciarDescarga(ruta, formularioOriginal.nombre);
+                    this.mostrarMensaje(`✅ Formulario encontrado en ruta alternativa`, 'success');
+                    return;
+                }
+            } catch (error) {
+                // Continuar con la siguiente ruta
+            }
+        }
+        
+        console.log('❌ No se encontró el archivo en ninguna ruta alternativa');
+        this.mostrarMensaje(
+            `❌ No se pudo encontrar el archivo. Contacte al administrador.`, 
+            'error'
+        );
     }
 
     iniciarDescarga(url, nombreArchivo) {
         try {
-            if (this.debugMode) {
-                console.log('🚀 Iniciando descarga:', { url, nombreArchivo });
-            }
+            console.log('🚀 Iniciando descarga:', { url, nombreArchivo });
 
-            // Método 1: Crear enlace de descarga
+            // Método principal: Crear enlace de descarga
             const link = document.createElement('a');
             link.href = url;
             link.download = nombreArchivo;
@@ -96,53 +168,61 @@ class FormulariosDownloadManager {
             // Simular click
             link.click();
             
-            // Limpiar después de un momento
+            // Limpiar
             setTimeout(() => {
                 if (document.body.contains(link)) {
                     document.body.removeChild(link);
                 }
             }, 100);
             
-            if (this.debugMode) {
-                console.log('✅ Link de descarga creado y ejecutado');
-            }
+            console.log('✅ Descarga iniciada correctamente');
             
         } catch (error) {
-            console.error('❌ Error en método de descarga principal:', error);
+            console.error('❌ Error en descarga:', error);
             
-            // Método de respaldo: abrir en nueva pestaña
+            // Método alternativo: abrir en nueva pestaña
             try {
                 window.open(url, '_blank');
                 this.mostrarMensaje('Abriendo archivo en nueva pestaña...', 'info');
-                
-                if (this.debugMode) {
-                    console.log('🔄 Usando método de respaldo: nueva pestaña');
-                }
             } catch (error2) {
-                console.error('❌ Error en método de respaldo:', error2);
-                this.mostrarMensaje('Error al abrir archivo. Verifique la ruta.', 'error');
+                console.error('❌ Error al abrir en nueva pestaña:', error2);
+                this.mostrarMensaje('Error al descargar archivo.', 'error');
             }
         }
     }
 
-    // Método para probar todas las rutas
     async probarRutas() {
-        console.log('🔍 Probando todas las rutas de formularios...');
+        console.log('🔍 DIAGNÓSTICO COMPLETO DE RUTAS');
+        console.log('='.repeat(50));
+        console.log('🌐 URL actual:', window.location.href);
+        console.log('🏠 Hostname:', window.location.hostname);
+        console.log('📁 Pathname:', window.location.pathname);
+        console.log('='.repeat(50));
         
         for (const [tipo, formulario] of Object.entries(this.formularios)) {
             try {
+                console.log(`\n📄 Probando ${tipo}:`);
+                console.log(`   URL: ${formulario.url}`);
+                
                 const response = await fetch(formulario.url, { method: 'HEAD' });
                 const status = response.ok ? '✅ ENCONTRADO' : '❌ NO ENCONTRADO';
-                console.log(`${tipo}: ${status} (${response.status}) - ${formulario.url}`);
+                console.log(`   Resultado: ${status} (${response.status})`);
+                
+                if (!response.ok) {
+                    console.log(`   Error: ${response.statusText}`);
+                }
+                
             } catch (error) {
-                console.log(`${tipo}: ❌ ERROR DE RED - ${formulario.url}`, error.message);
+                console.log(`   ❌ ERROR DE RED: ${error.message}`);
             }
         }
         
-        console.log('\n📝 Si algún archivo muestra "NO ENCONTRADO", verifica:');
-        console.log('1. Que el archivo existe en esa ruta');
-        console.log('2. Que el nombre del archivo sea exacto (case-sensitive)');
-        console.log('3. Que la ruta relativa sea correcta desde tu HTML');
+        console.log('\n' + '='.repeat(50));
+        console.log('💡 SUGERENCIAS:');
+        console.log('1. Verifica que los archivos estén en el repositorio');
+        console.log('2. Asegúrate de que el nombre del repositorio sea correcto');
+        console.log('3. Los archivos deben estar en la rama principal (main/master)');
+        console.log('4. GitHub Pages puede tardar unos minutos en actualizar');
     }
 
     mostrarMensaje(mensaje, tipo = 'info') {
@@ -150,11 +230,9 @@ class FormulariosDownloadManager {
         const mensajesAnteriores = document.querySelectorAll('.formulario-mensaje');
         mensajesAnteriores.forEach(msg => msg.remove());
         
-        // Crear elemento de mensaje
         const mensajeDiv = document.createElement('div');
         mensajeDiv.className = `alert alert-${tipo} formulario-mensaje`;
         
-        // Estilos base
         const estilosBase = `
             position: fixed;
             top: 20px;
@@ -170,7 +248,6 @@ class FormulariosDownloadManager {
             animation: slideInRight 0.3s ease-out;
         `;
         
-        // Estilos por tipo
         const estilosTipo = {
             success: 'background: #d4edda; color: #155724; border-left: 4px solid #28a745;',
             error: 'background: #f8d7da; color: #721c24; border-left: 4px solid #dc3545;',
@@ -179,8 +256,6 @@ class FormulariosDownloadManager {
         };
         
         mensajeDiv.style.cssText = estilosBase + estilosTipo[tipo];
-        
-        // Contenido del mensaje con botón de cerrar
         mensajeDiv.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;">
                 <span style="flex-grow: 1;">${mensaje}</span>
@@ -190,30 +265,13 @@ class FormulariosDownloadManager {
             </div>
         `;
         
-        // Agregar CSS de animación si no existe
         if (!document.getElementById('toast-animations')) {
             const style = document.createElement('style');
             style.id = 'toast-animations';
             style.textContent = `
                 @keyframes slideInRight {
-                    from { 
-                        transform: translateX(100%); 
-                        opacity: 0; 
-                    }
-                    to { 
-                        transform: translateX(0); 
-                        opacity: 1; 
-                    }
-                }
-                @keyframes slideOutRight {
-                    from { 
-                        transform: translateX(0); 
-                        opacity: 1; 
-                    }
-                    to { 
-                        transform: translateX(100%); 
-                        opacity: 0; 
-                    }
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
                 }
             `;
             document.head.appendChild(style);
@@ -221,38 +279,29 @@ class FormulariosDownloadManager {
         
         document.body.appendChild(mensajeDiv);
         
-        // Auto-remover después de 4 segundos
         setTimeout(() => {
             if (mensajeDiv.parentNode) {
-                mensajeDiv.style.animation = 'slideOutRight 0.3s ease-in forwards';
-                setTimeout(() => {
-                    if (mensajeDiv.parentNode) {
-                        mensajeDiv.remove();
-                    }
-                }, 300);
+                mensajeDiv.remove();
             }
-        }, 4000);
+        }, 5000);
     }
 }
 
-// Inicializar cuando el DOM esté listo
+// Inicializar
 document.addEventListener('DOMContentLoaded', () => {
     window.formulariosManager = new FormulariosDownloadManager();
-    console.log('✅ Gestor de formularios inicializado para tu estructura de archivos');
+    console.log('✅ Gestor de formularios inicializado para GitHub Pages');
     
-    // Probar rutas automáticamente en modo debug
+    // Diagnóstico automático
     setTimeout(() => {
         window.formulariosManager.probarRutas();
     }, 1000);
 });
 
-// Funciones globales para compatibilidad y debugging
+// Funciones globales
 window.descargarFormulario = function(tipo) {
     if (window.formulariosManager) {
         window.formulariosManager.descargarFormulario(tipo);
-    } else {
-        console.error('❌ Gestor de formularios no inicializado');
-        alert('Error: Sistema de formularios no disponible. Recargue la página.');
     }
 };
 
@@ -260,10 +309,4 @@ window.probarRutasFormularios = function() {
     if (window.formulariosManager) {
         window.formulariosManager.probarRutas();
     }
-};
-
-// Función para debug manual
-window.debugFormularios = function() {
-    console.log('📋 Configuración actual de formularios:');
-    console.table(window.formulariosManager.formularios);
 };
