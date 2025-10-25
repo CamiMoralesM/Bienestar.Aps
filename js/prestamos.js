@@ -4,38 +4,22 @@ class FormulariosDownloadManager {
         // RUTAS CORREGIDAS basadas en el error - usando lo que SÍ funciona
         this.formularios = {
             'medico': {
-                archivos: [
-                    './assets/images/formulario-prestamos.png',  // Basado en la ruta que SÍ funciona
-                    'assets/formulario-prestamos.png',
-                    'formulario-prestamos.png'
-                ],
+                archivos: './assets/images/formulario-prestamos.png',  // Basado en la ruta que SÍ funciona
                 nombre: 'Formulario_Prestamo_Medico.pdf',
                 titulo: 'Préstamos Médicos'
             },
             'emergencia': {
-                archivos: [
-                    './assets/images/formulario-prestamos.png',
-                    'assets/formulario-prestamos.png',
-                    'formulario-prestamos.png'
-                ],
+                archivos: './assets/images/formulario-prestamos.png',
                 nombre: 'Formulario_Prestamo_Emergencia.pdf',
                 titulo: 'Préstamos de Emergencia'
             },
             'libre-disposicion': {
-                archivos: [
-                    './assets/images/formulario-prestamos-libre-disposicion.png',  // Esta SÍ funciona según el error
-                    'assets/formulario-prestamos-libre-disposicion.png',
-                    'formulario-prestamos-libre-disposicion.png'
-                ],
+                archivos: './assets/images/formulario-prestamos-libre-disposicion.png',  // Esta SÍ funciona según el error
                 nombre: 'Formulario_Prestamo_Libre_Disposicion.pdf',
                 titulo: 'Préstamos de Libre Disposición'
             },
             'fondo-solidario': {
-                archivos: [
-                    './assets/images/formulario-prestamos.png',
-                    'assets/formulario-prestamos.png',
-                    'formulario-prestamos.png'
-                ],
+                archivos:'./assets/images/formulario-prestamos.png',
                 nombre: 'Formulario_Fondo_Solidario.pdf',
                 titulo: 'Fondo Solidario'
             }
