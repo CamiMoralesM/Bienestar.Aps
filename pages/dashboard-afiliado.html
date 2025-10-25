@@ -3,785 +3,748 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Panel - Bienestar APS</title>
-    <link rel="stylesheet" href="../css/styles.css">
-</head>
-<body>
-    <!-- Header con usuario logueado -->
-    <header class="header">
-        <div class="container">
-            <div class="header-content">
-                <div class="logo">
-                    <a href="../index.html">
-                      <img src="../assets/images/logo-bienestar.png" alt="Logo Bienestar APS" style="height:120px; width:auto;">
-                    </a>
-                </div>
-                <nav class="user-nav">
-                    <div class="user-info">
-                        <span class="user-name"></span>
-                        <span class="user-rut"></span>
-                    </div>
-                    <button class="btn btn-logout" onclick="logout()">Cerrar Sesión</button>
-                </nav>
-            </div>
-        </div>
-    </header>
-    
-    <!-- Navegación Dashboard -->
-    <nav class="dashboard-nav">
-        <div class="container">
-            <ul class="nav-tabs">
-                <li class="nav-tab active" data-tab="resumen">📊 Resumen</li>
-                <li class="nav-tab" data-tab="compras-gas">🛒 Compra de Gas</li>
-                <li class="nav-tab" data-tab="compra-cine">🎬 Compra de Cine</li>
-                <li class="nav-tab" data-tab="compra-jumper">🤸 Compra Jumper Park</li>
-                <li class="nav-tab" data-tab="compra-gimnasio">💪 Compra Gimnasio</li>
-                <li class="nav-tab" data-tab="solicitudes">📝 Solicitudes</li>
-                <li class="nav-tab" data-tab="perfil">⚙️ Mi Perfil</li>
-                <li class="nav-tab" data-tab="prestamos">💳 Préstamos / Fondo Solidario</li>
-            </ul>
-        </div>
-    </nav>
- 
-    <!-- Contenido del Dashboard -->
-    <section class="dashboard-content">
-        <div class="container">
-            <!-- Tab: Resumen -->
-            <div class="tab-content active" id="tab-resumen">
-                <div class="welcome-banner">
-                    <h1 id="bienvenida-usuario"></h1>
-                    <p>Aquí puedes gestionar tus beneficios y convenios</p>
-                </div>
-                <div class="stats-grid">
-                    <!-- Solicitudes pendientes -->
-                    <div class="stat-card">
-                        <div class="stat-icon">📝</div>
-                        <div class="stat-info">
-                            <h3 id="solicitudes-pendientes"></h3>
-                            <p>Solicitudes pendientes</p>
-                        </div>
-                    </div>
-
-                    <!-- Tiempo de afiliación -->
-                    <div class="stat-card">
-                        <div class="stat-icon">✅</div>
-                        <div class="stat-info">
-                            <h3 id="tiempo-afiliacion"></h3>
-                            <p>Tiempo de afiliación</p>
-                        </div>
-                    </div>
-                </div>
-                <!-- Notificaciones -->
-                <div class="section-card">
-                    <h2>🔔 Notificaciones Recientes</h2>
-                    <div class="notifications" id="notificaciones-recientes"></div>
-                </div>
-            </div>
-
-            <!-- Tab: Compra de Gas -->
-            <div class="tab-content" id="tab-compras-gas">
-                <h2>🛒 Compra de Vales de Gas</h2>
-                
-                <div class="info-box" style="background: #ed9187; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                    <p><strong>📋 Información:</strong></p>
-                    <ul style="margin: 10px 0; padding-left: 20px;">
-                        <li>Límites Mensuales</li>
-                        <li>❄️ Temporada Normal (Oct-May): Máximo 4 cargas mensuales, máximo 2 por tipo</li>
-                        <li>🔥 Temporada Alta (Jun-Sep): Máximo 6 cargas mensuales, máximo 3 por tipo (45kg máx. 2)</li>
-                    </ul>
-                </div>
-                
-                <!-- Información de Precios -->
-                <div class="info-precios-gas" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
-                    <!-- Precios Lipigas -->
-                    <div class="info-box" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(255, 107, 107, 0.12);">
-                        <h3 style="margin: 0 0 15px 0; font-size: 1.3em; display: flex; align-items: center; gap: 10px;">
-                            <span style="font-size: 1.5em;">🔥</span> Lipigas
-                        </h3>
-                        <div style="display: grid; gap: 10px;">
-                            <div style="display: flex; justify-content: space-between; padding: 8px 12px; background: rgba(255, 255, 255, 0.2); border-radius: 6px;">
-                                <span style="font-weight: 500;">5 kilos:</span>
-                                <span style="font-weight: bold; font-size: 1.1em;">$7.000</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; padding: 8px 12px; background: rgba(255, 255, 255, 0.2); border-radius: 6px;">
-                                <span style="font-weight: 500;">11 kilos:</span>
-                                <span style="font-weight: bold; font-size: 1.1em;">$12.000</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; padding: 8px 12px; background: rgba(255, 255, 255, 0.2); border-radius: 6px;">
-                                <span style="font-weight: 500;">15 kilos:</span>
-                                <span style="font-weight: bold; font-size: 1.1em;">$16.000</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; padding: 8px 12px; background: rgba(255, 255, 255, 0.2); border-radius: 6px;">
-                                <span style="font-weight: 500;">45 kilos:</span>
-                                <span style="font-weight: bold; font-size: 1.1em;">$54.000</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Precios Abastible -->
-                    <div class="info-box" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(79, 172, 254, 0.12);">
-                        <h3 style="margin: 0 0 15px 0; font-size: 1.3em; display: flex; align-items: center; gap: 10px;">
-                            <span style="font-size: 1.5em;">⛽</span> Abastible
-                        </h3>
-                        <div style="display: grid; gap: 10px;">
-                            <div style="display: flex; justify-content: space-between; padding: 8px 12px; background: rgba(255, 255, 255, 0.2); border-radius: 6px;">
-                                <span style="font-weight: 500;">5 kilos:</span>
-                                <span style="font-weight: bold; font-size: 1.1em;">$8.000</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; padding: 8px 12px; background: rgba(255, 255, 255, 0.2); border-radius: 6px;">
-                                <span style="font-weight: 500;">11 kilos:</span>
-                                <span style="font-weight: bold; font-size: 1.1em;">$15.000</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; padding: 8px 12px; background: rgba(255, 255, 255, 0.2); border-radius: 6px;">
-                                <span style="font-weight: 500;">15 kilos:</span>
-                                <span style="font-weight: bold; font-size: 1.1em;">$18.000</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; padding: 8px 12px; background: rgba(255, 255, 255, 0.2); border-radius: 6px;">
-                                <span style="font-weight: 500;">45 kilos:</span>
-                                <span style="font-weight: bold; font-size: 1.1em;">$52.000</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <form id="formCompraGas" enctype="multipart/form-data">
-                    <div class="form-grid">
-                        <!-- Información básica -->
-                        <div class="form-group">
-                            <label for="rutGas">RUT *</label>
-                            <input type="text" id="rutGas" name="rutGas" required placeholder="12.345.678-9">
-                        </div>
-                        <div class="form-group">
-                            <label for="nombreGas">Nombre y Apellido Afiliado</label>
-                            <input type="text" id="nombreGas" name="nombreGas" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="fechaCompraGas">Fecha de compra</label>
-                            <input type="date" id="fechaCompraGas" name="fechaCompraGas" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="emailGas">Correo Electrónico</label>
-                            <input type="email" id="emailGas" name="emailGas" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="telefonoGas">Teléfono *</label>
-                            <input type="tel" id="telefonoGas" name="telefonoGas" required placeholder="+569...">
-                        </div>
-
-                        <!-- Selector de empresa -->
-                        <div class="form-group">
-                            <label>Compra Lipigas</label>
-                            <select id="compraLipigas" name="compraLipigas">
-                                <option value="no">No</option>
-                                <option value="si">Sí</option>
-                            </select>
-                        </div>
-
-                        <!-- Opciones Lipigas -->
-                        <div id="lipigasOpciones" style="display:none;">
-                            <div class="gas-options-container">
-                                <div class="gas-option">
-                                    <label class="gas-label">5 kilos</label>
-                                    <div class="gas-select-container">
-                                        <select id="lipigas5" name="lipigas5" class="gas-select">
-                                            <option value="0">Seleccionar cantidad</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="gas-option">
-                                    <label class="gas-label">11 kilos</label>
-                                    <div class="gas-select-container">
-                                        <select id="lipigas11" name="lipigas11" class="gas-select">
-                                            <option value="0">Seleccionar cantidad</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="gas-option">
-                                    <label class="gas-label">15 kilos</label>
-                                    <div class="gas-select-container">
-                                        <select id="lipigas15" name="lipigas15" class="gas-select">
-                                            <option value="0">Seleccionar cantidad</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="gas-option">
-                                    <label class="gas-label">45 kilos</label>
-                                    <div class="gas-select-container">
-                                        <select id="lipigas45" name="lipigas45" class="gas-select">
-                                            <option value="0">Seleccionar cantidad</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="total-info">Total seleccionado: <span class="total-count">0</span></div>
-                        </div>
-
-                        <!-- Selector Abastible -->
-                        <div class="form-group">
-                            <label>Compra Abastible</label>
-                            <select id="compraAbastible" name="compraAbastible">
-                                <option value="no">No</option>
-                                <option value="si">Sí</option>
-                            </select>
-                        </div>
-
-                        <!-- Opciones Abastible -->
-                        <div id="abastibleOpciones" style="display:none;">
-                            <div class="gas-options-container">
-                                <div class="gas-option">
-                                    <label class="gas-label">5 kilos</label>
-                                    <div class="gas-select-container">
-                                        <select id="abastible5" name="abastible5" class="gas-select">
-                                            <option value="0">Seleccionar cantidad</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="gas-option">
-                                    <label class="gas-label">11 kilos</label>
-                                    <div class="gas-select-container">
-                                        <select id="abastible11" name="abastible11" class="gas-select">
-                                            <option value="0">Seleccionar cantidad</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="gas-option">
-                                    <label class="gas-label">15 kilos</label>
-                                    <div class="gas-select-container">
-                                        <select id="abastible15" name="abastible15" class="gas-select">
-                                            <option value="0">Seleccionar cantidad</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="gas-option">
-                                    <label class="gas-label">45 kilos</label>
-                                    <div class="gas-select-container">
-                                        <select id="abastible45" name="abastible45" class="gas-select">
-                                            <option value="0">Seleccionar cantidad</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="total-info">Total seleccionado: <span class="total-count">0</span></div>
-                            <div class="form-group saldo-favor">
-                                <label for="saldoFavor">Saldo a favor (si aplica)</label>
-                                <input type="text" id="saldoFavor" name="saldoFavor" placeholder="Fecha y monto">
-                            </div>
-                        </div>
-
-                        <!-- Comprobante -->
-                        <div class="form-group">
-                            <label for="comprobanteGas">Adjuntar comprobante de transferencia</label>
-                            <input type="file" id="comprobanteGas" name="comprobanteGas" required>
-                            <small>Recuerde que el asunto debe indicar cantidad y carga de gas (5k-11k-15k-45k).</small>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-enviar-gas">Enviar Compra Gas</button>
-                </form>
-            </div>
-
-            <!-- Tab: Compra de Cine -->
-            <div class="tab-content" id="tab-compra-cine">
-                <h2>🎬 Compra de Entradas de Cine</h2>
-                <div class="info-box" style="background: #87ceed; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                    <p><strong>📋 Información:</strong></p>
-                    <ul style="margin: 10px 0; padding-left: 20px;">
-                        <li>Máximo 4 entradas por mes</li>
-                        <li>Valor: $7.000 (incluye entrada + combo)</li>
-                        <li>Válido en cualquier complejo Cinépolis o Hoyts</li>
-                        <li>Incluye películas en estreno</li>
-                    </ul>
-                </div>
-                
-                <form id="formCompraCine" enctype="multipart/form-data">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="rutCine">RUT *</label>
-                            <input type="text" id="rutCine" name="rutCine" required placeholder="12.345.678-9">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="nombreCine">Nombre y Apellido Afiliado *</label>
-                            <input type="text" id="nombreCine" name="nombreCine" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="telefonoCine">Teléfono *</label>
-                            <input type="tel" id="telefonoCine" name="telefonoCine" required placeholder="+569...">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="emailCine">Correo Electrónico *</label>
-                            <input type="email" id="emailCine" name="emailCine" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="fechaCompraCine">Fecha de Compra *</label>
-                            <input type="date" id="fechaCompraCine" name="fechaCompraCine" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="cantidadCine">Cantidad de Entradas *</label>
-                            <select id="cantidadCine" name="cantidadCine" required>
-                                <option value="0">Seleccione cantidad</option>
-                                <option value="1">1</option>
-                                <option value="2">2</option>
-                                <option value="3">3</option>
-                                <option value="4">4</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group" style="grid-column: 1 / -1;">
-                            <label for="comprobanteCine">Adjuntar Comprobante de Transferencia *</label>
-                            <input type="file" id="comprobanteCine" name="comprobanteCine" required accept="image/*,.pdf">
-                            <small>Formatos aceptados: JPG, PNG, PDF</small>
-                        </div>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary btn-enviar-cine">Enviar Compra Cine</button>
-                </form>
-            </div>  
-
-            <!-- Tab: Compra de Jumper Trampoline Park -->
-            <div class="tab-content" id="tab-compra-jumper">
-                <h2>🤸 Compra de Entradas Jumper Trampoline Park</h2>
-                <div class="info-box" style="background: #f0d481; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                    <p><strong>📋 Información:</strong></p>
-                    <ul style="margin: 10px 0; padding-left: 20px;">
-                        <li>Máximo 6 entradas por mes</li>
-                        <li>Valor: $6.500 </li>
-                        <li>Diversión garantizada para toda la familia</li>
-                        <li>Incluye acceso a todas las áreas del parque</li>
-                    </ul>
-                </div>
-                
-                <form id="formCompraJumper" enctype="multipart/form-data">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="rutJumper">RUT *</label>
-                            <input type="text" id="rutJumper" name="rutJumper" required placeholder="12.345.678-9">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="nombreJumper">Nombre y Apellido Afiliado *</label>
-                            <input type="text" id="nombreJumper" name="nombreJumper" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="telefonoJumper">Teléfono *</label>
-                            <input type="tel" id="telefonoJumper" name="telefonoJumper" required placeholder="+569...">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="emailJumper">Correo Electrónico *</label>
-                            <input type="email" id="emailJumper" name="emailJumper" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="fechaCompraJumper">Fecha de Compra *</label>
-                            <input type="date" id="fechaCompraJumper" name="fechaCompraJumper" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="cantidadJumper">Cantidad de Entradas *</label>
-                            <select id="cantidadJumper" name="cantidadJumper" required>
-                                <option value="0">Seleccione cantidad</option>
-                                <option value="1">1</option>
-                                <option value="2">2</option>
-                                <option value="3">3</option>
-                                <option value="4">4</option>
-                                <option value="5">5</option>
-                                <option value="6">6</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group" style="grid-column: 1 / -1;">
-                            <label for="comprobanteJumper">Adjuntar Comprobante de Transferencia *</label>
-                            <input type="file" id="comprobanteJumper" name="comprobanteJumper" required accept="image/*,.pdf">
-                            <small>Formatos aceptados: JPG, PNG, PDF</small>
-                        </div>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary btn-enviar-jumper">Enviar Compra Jumper</button>
-                </form>
-            </div>
-
-            <!-- Tab: Compra de Gimnasio -->
-            <div class="tab-content" id="tab-compra-gimnasio">
-                <h2>💪 Compra de Entradas Gimnasio Energy</h2>
-                <div class="info-box" style="background: #a4eb8a; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                    <p><strong>📋 Información:</strong></p>
-                    <ul style="margin: 10px 0; padding-left: 20px;">
-                        <li>Máximo 4 entradas por mes</li>
-                        <li>Valor: $18.000 por ticket mensual</li>
-                        <li>Válido en todas las sucursales Energy</li>
-                        <li>Sin restricción de horarios</li>
-                        <li>Incluye todos los servicios</li>
-                    </ul>
-                </div>
-                
-                <form id="formCompraGimnasio" enctype="multipart/form-data">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="rutGimnasio">RUT *</label>
-                            <input type="text" id="rutGimnasio" name="rutGimnasio" required placeholder="12.345.678-9">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="nombreGimnasio">Nombre y Apellido Afiliado *</label>
-                            <input type="text" id="nombreGimnasio" name="nombreGimnasio" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="telefonoGimnasio">Teléfono *</label>
-                            <input type="tel" id="telefonoGimnasio" name="telefonoGimnasio" required placeholder="+569...">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="emailGimnasio">Correo Electrónico *</label>
-                            <input type="email" id="emailGimnasio" name="emailGimnasio" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="fechaCompraGimnasio">Fecha de Compra *</label>
-                            <input type="date" id="fechaCompraGimnasio" name="fechaCompraGimnasio" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="cantidadGimnasio">Cantidad de Tickets *</label>
-                            <select id="cantidadGimnasio" name="cantidadGimnasio" required>
-                                <option value="0">Seleccione cantidad</option>
-                                <option value="1">1</option>
-                                <option value="2">2</option>
-                                <option value="3">3</option>
-                                <option value="4">4</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group" style="grid-column: 1 / -1;">
-                            <label for="comprobanteGimnasio">Adjuntar Comprobante de Transferencia *</label>
-                            <input type="file" id="comprobanteGimnasio" name="comprobanteGimnasio" required accept="image/*,.pdf">
-                            <small>Formatos aceptados: JPG, PNG, PDF</small>
-                        </div>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary btn-enviar-gimnasio">Enviar Compra Gimnasio</button>
-                </form>
-            </div>
-
-            <!-- Tab: Solicitudes -->
-            <div class="tab-content" id="tab-solicitudes">
-                <h2>📝 Mis Solicitudes</h2>
-                <div class="actions-bar">
-                    <button class="btn btn-primary" onclick="nuevaSolicitud()">
-                        ➕ Nueva Solicitud
-                    </button>
-                </div>
-                <div class="solicitudes-list"></div>
-            </div>
-
-            <!-- Tab: Mi Perfil -->
-            <div class="tab-content" id="tab-perfil">
-                <h2>⚙️ Mi Perfil</h2>
-                <div class="profile-grid">
-                    <div class="profile-card">
-                        <h3>Información Personal</h3>
-                        <form class="profile-form">
-                            <div class="form-group">
-                                <label>Nombre Completo</label>
-                                <input type="text" readonly>
-                            </div>
-                            <div class="form-group">
-                                <label>RUT</label>
-                                <input type="text" readonly>
-                            </div>
-                            <div class="form-group">
-                                <label>Email</label>
-                                <input type="email">
-                            </div>
-                            <div class="form-group">
-                                <label>Teléfono</label>
-                                <input type="tel">
-                            </div>
-                            <button type="submit" class="btn btn-primary">Actualizar Información</button>
-                        </form>
-                    </div>
-                    <div class="profile-card">
-                        <h3>Cambiar Contraseña</h3>
-                        <form class="profile-form">
-                            <div class="form-group">
-                                <label>Contraseña Actual</label>
-                                <input type="password" placeholder="••••••••">
-                            </div>
-                            <div class="form-group">
-                                <label>Nueva Contraseña</label>
-                                <input type="password" placeholder="••••••••">
-                            </div>
-                            <div class="form-group">
-                                <label>Confirmar Contraseña</label>
-                                <input type="password" placeholder="••••••••">
-                            </div>
-                            <button type="submit" class="btn btn-primary">Cambiar Contraseña</button>
-                        </form>
-                    </div>
-                    <div class="profile-card">
-                        <h3>Información de Cuenta</h3>
-                        <div class="info-list">
-                            <div class="info-item">
-                                <span class="info-label">Fecha de afiliación:</span>
-                                <span class="info-value"></span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Centro de Salud:</span>
-                                <span class="info-value"></span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Cargas familiares:</span>
-                                <span class="info-value"></span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Estado:</span>
-                                <span class="badge success"></span>
-                            </div>
-                        </div>
-                        <button class="btn btn-secondary">Ver Cargas Familiares</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- NUEVA PESTAÑA: Préstamos / Fondo Solidario -->
-            <div class="tab-content" id="tab-prestamos">
-                <div class="container">
-                    <h2>💳 Préstamos y Fondo Solidario</h2>
-
-                    <p>
-                        Aquí encontrarás información sobre los tipos de préstamos y el fondo solidario. 
-                        Puedes descargar los formularios oficiales (PDF generado desde las imágenes subidas al sitio) y luego subir el formulario completado
-                        junto a los documentos complementarios (liquidaciones, cédula, certificados) para solicitar el beneficio.
-                    </p>
-
-                    <div class="prestamos-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:20px;">
-                        <!-- Préstamo Médico -->
-                        <div class="prestamo-card">
-                            <h3>Préstamos Médicos</h3>
-                            <img src="../assets/formulario-prestamos.png" alt="Préstamo Médico" style="max-width:100%; border-radius:8px;"/>
-                            <p>
-                                Con un tope de $500.000 en un máximo de 12 cuotas, sujeto a evaluación por el Trabajador/a Social.
-                                Requiere al menos 3 descuentos al Servicio de Bienestar APS.
-                            </p>
-                            <div style="display:flex; gap:8px; margin-top:10px;">
-                                <button class="btn btn-primary btn-download" data-img="../assets/formulario-prestamos.png" data-name="formulario-prestamo-medico.pdf">Descargar Formulario (PDF)</button>
-                                <button class="btn btn-secondary btn-open-upload" data-tipo="medico">Solicitar / Subir Documentos</button>
-                            </div>
-                        </div>
-
-                        <!-- Préstamo de Emergencia -->
-                        <div class="prestamo-card">
-                            <h3>Préstamos de Emergencia</h3>
-                            <img src="../assets/images/formulario-prestamos-libre-disposicion.png" alt="Préstamo Emergencia" style="max-width:100%; border-radius:8px;"/>
-                            <p>
-                                Préstamo con tope de $500.000, evaluado por Trabajador/a Social. Descontado vía liquidación.
-                            </p>
-                            <div style="display:flex; gap:8px; margin-top:10px;">
-                                <button class="btn btn-primary btn-download" data-img="../assets/formulario-prestamos.png" data-name="formulario-prestamo-emergencia.pdf">Descargar Formulario (PDF)</button>
-                                <button class="btn btn-secondary btn-open-upload" data-tipo="emergencia">Solicitar / Subir Documentos</button>
-                            </div>
-                        </div>
-
-                        <!-- Préstamo Libre Disposición -->
-                        <div class="prestamo-card">
-                            <h3>Préstamo Libre Disposición</h3>
-                            <img src="../assets/formulario-prestamos-libre-disposicion.png" alt="Préstamo Libre Disposición" style="max-width:100%; border-radius:8px;"/>
-                            <p>
-                                Tope $300.000 en máximo 6 cuotas. Requiere últimas 3 liquidaciones, cédula y formulario de libre disposición.
-                            </p>
-                            <div style="display:flex; gap:8px; margin-top:10px;">
-                                <button class="btn btn-primary btn-download" data-img="../assets/formulario-prestamos-libre-disposicion.png" data-name="formulario-prestamo-libre-disposicion.pdf">Descargar Formulario (PDF)</button>
-                                <button class="btn btn-secondary btn-open-upload" data-tipo="libre_disposicion">Solicitar / Subir Documentos</button>
-                            </div>
-                        </div>
-
-                        <!-- Fondo Solidario -->
-                        <div class="prestamo-card">
-                            <h3>Fondo Solidario</h3>
-                            <img src="../assets/images/formulario-prestamos-libre-disposicion.png" alt="Fondo Solidario" style="max-width:100%; border-radius:8px;"/>
-                            <p>
-                                Ayudas sin retorno en caso de emergencia, enfermedad o situaciones familiares complejas. Entrega previa evaluación de Trabajador/a Social y Comité.
-                            </p>
-                            <div style="display:flex; gap:8px; margin-top:10px;">
-                                <button class="btn btn-primary btn-download" data-img="../assets/formulario-prestamos.png" data-name="formulario-fondo-solidario.pdf">Descargar Formulario (PDF)</button>
-                                <button class="btn btn-secondary btn-open-upload" data-tipo="fondo_solidario">Solicitar / Subir Documentos</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <hr style="margin:20px 0;">
-
-                    <div>
-                        <h3>Solicitudes anteriores</h3>
-                        <div id="mis-solicitudes-prestamos">
-                            <p>Cargando solicitudes...</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Modal Subir Solicitud -->
-                <div id="modalSolicitudPrestamo" class="modal" style="display:none;">
-                    <div class="modal-content" style="max-width:700px; margin:40px auto; padding:20px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <h3 id="modalTitulo">Nueva Solicitud</h3>
-                            <button onclick="cerrarModalSolicitud()" class="btn btn-danger">Cerrar ✖</button>
-                        </div>
-
-                        <form id="formSolicitudPrestamo" style="margin-top:12px;">
-                            <input type="hidden" id="tipoPrestamo" name="tipoPrestamo" value="">
-                            <div class="form-group">
-                                <label>Nombre</label>
-                                <input type="text" id="nombreSolicitante" name="nombreSolicitante" required class="form-control">
-                            </div>
-                            <div class="form-group">
-                                <label>RUT</label>
-                                <input type="text" id="rutSolicitante" name="rutSolicitante" required class="form-control">
-                            </div>
-                            <div class="form-group">
-                                <label>Correo</label>
-                                <input type="email" id="emailSolicitante" name="emailSolicitante" required class="form-control">
-                            </div>
-                            <div class="form-group">
-                                <label>Comentarios / Motivo</label>
-                                <textarea id="comentarioPrestamo" name="comentarioPrestamo" rows="3" class="form-control"></textarea>
-                            </div>
-                            <div class="form-group">
-                                <label>Adjuntar archivos (formulario completado en PDF, liquidaciones, cédula, otros) *</label>
-                                <input type="file" id="archivosPrestamo" name="archivosPrestamo" multiple accept=".pdf,image/*" required>
-                                <small>Puede adjuntar varios archivos. El formulario oficial se puede descargar arriba y completar.</small>
-                            </div>
-
-                            <div style="display:flex; gap:8px; margin-top:12px;">
-                                <button type="submit" class="btn btn-primary">Enviar Solicitud</button>
-                                <button type="button" onclick="cerrarModalSolicitud()" class="btn btn-secondary">Cancelar</button>
-                            </div>
-
-                            <div id="estadoEnvio" style="margin-top:12px;"></div>
-                        </form>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </section>
-    
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; 2025 Servicio Bienestar APS - Corporación Municipal de Puente Alto</p>
-        </div>
-    </footer>
-
-    <!-- SCRIPTS CORREGIDOS -->
-    <script type="module" src="../js/dashboard-afiliado-firebase.js"></script>
-    <script type="module" src="../js/compras-unificadas.js"></script>
-
-    <!-- Librerías para generar PDF desde imágenes -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-    <!-- Nuevos módulos para préstamos (subida a Firebase y UI) -->
-    <script type="module" src="../js/prestamos-firebase.js"></script>
-    <script type="module" src="../js/prestamos.js"></script>
-
-    <script type="module">
-        // Sistema de pestañas mejorado
-        const tabs = document.querySelectorAll('.nav-tab');
-        const tabContents = document.querySelectorAll('.tab-content');
-        
-        tabs.forEach(tab => {
-            tab.addEventListener('click', function() {
-                const targetTab = this.getAttribute('data-tab');
-                
-                // Remover clase active de todas las pestañas
-                tabs.forEach(t => t.classList.remove('active'));
-                tabContents.forEach(content => content.classList.remove('active'));
-                
-                // Agregar clase active a la pestaña clickeada
-                this.classList.add('active');
-                
-                // Mostrar el contenido correspondiente
-                const targetContent = document.getElementById(`tab-${targetTab}`);
-                if (targetContent) {
-                    targetContent.classList.add('active');
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                }
-            });
-        });
-
-        // Función para nueva solicitud
-        function nuevaSolicitud() {
-            console.log('Nueva solicitud clickeada');
-            // Aquí puedes agregar la lógica para nueva solicitud
-        }
-
-        // Función para logout
-        function logout() {
-            if (confirm('¿Está seguro que desea cerrar sesión?')) {
-                sessionStorage.clear();
-                localStorage.clear();
-                window.location.href = '../index.html';
-            }
-        }
-
-        // Hacer las funciones globales para que puedan ser llamadas desde HTML
-        window.nuevaSolicitud = nuevaSolicitud;
-        window.logout = logout;
-    </script>
-
+    <title>Préstamos y Fondo Solidario - APS</title>
     <style>
-        /* Estilos para mostrar/ocultar botones según la pestaña activa */
-        .btn-enviar-gas,
-        .btn-enviar-cine,
-        .btn-enviar-jumper,
-        .btn-enviar-gimnasio {
-            margin-top: 20px;
-            width: 100%;
-            padding: 12px;
-            font-size: 1.1em;
-            font-weight: 600;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        /* Solo mostrar los botones cuando su pestaña correspondiente está activa */
-        #tab-compras-gas:not(.active) .btn-enviar-gas,
-        #tab-compra-cine:not(.active) .btn-enviar-cine,
-        #tab-compra-jumper:not(.active) .btn-enviar-jumper,
-        #tab-compra-gimnasio:not(.active) .btn-enviar-gimnasio {
-            display: none !important;
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
         }
 
-        /* Asegurar que el contenido de las pestañas solo se muestre cuando está activo */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Navegación */
+        .dashboard-nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-tabs {
+            display: flex;
+            list-style: none;
+            overflow-x: auto;
+            padding: 10px 0;
+            gap: 5px;
+        }
+
+        .nav-tab {
+            padding: 12px 20px;
+            background: #f8f9fa;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            font-weight: 500;
+            border: 2px solid transparent;
+        }
+
+        .nav-tab:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+
+        .nav-tab.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-color: #5a67d8;
+        }
+
+        /* Contenido principal */
         .tab-content {
             display: none;
+            padding: 40px 0;
         }
 
         .tab-content.active {
             display: block;
         }
 
-        /* Simple modal styling override */
+        .page-header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .page-header h2 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .page-header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Grid de préstamos */
+        .prestamos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+            margin: 40px 0;
+        }
+
+        .prestamo-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .prestamo-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .prestamo-card h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .prestamo-card h3::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 2px;
+        }
+
+        .prestamo-img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .prestamo-description {
+            color: #4a5568;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+
+        .prestamo-details {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .prestamo-details h4 {
+            color: #2d3748;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .prestamo-details ul {
+            list-style: none;
+            font-size: 0.85rem;
+            color: #4a5568;
+        }
+
+        .prestamo-details li {
+            padding: 3px 0;
+            position: relative;
+            padding-left: 15px;
+        }
+
+        .prestamo-details li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #48bb78;
+            font-weight: bold;
+        }
+
+        /* Botones */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            flex: 1;
+            justify-content: center;
+            min-width: 140px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+            border: 2px solid #cbd5e0;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+            border-color: #a0aec0;
+        }
+
+        /* Sección de solicitudes anteriores */
+        .solicitudes-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .solicitudes-section h3 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .solicitudes-section h3::before {
+            content: '📋';
+            font-size: 1.2rem;
+        }
+
+        .solicitud-item {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .solicitud-item:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .solicitud-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .solicitud-tipo {
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .solicitud-estado {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .estado-pendiente {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .estado-aprobado {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .estado-rechazado {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .solicitud-fecha {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
+        /* Modal */
         .modal {
             position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.4);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 9999;
+            padding: 20px;
         }
-        .modal .modal-content {
-            background: white;
-            border-radius: 8px;
-            width: 95%;
-            max-width: 900px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
-        }
-    </style>
 
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .modal-header h3 {
+            color: #2d3748;
+            font-size: 1.5rem;
+        }
+
+        .btn-close {
+            background: #fed7d7;
+            color: #c53030;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        /* Formulario */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #2d3748;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .file-upload {
+            border: 2px dashed #cbd5e0;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            background: #f7fafc;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload:hover {
+            border-color: #667eea;
+            background: #edf2f7;
+        }
+
+        .file-upload input[type="file"] {
+            margin-top: 10px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-tabs {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .nav-tab {
+                font-size: 0.9rem;
+                padding: 10px 15px;
+            }
+
+            .prestamos-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                min-width: auto;
+            }
+
+            .solicitud-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .page-header h2 {
+                font-size: 2rem;
+            }
+        }
+
+        /* Animaciones */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .prestamo-card {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .prestamo-card:nth-child(1) { animation-delay: 0.1s; }
+        .prestamo-card:nth-child(2) { animation-delay: 0.2s; }
+        .prestamo-card:nth-child(3) { animation-delay: 0.3s; }
+        .prestamo-card:nth-child(4) { animation-delay: 0.4s; }
+    </style>
+</head>
+<body>
+    <!-- Navegación -->
+    <nav class="dashboard-nav">
+        <div class="container">
+            <ul class="nav-tabs">
+                <li class="nav-tab" data-tab="resumen">📊 Resumen</li>
+                <li class="nav-tab" data-tab="compras-gas">🛒 Compra de Gas</li>
+                <li class="nav-tab" data-tab="compra-cine">🎬 Compra de Cine</li>
+                <li class="nav-tab" data-tab="compra-jumper">🤸 Compra Jumper Park</li>
+                <li class="nav-tab" data-tab="compra-gimnasio">💪 Compra Gimnasio</li>
+                <li class="nav-tab" data-tab="solicitudes">📝 Solicitudes</li>
+                <li class="nav-tab" data-tab="perfil">⚙️ Mi Perfil</li>
+                <li class="nav-tab active" data-tab="prestamos">💳 Préstamos</li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Contenido: Préstamos / Fondo Solidario -->
+    <div class="tab-content active" id="tab-prestamos">
+        <div class="container">
+            <div class="page-header">
+                <h2>💳 Préstamos y Fondo Solidario</h2>
+                <p>
+                    Accede a diferentes tipos de préstamos y ayudas económicas diseñadas para apoyarte en momentos importantes.
+                    Descarga los formularios oficiales, complétalos y adjunta la documentación requerida para solicitar el beneficio que necesitas.
+                </p>
+            </div>
+
+            <div class="prestamos-grid">
+                <!-- Préstamo Médico -->
+                <div class="prestamo-card">
+                    <h3>🏥 Préstamos Médicos</h3>
+                    <img src="../assets/formulario-prestamos.png" alt="Préstamo Médico" class="prestamo-img"/>
+                    
+                    <div class="prestamo-description">
+                        Apoyo económico para gastos médicos urgentes o tratamientos especializados que requieren financiamiento inmediato.
+                    </div>
+
+                    <div class="prestamo-details">
+                        <h4>Características:</h4>
+                        <ul>
+                            <li>Monto máximo: $500.000</li>
+                            <li>Plazo: Hasta 12 cuotas</li>
+                            <li>Evaluación por Trabajador/a Social</li>
+                            <li>Mínimo 3 descuentos previos al Servicio de Bienestar</li>
+                        </ul>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-primary btn-download" data-img="../assets/formulario-prestamos.png" data-name="formulario-prestamo-medico.pdf">
+                            📄 Descargar Formulario
+                        </button>
+                        <button class="btn btn-secondary btn-open-upload" data-tipo="medico">
+                            📤 Solicitar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Préstamo de Emergencia -->
+                <div class="prestamo-card">
+                    <h3>🚨 Préstamos de Emergencia</h3>
+                    <img src="../assets/images/formulario-prestamos-libre-disposicion.png" alt="Préstamo Emergencia" class="prestamo-img"/>
+                    
+                    <div class="prestamo-description">
+                        Financiamiento rápido para situaciones imprevistas que requieren una solución económica inmediata.
+                    </div>
+
+                    <div class="prestamo-details">
+                        <h4>Características:</h4>
+                        <ul>
+                            <li>Monto máximo: $500.000</li>
+                            <li>Evaluación por Trabajador/a Social</li>
+                            <li>Descuento vía liquidación</li>
+                            <li>Procesamiento prioritario</li>
+                        </ul>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-primary btn-download" data-img="../assets/formulario-prestamos.png" data-name="formulario-prestamo-emergencia.pdf">
+                            📄 Descargar Formulario
+                        </button>
+                        <button class="btn btn-secondary btn-open-upload" data-tipo="emergencia">
+                            📤 Solicitar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Préstamo Libre Disposición -->
+                <div class="prestamo-card">
+                    <h3>💰 Préstamo Libre Disposición</h3>
+                    <img src="../assets/formulario-prestamos-libre-disposicion.png" alt="Préstamo Libre Disposición" class="prestamo-img"/>
+                    
+                    <div class="prestamo-description">
+                        Préstamo versátil para cualquier necesidad personal o familiar, con requisitos simplificados y proceso ágil.
+                    </div>
+
+                    <div class="prestamo-details">
+                        <h4>Características:</h4>
+                        <ul>
+                            <li>Monto máximo: $300.000</li>
+                            <li>Plazo: Hasta 6 cuotas</li>
+                            <li>Requiere últimas 3 liquidaciones</li>
+                            <li>Cédula de identidad vigente</li>
+                        </ul>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-primary btn-download" data-img="../assets/formulario-prestamos-libre-disposicion.png" data-name="formulario-prestamo-libre-disposicion.pdf">
+                            📄 Descargar Formulario
+                        </button>
+                        <button class="btn btn-secondary btn-open-upload" data-tipo="libre_disposicion">
+                            📤 Solicitar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Fondo Solidario -->
+                <div class="prestamo-card">
+                    <h3>🤝 Fondo Solidario</h3>
+                    <img src="../assets/images/formulario-prestamos-libre-disposicion.png" alt="Fondo Solidario" class="prestamo-img"/>
+                    
+                    <div class="prestamo-description">
+                        Ayuda económica sin reembolso para situaciones críticas familiares, emergencias de salud o casos sociales especiales.
+                    </div>
+
+                    <div class="prestamo-details">
+                        <h4>Características:</h4>
+                        <ul>
+                            <li>Ayuda sin retorno (no reembolsable)</li>
+                            <li>Para emergencias familiares</li>
+                            <li>Evaluación por Trabajador/a Social</li>
+                            <li>Aprobación por Comité</li>
+                        </ul>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-primary btn-download" data-img="../assets/formulario-prestamos.png" data-name="formulario-fondo-solidario.pdf">
+                            📄 Descargar Formulario
+                        </button>
+                        <button class="btn btn-secondary btn-open-upload" data-tipo="fondo_solidario">
+                            📤 Solicitar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección de solicitudes anteriores -->
+            <div class="solicitudes-section">
+                <h3>Mis Solicitudes Anteriores</h3>
+                <div id="mis-solicitudes-prestamos">
+                    <!-- Ejemplo de solicitudes -->
+                    <div class="solicitud-item">
+                        <div class="solicitud-header">
+                            <div>
+                                <div class="solicitud-tipo">Préstamo Médico</div>
+                                <div class="solicitud-fecha">Solicitado el 15 de octubre, 2025</div>
+                            </div>
+                            <span class="solicitud-estado estado-pendiente">Pendiente</span>
+                        </div>
+                        <p>Solicitud de préstamo para tratamiento médico especializado.</p>
+                    </div>
+
+                    <div class="solicitud-item">
+                        <div class="solicitud-header">
+                            <div>
+                                <div class="solicitud-tipo">Préstamo Libre Disposición</div>
+                                <div class="solicitud-fecha">Solicitado el 2 de octubre, 2025</div>
+                            </div>
+                            <span class="solicitud-estado estado-aprobado">Aprobado</span>
+                        </div>
+                        <p>Préstamo aprobado por $200.000 en 4 cuotas.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para nueva solicitud -->
+    <div id="modalSolicitudPrestamo" class="modal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitulo">Nueva Solicitud de Préstamo</h3>
+                <button class="btn-close" onclick="cerrarModalSolicitud()">✖ Cerrar</button>
+            </div>
+
+            <form id="formSolicitudPrestamo">
+                <input type="hidden" id="tipoPrestamo" name="tipoPrestamo" value="">
+                
+                <div class="form-group">
+                    <label for="nombreSolicitante">Nombre Completo *</label>
+                    <input type="text" id="nombreSolicitante" name="nombreSolicitante" required class="form-control" placeholder="Ingrese su nombre completo">
+                </div>
+
+                <div class="form-group">
+                    <label for="rutSolicitante">RUT *</label>
+                    <input type="text" id="rutSolicitante" name="rutSolicitante" required class="form-control" placeholder="12.345.678-9">
+                </div>
+
+                <div class="form-group">
+                    <label for="emailSolicitante">Correo Electrónico *</label>
+                    <input type="email" id="emailSolicitante" name="emailSolicitante" required class="form-control" placeholder="ejemplo@correo.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="comentarioPrestamo">Motivo de la Solicitud</label>
+                    <textarea id="comentarioPrestamo" name="comentarioPrestamo" rows="4" class="form-control" placeholder="Describa brevemente el motivo de su solicitud..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="archivosPrestamo">Documentos Requeridos *</label>
+                    <div class="file-upload">
+                        <p>📎 Adjunte los siguientes documentos:</p>
+                        <ul style="text-align: left; margin: 10px 0; color: #4a5568;">
+                            <li>Formulario oficial completado (PDF)</li>
+                            <li>Últimas 3 liquidaciones</li>
+                            <li>Cédula de identidad (ambos lados)</li>
+                            <li>Documentos adicionales según tipo de préstamo</li>
+                        </ul>
+                        <input type="file" id="archivosPrestamo" name="archivosPrestamo" multiple accept=".pdf,image/*" required>
+                    </div>
+                </div>
+
+                <div class="btn-group" style="margin-top: 25px;">
+                    <button type="submit" class="btn btn-primary">
+                        📤 Enviar Solicitud
+                    </button>
+                    <button type="button" onclick="cerrarModalSolicitud()" class="btn btn-secondary">
+                        ❌ Cancelar
+                    </button>
+                </div>
+
+                <div id="estadoEnvio" style="margin-top: 15px; text-align: center;"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="../js/dashboard-afiliado-firebase.js"></script>
+    <script type="module" src="../js/compras-unificadas.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script type="module" src="../js/prestamos-firebase.js"></script>
+    <script type="module" src="../js/prestamos.js"></script>
+
+    <script>
+        // Funciones básicas para el modal
+        function cerrarModalSolicitud() {
+            document.getElementById('modalSolicitudPrestamo').style.display = 'none';
+        }
+
+        // Event listeners para los botones de solicitud
+        document.querySelectorAll('.btn-open-upload').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const tipo = this.dataset.tipo;
+                document.getElementById('tipoPrestamo').value = tipo;
+                document.getElementById('modalTitulo').textContent = `Nueva Solicitud - ${getTipoName(tipo)}`;
+                document.getElementById('modalSolicitudPrestamo').style.display = 'flex';
+            });
+        });
+
+        function getTipoName(tipo) {
+            const nombres = {
+                'medico': 'Préstamo Médico',
+                'emergencia': 'Préstamo de Emergencia',
+                'libre_disposicion': 'Préstamo Libre Disposición',
+                'fondo_solidario': 'Fondo Solidario'
+            };
+            return nombres[tipo] || tipo;
+        }
+
+        // Event listeners para descarga de formularios
+        document.querySelectorAll('.btn-download').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const imgSrc = this.dataset.img;
+                const fileName = this.dataset.name;
+                // Aquí se implementaría la lógica de descarga
+                console.log(`Descargando: ${fileName} desde ${imgSrc}`);
+                alert(`Descargando formulario: ${fileName}`);
+            });
+        });
+
+        // Cerrar modal al hacer clic fuera
+        document.getElementById('modalSolicitudPrestamo').addEventListener('click', function(e) {
+            if (e.target === this) {
+                cerrarModalSolicitud();
+            }
+        });
+    </script>
 </body>
 </html>
