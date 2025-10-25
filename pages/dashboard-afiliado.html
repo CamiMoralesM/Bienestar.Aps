@@ -36,9 +36,9 @@
                 <li class="nav-tab" data-tab="compra-cine">🎬 Compra de Cine</li>
                 <li class="nav-tab" data-tab="compra-jumper">🤸 Compra Jumper Park</li>
                 <li class="nav-tab" data-tab="compra-gimnasio">💪 Compra Gimnasio</li>
-                <li class="nav-tab" data-tab="prestamos">💰 Préstamos y Fondo Solidario</li>
                 <li class="nav-tab" data-tab="solicitudes">📝 Solicitudes</li>
                 <li class="nav-tab" data-tab="perfil">⚙️ Mi Perfil</li>
+                <li class="nav-tab" data-tab="prestamos">💳 Préstamos / Fondo Solidario</li>
             </ul>
         </div>
     </nav>
@@ -94,7 +94,7 @@
                 <!-- Información de Precios -->
                 <div class="info-precios-gas" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
                     <!-- Precios Lipigas -->
-                    <div class="info-box" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);">
+                    <div class="info-box" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(255, 107, 107, 0.12);">
                         <h3 style="margin: 0 0 15px 0; font-size: 1.3em; display: flex; align-items: center; gap: 10px;">
                             <span style="font-size: 1.5em;">🔥</span> Lipigas
                         </h3>
@@ -119,7 +119,7 @@
                     </div>
                     
                     <!-- Precios Abastible -->
-                    <div class="info-box" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);">
+                    <div class="info-box" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(79, 172, 254, 0.12);">
                         <h3 style="margin: 0 0 15px 0; font-size: 1.3em; display: flex; align-items: center; gap: 10px;">
                             <span style="font-size: 1.5em;">⛽</span> Abastible
                         </h3>
@@ -468,9 +468,6 @@
                 </form>
             </div>
 
-            <!-- Tab: Préstamos y Fondo Solidario (ya definido más arriba) -->
-            <!-- (está completamente incluido en la sección precedente con id="tab-prestamos") -->
-
             <!-- Tab: Solicitudes -->
             <div class="tab-content" id="tab-solicitudes">
                 <h2>📝 Mis Solicitudes</h2>
@@ -479,7 +476,7 @@
                         ➕ Nueva Solicitud
                     </button>
                 </div>
-                <div class="solicitudes-list" id="solicitudesListPrestamos"></div>
+                <div class="solicitudes-list"></div>
             </div>
 
             <!-- Tab: Mi Perfil -->
@@ -550,6 +547,126 @@
                     </div>
                 </div>
             </div>
+
+            <!-- NUEVA PESTAÑA: Préstamos / Fondo Solidario -->
+            <div class="tab-content" id="tab-prestamos">
+                <div class="container">
+                    <h2>💳 Préstamos y Fondo Solidario</h2>
+
+                    <p>
+                        Aquí encontrarás información sobre los tipos de préstamos y el fondo solidario. 
+                        Puedes descargar los formularios oficiales (PDF generado desde las imágenes subidas al sitio) y luego subir el formulario completado
+                        junto a los documentos complementarios (liquidaciones, cédula, certificados) para solicitar el beneficio.
+                    </p>
+
+                    <div class="prestamos-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:20px;">
+                        <!-- Préstamo Médico -->
+                        <div class="prestamo-card">
+                            <h3>Préstamos Médicos</h3>
+                            <img src="../assets/formulario-prestamos.png" alt="Préstamo Médico" style="max-width:100%; border-radius:8px;"/>
+                            <p>
+                                Con un tope de $500.000 en un máximo de 12 cuotas, sujeto a evaluación por el Trabajador/a Social.
+                                Requiere al menos 3 descuentos al Servicio de Bienestar APS.
+                            </p>
+                            <div style="display:flex; gap:8px; margin-top:10px;">
+                                <button class="btn btn-primary btn-download" data-img="../assets/formulario-prestamos.png" data-name="formulario-prestamo-medico.pdf">Descargar Formulario (PDF)</button>
+                                <button class="btn btn-secondary btn-open-upload" data-tipo="medico">Solicitar / Subir Documentos</button>
+                            </div>
+                        </div>
+
+                        <!-- Préstamo de Emergencia -->
+                        <div class="prestamo-card">
+                            <h3>Préstamos de Emergencia</h3>
+                            <img src="../assets/images/formulario-prestamos-libre-disposicion.png" alt="Préstamo Emergencia" style="max-width:100%; border-radius:8px;"/>
+                            <p>
+                                Préstamo con tope de $500.000, evaluado por Trabajador/a Social. Descontado vía liquidación.
+                            </p>
+                            <div style="display:flex; gap:8px; margin-top:10px;">
+                                <button class="btn btn-primary btn-download" data-img="../assets/formulario-prestamos.png" data-name="formulario-prestamo-emergencia.pdf">Descargar Formulario (PDF)</button>
+                                <button class="btn btn-secondary btn-open-upload" data-tipo="emergencia">Solicitar / Subir Documentos</button>
+                            </div>
+                        </div>
+
+                        <!-- Préstamo Libre Disposición -->
+                        <div class="prestamo-card">
+                            <h3>Préstamo Libre Disposición</h3>
+                            <img src="../assets/formulario-prestamos-libre-disposicion.png" alt="Préstamo Libre Disposición" style="max-width:100%; border-radius:8px;"/>
+                            <p>
+                                Tope $300.000 en máximo 6 cuotas. Requiere últimas 3 liquidaciones, cédula y formulario de libre disposición.
+                            </p>
+                            <div style="display:flex; gap:8px; margin-top:10px;">
+                                <button class="btn btn-primary btn-download" data-img="../assets/formulario-prestamos-libre-disposicion.png" data-name="formulario-prestamo-libre-disposicion.pdf">Descargar Formulario (PDF)</button>
+                                <button class="btn btn-secondary btn-open-upload" data-tipo="libre_disposicion">Solicitar / Subir Documentos</button>
+                            </div>
+                        </div>
+
+                        <!-- Fondo Solidario -->
+                        <div class="prestamo-card">
+                            <h3>Fondo Solidario</h3>
+                            <img src="../assets/images/formulario-prestamos-libre-disposicion.png" alt="Fondo Solidario" style="max-width:100%; border-radius:8px;"/>
+                            <p>
+                                Ayudas sin retorno en caso de emergencia, enfermedad o situaciones familiares complejas. Entrega previa evaluación de Trabajador/a Social y Comité.
+                            </p>
+                            <div style="display:flex; gap:8px; margin-top:10px;">
+                                <button class="btn btn-primary btn-download" data-img="../assets/formulario-prestamos.png" data-name="formulario-fondo-solidario.pdf">Descargar Formulario (PDF)</button>
+                                <button class="btn btn-secondary btn-open-upload" data-tipo="fondo_solidario">Solicitar / Subir Documentos</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr style="margin:20px 0;">
+
+                    <div>
+                        <h3>Solicitudes anteriores</h3>
+                        <div id="mis-solicitudes-prestamos">
+                            <p>Cargando solicitudes...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Subir Solicitud -->
+                <div id="modalSolicitudPrestamo" class="modal" style="display:none;">
+                    <div class="modal-content" style="max-width:700px; margin:40px auto; padding:20px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <h3 id="modalTitulo">Nueva Solicitud</h3>
+                            <button onclick="cerrarModalSolicitud()" class="btn btn-danger">Cerrar ✖</button>
+                        </div>
+
+                        <form id="formSolicitudPrestamo" style="margin-top:12px;">
+                            <input type="hidden" id="tipoPrestamo" name="tipoPrestamo" value="">
+                            <div class="form-group">
+                                <label>Nombre</label>
+                                <input type="text" id="nombreSolicitante" name="nombreSolicitante" required class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>RUT</label>
+                                <input type="text" id="rutSolicitante" name="rutSolicitante" required class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>Correo</label>
+                                <input type="email" id="emailSolicitante" name="emailSolicitante" required class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>Comentarios / Motivo</label>
+                                <textarea id="comentarioPrestamo" name="comentarioPrestamo" rows="3" class="form-control"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Adjuntar archivos (formulario completado en PDF, liquidaciones, cédula, otros) *</label>
+                                <input type="file" id="archivosPrestamo" name="archivosPrestamo" multiple accept=".pdf,image/*" required>
+                                <small>Puede adjuntar varios archivos. El formulario oficial se puede descargar arriba y completar.</small>
+                            </div>
+
+                            <div style="display:flex; gap:8px; margin-top:12px;">
+                                <button type="submit" class="btn btn-primary">Enviar Solicitud</button>
+                                <button type="button" onclick="cerrarModalSolicitud()" class="btn btn-secondary">Cancelar</button>
+                            </div>
+
+                            <div id="estadoEnvio" style="margin-top:12px;"></div>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
         </div>
     </section>
     
@@ -560,7 +677,7 @@
         </div>
     </footer>
 
-    <!-- SCRIPTS -->
+    <!-- SCRIPTS CORREGIDOS -->
     <script type="module" src="../js/dashboard-afiliado-firebase.js"></script>
     <script type="module" src="../js/compras-unificadas.js"></script>
 
@@ -568,244 +685,103 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-    <!-- Módulos nuevos (asegúrate de tener estos archivos en /js) -->
+    <!-- Nuevos módulos para préstamos (subida a Firebase y UI) -->
     <script type="module" src="../js/prestamos-firebase.js"></script>
     <script type="module" src="../js/prestamos.js"></script>
 
-    <script>
-    // Sistema de pestañas mejorado (mantener estilo)
-    const tabs = document.querySelectorAll('.nav-tab');
-    const tabContents = document.querySelectorAll('.tab-content');
-    
-    tabs.forEach(tab => {
-        tab.addEventListener('click', function() {
-            const targetTab = this.getAttribute('data-tab');
-            tabs.forEach(t => t.classList.remove('active'));
-            tabContents.forEach(content => content.classList.remove('active'));
-            this.classList.add('active');
-            const targetContent = document.getElementById(`tab-${targetTab}`);
-            if (targetContent) {
-                targetContent.classList.add('active');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-        });
-    });
-
-    // Manejo de documentos adicionales según tipo de préstamo
-    const tipoSelect = document.getElementById('tipoSolicitud');
-    if (tipoSelect) {
-        tipoSelect.addEventListener('change', function() {
-            const documentosAdicionales = document.getElementById('documentosAdicionales');
-            const documentosExtrasInfo = document.getElementById('documentosExtrasInfo');
-            
-            switch(this.value) {
-                case 'prestamo-medico':
-                    documentosAdicionales.style.display = 'block';
-                    documentosExtrasInfo.textContent = 'Informes médicos, cotizaciones de medicamentos o tratamientos';
-                    break;
-                case 'prestamo-emergencia':
-                    documentosAdicionales.style.display = 'block';
-                    documentosExtrasInfo.textContent = 'Documentos que respalden la emergencia (facturas, informes, etc.)';
-                    break;
-                case 'fondo-solidario':
-                    documentosAdicionales.style.display = 'block';
-                    documentosExtrasInfo.textContent = 'Documentos que respalden la situación de emergencia familiar';
-                    break;
-                case 'prestamo-libre-disposicion':
-                    documentosAdicionales.style.display = 'block';
-                    documentosExtrasInfo.textContent = 'Cualquier documento adicional que respalde la solicitud';
-                    break;
-                default:
-                    documentosAdicionales.style.display = 'none';
-            }
-        });
-    }
-
-    // Abrir el formulario y preseleccionar tipo cuando se hace click en "Solicitar / Subir documentos"
-    document.querySelectorAll('.btn-open-upload').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const tipo = btn.dataset.tipo || '';
-            const tipoMap = {
-                medico: 'prestamo-medico',
-                emergencia: 'prestamo-emergencia',
-                libre_disposicion: 'prestamo-libre-disposicion',
-                'libre-disposicion': 'prestamo-libre-disposicion',
-                'fondo_solidario': 'fondo-solidario',
-                'fondo-solidario': 'fondo-solidario'
-            };
-            const selectVal = tipoMap[tipo] || '';
-            if (selectVal && document.getElementById('tipoSolicitud')) {
-                document.getElementById('tipoSolicitud').value = selectVal;
-                document.getElementById('tipoSolicitud').dispatchEvent(new Event('change'));
-                document.getElementById('formSolicitudPrestamo').scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-        });
-    });
-
-    // Exponer image->PDF helper (usa html2canvas + jsPDF)
-    async function imageToPDFAndDownload(imageUrl, outFileName = 'formulario.pdf') {
-        // crear imagen oculta
-        const img = document.createElement('img');
-        img.src = imageUrl;
-        img.style.position = 'fixed';
-        img.style.left = '-9999px';
-        document.body.appendChild(img);
-
-        await new Promise((resolve, reject) => {
-            img.onload = resolve;
-            img.onerror = () => reject(new Error('No se pudo cargar la imagen: ' + imageUrl));
-        });
-
-        const canvas = await html2canvas(img, { scale: 2, useCORS: true });
-        const imgData = canvas.toDataURL('image/png');
-
-        const { jsPDF } = window.jspdf;
-        // tamaño en puntos
-        const pdf = new jsPDF({
-            orientation: canvas.width >= canvas.height ? 'landscape' : 'portrait',
-            unit: 'pt',
-            format: [canvas.width, canvas.height]
-        });
-        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-        pdf.save(outFileName);
-
-        document.body.removeChild(img);
-    }
-    window.imageToPDFAndDownload = imageToPDFAndDownload;
-
-    // Botones descarga (usa el helper anterior)
-    document.querySelectorAll('.btn-download-form, .btn-download').forEach(btn => {
-        btn.addEventListener('click', async function() {
-            const img = this.dataset.img;
-            const name = this.dataset.name || (`formulario_${this.dataset.tipo||'prestamo'}.pdf`);
-            if (img) {
-                try {
-                    await imageToPDFAndDownload(img, name);
-                } catch (err) {
-                    console.error('Error generando PDF, abriendo imagen:', err);
-                    window.open(img, '_blank');
+    <script type="module">
+        // Sistema de pestañas mejorado
+        const tabs = document.querySelectorAll('.nav-tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                const targetTab = this.getAttribute('data-tab');
+                
+                // Remover clase active de todas las pestañas
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+                
+                // Agregar clase active a la pestaña clickeada
+                this.classList.add('active');
+                
+                // Mostrar el contenido correspondiente
+                const targetContent = document.getElementById(`tab-${targetTab}`);
+                if (targetContent) {
+                    targetContent.classList.add('active');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                 }
-            } else {
-                // Fallback: si no hay data-img, intentar seleccionar el formulario PNG por tipo
-                const tipo = this.dataset.tipo;
-                let path = null;
-                if (tipo === 'libre_disposicion' || tipo === 'libre-disposicion') path = '../assets/formulario-prestamos-libre-disposicion.png';
-                else path = '../assets/formulario-prestamos.png';
-                if (path) {
-                    try {
-                        await imageToPDFAndDownload(path, name);
-                    } catch (err) {
-                        window.open(path, '_blank');
-                    }
-                } else {
-                    alert('Formulario no disponible para descarga.');
-                }
-            }
+            });
         });
-    });
 
-    // Envío del formulario principal de préstamos -> llama al módulo prestamos-firebase.js
-    async function enviarSolicitudHandler(ev) {
-        ev.preventDefault();
-        const estadoEl = document.getElementById('estadoEnvioGlobal');
-        estadoEl.textContent = '⏳ Enviando solicitud...';
+        // Función para nueva solicitud
+        function nuevaSolicitud() {
+            console.log('Nueva solicitud clickeada');
+            // Aquí puedes agregar la lógica para nueva solicitud
+        }
 
-        const tipoSelect = document.getElementById('tipoSolicitud').value || '';
-        const tipoMap = {
-            'prestamo-medico': 'medico',
-            'prestamo-emergencia': 'emergencia',
-            'prestamo-libre-disposicion': 'libre_disposicion',
-            'fondo-solidario': 'fondo_solidario'
-        };
-        const tipo = tipoMap[tipoSelect] || tipoSelect;
-
-        const datos = {
-            nombre: document.getElementById('nombrePrestamo').value.trim(),
-            rut: document.getElementById('rutPrestamo').value.trim(),
-            email: document.getElementById('emailPrestamo').value.trim(),
-            telefono: document.getElementById('telefonoPrestamo').value.trim(),
-            comentario: document.getElementById('descripcionSolicitud').value.trim(),
-            montoSolicitado: document.getElementById('montoSolicitado').value
-        };
-
-        const archivos = [];
-        const pushFileInput = (inputId) => {
-            const input = document.getElementById(inputId);
-            if (!input) return;
-            if (input.files && input.files.length) {
-                for (const f of input.files) archivos.push(f);
+        // Función para logout
+        function logout() {
+            if (confirm('¿Está seguro que desea cerrar sesión?')) {
+                sessionStorage.clear();
+                localStorage.clear();
+                window.location.href = '../index.html';
             }
-        };
-        pushFileInput('formularioCompleto');
-        pushFileInput('cedulaIdentidad');
-        pushFileInput('liquidacionesSueldo');
-        pushFileInput('documentosExtras');
-
-        if (!datos.nombre || !datos.rut || !datos.email) {
-            estadoEl.textContent = '❌ Complete nombre, RUT y correo.';
-            return;
-        }
-        if (!tipo) {
-            estadoEl.textContent = '❌ Seleccione un tipo de solicitud.';
-            return;
-        }
-        if (archivos.length === 0) {
-            estadoEl.textContent = '❌ Adjunte al menos un documento requerido.';
-            return;
         }
 
-        try {
-            // Import dinámico y llamada
-            const module = await import('../js/prestamos-firebase.js');
-            if (!module || !module.guardarSolicitudPrestamo) {
-                throw new Error('Módulo de Firebase no disponible.');
-            }
-            const resultado = await module.guardarSolicitudPrestamo(tipo, datos, archivos);
-            if (resultado.success) {
-                estadoEl.textContent = `✅ Solicitud enviada correctamente. ID: ${resultado.id}`;
-                document.getElementById('formSolicitudPrestamo').reset();
-                if (window.cargarMisSolicitudesPrestamos) window.cargarMisSolicitudesPrestamos();
-            } else {
-                estadoEl.textContent = `❌ Error: ${resultado.error || 'No definido'}`;
-            }
-        } catch (err) {
-            console.error('Error enviando solicitud:', err);
-            estadoEl.textContent = `❌ Error inesperado: ${err.message || err}`;
-        }
-    }
-
-    const formPrestamo = document.getElementById('formSolicitudPrestamo');
-    if (formPrestamo) formPrestamo.addEventListener('submit', enviarSolicitudHandler);
-
-    // Funciones globales
-    function nuevaSolicitud() {
-        document.getElementById('formSolicitudPrestamo').reset();
-        document.getElementById('estadoEnvioGlobal').textContent = '';
-        document.getElementById('formSolicitudPrestamo').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-    function logout() {
-        if (confirm('¿Está seguro que desea cerrar sesión?')) {
-            sessionStorage.clear();
-            localStorage.clear();
-            window.location.href = '../index.html';
-        }
-    }
-    window.nuevaSolicitud = nuevaSolicitud;
-    window.logout = logout;
+        // Hacer las funciones globales para que puedan ser llamadas desde HTML
+        window.nuevaSolicitud = nuevaSolicitud;
+        window.logout = logout;
     </script>
 
     <style>
-        /* Mantener estilos de visibilidad de pestañas */
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
+        /* Estilos para mostrar/ocultar botones según la pestaña activa */
+        .btn-enviar-gas,
+        .btn-enviar-cine,
+        .btn-enviar-jumper,
+        .btn-enviar-gimnasio {
+            margin-top: 20px;
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1em;
+            font-weight: 600;
+        }
 
-        /* Modal simple (si se usan modales en prestamos.js) */
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: none; align-items:center; justify-content:center; z-index:9999; }
-        .modal.show { display:flex; }
+        /* Solo mostrar los botones cuando su pestaña correspondiente está activa */
+        #tab-compras-gas:not(.active) .btn-enviar-gas,
+        #tab-compra-cine:not(.active) .btn-enviar-cine,
+        #tab-compra-jumper:not(.active) .btn-enviar-jumper,
+        #tab-compra-gimnasio:not(.active) .btn-enviar-gimnasio {
+            display: none !important;
+        }
 
-        /* Mantener apariencia consistente de botones usados aquí */
-        .btn-download { background: rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.08); padding:10px 12px; border-radius:8px; cursor:pointer; }
-        .btn-open-upload { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.18); padding:10px 12px; border-radius:8px; cursor:pointer; color:inherit; }
+        /* Asegurar que el contenido de las pestañas solo se muestre cuando está activo */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Simple modal styling override */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        .modal .modal-content {
+            background: white;
+            border-radius: 8px;
+            width: 95%;
+            max-width: 900px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+        }
     </style>
+
 </body>
 </html>
