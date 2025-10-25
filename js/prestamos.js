@@ -5,16 +5,14 @@ class FormulariosDownloadManager {
         this.formularios = {
             'medico': {
                 archivos: [
-                    './assets/formulario-prestamos.png',  // Basado en la ruta que SÍ funciona
-                    'assets/formulario-prestamos.png',
-                    'formulario-prestamos.png'
+                    './assets/images/formulario-prestamos.png',  // Basado en la ruta que SÍ funciona
                 ],
                 nombre: 'Formulario_Prestamo_Medico.pdf',
                 titulo: 'Préstamos Médicos'
             },
             'emergencia': {
                 archivos: [
-                    './assets/formulario-prestamos.png',
+                    './assets/images/formulario-prestamos.png',
                     'assets/formulario-prestamos.png',
                     'formulario-prestamos.png'
                 ],
@@ -23,7 +21,7 @@ class FormulariosDownloadManager {
             },
             'libre-disposicion': {
                 archivos: [
-                    './assets/formulario-prestamos-libre-disposicion.png',  // Esta SÍ funciona según el error
+                    './assets/images/formulario-prestamos-libre-disposicion.png',  // Esta SÍ funciona según el error
                     'assets/formulario-prestamos-libre-disposicion.png',
                     'formulario-prestamos-libre-disposicion.png'
                 ],
@@ -32,7 +30,7 @@ class FormulariosDownloadManager {
             },
             'fondo-solidario': {
                 archivos: [
-                    './assets/formulario-prestamos.png',
+                    './assets/images/formulario-prestamos.png',
                     'assets/formulario-prestamos.png',
                     'formulario-prestamos.png'
                 ],
