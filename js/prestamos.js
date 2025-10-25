@@ -116,34 +116,6 @@ class FormulariosDownloadManager {
         }
     }
 
-    // Nuevo método para buscar archivo en múltiples ubicaciones
-    async buscarArchivo(rutasPosibles) {
-        for (const ruta of rutasPosibles) {
-            try {
-                const existe = await this.verificarImagen(ruta);
-                if (existe) {
-                    return ruta;
-                }
-            } catch (error) {
-                // Continuar con la siguiente ruta
-                continue;
-            }
-        }
-        return null;
-    }
-
-    // Método para verificar si una imagen existe
-    verificarImagen(ruta) {
-        return new Promise((resolve) => {
-            const img = new Image();
-            img.onload = () => resolve(true);
-            img.onerror = () => resolve(false);
-            img.src = ruta;
-            
-            // Timeout después de 3 segundos
-            setTimeout(() => resolve(false), 3000);
-        });
-    }
 
     async convertirImagenAPDF(nombreArchivo, nombrePDF) {
         return new Promise((resolve, reject) => {
