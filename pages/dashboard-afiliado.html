@@ -76,6 +76,13 @@
                     <h2>🔔 Notificaciones Recientes</h2>
                     <div class="notifications" id="notificaciones-recientes"></div>
                 </div>
+                
+                <!-- Footer -->
+                <footer class="footer">
+                    <div class="container">
+                        <p>&copy; 2025 Servicio Bienestar APS - Corporación Municipal de Puente Alto</p>
+                    </div>
+                </footer>
             </div>
 
             <!-- Tab: Compra de Gas -->
@@ -146,632 +153,426 @@
 
                 <form id="formCompraGas" enctype="multipart/form-data">
                     <div class="form-grid">
-                        <!-- Información básica -->
                         <div class="form-group">
-                            <label for="rutGas">RUT *</label>
-                            <input type="text" id="rutGas" name="rutGas" required placeholder="12.345.678-9">
-                        </div>
-                        <div class="form-group">
-                            <label for="nombreGas">Nombre y Apellido Afiliado</label>
-                            <input type="text" id="nombreGas" name="nombreGas" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="fechaCompraGas">Fecha de compra</label>
-                            <input type="date" id="fechaCompraGas" name="fechaCompraGas" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="emailGas">Correo Electrónico</label>
-                            <input type="email" id="emailGas" name="emailGas" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="telefonoGas">Teléfono *</label>
-                            <input type="tel" id="telefonoGas" name="telefonoGas" required placeholder="+569...">
-                        </div>
-
-                        <!-- Selector de empresa -->
-                        <div class="form-group">
-                            <label>Compra Lipigas</label>
-                            <select id="compraLipigas" name="compraLipigas">
-                                <option value="no">No</option>
-                                <option value="si">Sí</option>
+                            <label for="proveedor">Proveedor de Gas</label>
+                            <select id="proveedor" name="proveedor" required>
+                                <option value="">Seleccione un proveedor</option>
+                                <option value="lipigas">Lipigas</option>
+                                <option value="abastible">Abastible</option>
                             </select>
                         </div>
 
-                        <!-- Opciones Lipigas -->
-                        <div id="lipigasOpciones" style="display:none;">
-                            <div class="gas-options-container">
-                                <div class="gas-option">
-                                    <label class="gas-label">5 kilos</label>
-                                    <div class="gas-select-container">
-                                        <select id="lipigas5" name="lipigas5" class="gas-select">
-                                            <option value="0">Seleccionar cantidad</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="gas-option">
-                                    <label class="gas-label">11 kilos</label>
-                                    <div class="gas-select-container">
-                                        <select id="lipigas11" name="lipigas11" class="gas-select">
-                                            <option value="0">Seleccionar cantidad</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="gas-option">
-                                    <label class="gas-label">15 kilos</label>
-                                    <div class="gas-select-container">
-                                        <select id="lipigas15" name="lipigas15" class="gas-select">
-                                            <option value="0">Seleccionar cantidad</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="gas-option">
-                                    <label class="gas-label">45 kilos</label>
-                                    <div class="gas-select-container">
-                                        <select id="lipigas45" name="lipigas45" class="gas-select">
-                                            <option value="0">Seleccionar cantidad</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="total-info">Total seleccionado: <span class="total-count">0</span></div>
-                        </div>
-
-                        <!-- Selector Abastible -->
                         <div class="form-group">
-                            <label>Compra Abastible</label>
-                            <select id="compraAbastible" name="compraAbastible">
-                                <option value="no">No</option>
-                                <option value="si">Sí</option>
+                            <label for="tipoGas">Tipo de Gas</label>
+                            <select id="tipoGas" name="tipoGas" required>
+                                <option value="">Seleccione el tipo</option>
+                                <option value="5kg">5 kilos</option>
+                                <option value="11kg">11 kilos</option>
+                                <option value="15kg">15 kilos</option>
+                                <option value="45kg">45 kilos</option>
                             </select>
                         </div>
 
-                        <!-- Opciones Abastible -->
-                        <div id="abastibleOpciones" style="display:none;">
-                            <div class="gas-options-container">
-                                <div class="gas-option">
-                                    <label class="gas-label">5 kilos</label>
-                                    <div class="gas-select-container">
-                                        <select id="abastible5" name="abastible5" class="gas-select">
-                                            <option value="0">Seleccionar cantidad</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="gas-option">
-                                    <label class="gas-label">11 kilos</label>
-                                    <div class="gas-select-container">
-                                        <select id="abastible11" name="abastible11" class="gas-select">
-                                            <option value="0">Seleccionar cantidad</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="gas-option">
-                                    <label class="gas-label">15 kilos</label>
-                                    <div class="gas-select-container">
-                                        <select id="abastible15" name="abastible15" class="gas-select">
-                                            <option value="0">Seleccionar cantidad</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="gas-option">
-                                    <label class="gas-label">45 kilos</label>
-                                    <div class="gas-select-container">
-                                        <select id="abastible45" name="abastible45" class="gas-select">
-                                            <option value="0">Seleccionar cantidad</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="total-info">Total seleccionado: <span class="total-count">0</span></div>
-                            <div class="form-group saldo-favor">
-                                <label for="saldoFavor">Saldo a favor (si aplica)</label>
-                                <input type="text" id="saldoFavor" name="saldoFavor" placeholder="Fecha y monto">
-                            </div>
+                        <div class="form-group">
+                            <label for="cantidad">Cantidad</label>
+                            <input type="number" id="cantidad" name="cantidad" min="1" max="10" required>
                         </div>
 
-                        <!-- Comprobante -->
                         <div class="form-group">
-                            <label for="comprobanteGas">Adjuntar comprobante de transferencia</label>
-                            <input type="file" id="comprobanteGas" name="comprobanteGas" required>
-                            <small>Recuerde que el asunto debe indicar cantidad y carga de gas (5k-11k-15k-45k).</small>
+                            <label for="direccionEntrega">Dirección de Entrega</label>
+                            <textarea id="direccionEntrega" name="direccionEntrega" rows="3" required 
+                                    placeholder="Ingrese dirección completa con referencias"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="telefonoContacto">Teléfono de Contacto</label>
+                            <input type="tel" id="telefonoContacto" name="telefonoContacto" required 
+                                   placeholder="Ej: +56912345678">
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary btn-enviar-gas">Enviar Compra Gas</button>
+
+                    <div class="total-display" id="totalGas" style="display: none;">
+                        <h3>Total a Pagar: <span id="montoTotal">$0</span></h3>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-enviar-gas">
+                        🛒 Solicitar Compra de Gas
+                    </button>
                 </form>
+                
+                <!-- Footer -->
+                <footer class="footer">
+                    <div class="container">
+                        <p>&copy; 2025 Servicio Bienestar APS - Corporación Municipal de Puente Alto</p>
+                    </div>
+                </footer>
             </div>
 
             <!-- Tab: Compra de Cine -->
             <div class="tab-content" id="tab-compra-cine">
                 <h2>🎬 Compra de Entradas de Cine</h2>
-                <div class="info-box" style="background: #87ceed; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                
+                <div class="info-box" style="background: #f8d7da; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
                     <p><strong>📋 Información:</strong></p>
                     <ul style="margin: 10px 0; padding-left: 20px;">
-                        <li>Máximo 4 entradas por mes</li>
-                        <li>Valor: $7.000 (incluye entrada + combo)</li>
-                        <li>Válido en cualquier complejo Cinépolis o Hoyts</li>
-                        <li>Incluye películas en estreno</li>
+                        <li>Entradas disponibles para Cinemark y Cineplanet</li>
+                        <li>Precio: $4.000 por entrada</li>
+                        <li>Máximo 4 entradas por solicitud</li>
+                        <li>Vigencia: 6 meses desde la compra</li>
                     </ul>
                 </div>
-                
+
                 <form id="formCompraCine" enctype="multipart/form-data">
                     <div class="form-grid">
                         <div class="form-group">
-                            <label for="rutCine">RUT *</label>
-                            <input type="text" id="rutCine" name="rutCine" required placeholder="12.345.678-9">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="nombreCine">Nombre y Apellido Afiliado *</label>
-                            <input type="text" id="nombreCine" name="nombreCine" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="telefonoCine">Teléfono *</label>
-                            <input type="tel" id="telefonoCine" name="telefonoCine" required placeholder="+569...">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="emailCine">Correo Electrónico *</label>
-                            <input type="email" id="emailCine" name="emailCine" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="fechaCompraCine">Fecha de Compra *</label>
-                            <input type="date" id="fechaCompraCine" name="fechaCompraCine" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="cantidadCine">Cantidad de Entradas *</label>
-                            <select id="cantidadCine" name="cantidadCine" required>
-                                <option value="0">Seleccione cantidad</option>
-                                <option value="1">1</option>
-                                <option value="2">2</option>
-                                <option value="3">3</option>
-                                <option value="4">4</option>
+                            <label for="cineComplejo">Complejo de Cine</label>
+                            <select id="cineComplejo" name="cineComplejo" required>
+                                <option value="">Seleccione un cine</option>
+                                <option value="cinemark">Cinemark</option>
+                                <option value="cineplanet">Cineplanet</option>
                             </select>
                         </div>
-                        
-                        <div class="form-group" style="grid-column: 1 / -1;">
-                            <label for="comprobanteCine">Adjuntar Comprobante de Transferencia *</label>
-                            <input type="file" id="comprobanteCine" name="comprobanteCine" required accept="image/*,.pdf">
-                            <small>Formatos aceptados: JPG, PNG, PDF</small>
+
+                        <div class="form-group">
+                            <label for="cantidadEntradas">Cantidad de Entradas</label>
+                            <input type="number" id="cantidadEntradas" name="cantidadEntradas" min="1" max="4" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="comentariosCine">Comentarios (Opcional)</label>
+                            <textarea id="comentariosCine" name="comentariosCine" rows="3" 
+                                    placeholder="Algún comentario adicional"></textarea>
                         </div>
                     </div>
-                    
-                    <button type="submit" class="btn btn-primary btn-enviar-cine">Enviar Compra Cine</button>
-                </form>
-            </div>  
 
-            <!-- Tab: Compra de Jumper Trampoline Park -->
+                    <div class="total-display" id="totalCine" style="display: none;">
+                        <h3>Total a Pagar: <span id="montoTotalCine">$0</span></h3>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-enviar-cine">
+                        🎬 Solicitar Entradas de Cine
+                    </button>
+                </form>
+                
+                <!-- Footer -->
+                <footer class="footer">
+                    <div class="container">
+                        <p>&copy; 2025 Servicio Bienestar APS - Corporación Municipal de Puente Alto</p>
+                    </div>
+                </footer>
+            </div>
+
+            <!-- Tab: Compra Jumper Park -->
             <div class="tab-content" id="tab-compra-jumper">
-                <h2>🤸 Compra de Entradas Jumper Trampoline Park</h2>
-                <div class="info-box" style="background: #f0d481; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <h2>🤸 Compra Jumper Park</h2>
+                
+                <div class="info-box" style="background: #d1ecf1; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
                     <p><strong>📋 Información:</strong></p>
                     <ul style="margin: 10px 0; padding-left: 20px;">
-                        <li>Máximo 6 entradas por mes</li>
-                        <li>Valor: $6.500 </li>
-                        <li>Diversión garantizada para toda la familia</li>
-                        <li>Incluye acceso a todas las áreas del parque</li>
+                        <li>Entradas para Jumper Park</li>
+                        <li>Precio: $8.000 por entrada</li>
+                        <li>Incluye 1 hora de salto + calcetines antideslizantes</li>
+                        <li>Máximo 6 entradas por solicitud</li>
+                        <li>Vigencia: 3 meses desde la compra</li>
                     </ul>
                 </div>
-                
+
                 <form id="formCompraJumper" enctype="multipart/form-data">
                     <div class="form-grid">
                         <div class="form-group">
-                            <label for="rutJumper">RUT *</label>
-                            <input type="text" id="rutJumper" name="rutJumper" required placeholder="12.345.678-9">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="nombreJumper">Nombre y Apellido Afiliado *</label>
-                            <input type="text" id="nombreJumper" name="nombreJumper" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="telefonoJumper">Teléfono *</label>
-                            <input type="tel" id="telefonoJumper" name="telefonoJumper" required placeholder="+569...">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="emailJumper">Correo Electrónico *</label>
-                            <input type="email" id="emailJumper" name="emailJumper" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="fechaCompraJumper">Fecha de Compra *</label>
-                            <input type="date" id="fechaCompraJumper" name="fechaCompraJumper" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="cantidadJumper">Cantidad de Entradas *</label>
-                            <select id="cantidadJumper" name="cantidadJumper" required>
-                                <option value="0">Seleccione cantidad</option>
-                                <option value="1">1</option>
-                                <option value="2">2</option>
-                                <option value="3">3</option>
-                                <option value="4">4</option>
-                                <option value="5">5</option>
-                                <option value="6">6</option>
+                            <label for="sucursalJumper">Sucursal Jumper Park</label>
+                            <select id="sucursalJumper" name="sucursalJumper" required>
+                                <option value="">Seleccione una sucursal</option>
+                                <option value="puente-alto">Puente Alto</option>
+                                <option value="plaza-sur">Plaza Sur</option>
+                                <option value="alto-las-condes">Alto Las Condes</option>
                             </select>
                         </div>
-                        
-                        <div class="form-group" style="grid-column: 1 / -1;">
-                            <label for="comprobanteJumper">Adjuntar Comprobante de Transferencia *</label>
-                            <input type="file" id="comprobanteJumper" name="comprobanteJumper" required accept="image/*,.pdf">
-                            <small>Formatos aceptados: JPG, PNG, PDF</small>
+
+                        <div class="form-group">
+                            <label for="cantidadJumper">Cantidad de Entradas</label>
+                            <input type="number" id="cantidadJumper" name="cantidadJumper" min="1" max="6" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="comentariosJumper">Comentarios (Opcional)</label>
+                            <textarea id="comentariosJumper" name="comentariosJumper" rows="3" 
+                                    placeholder="Algún comentario adicional"></textarea>
                         </div>
                     </div>
-                    
-                    <button type="submit" class="btn btn-primary btn-enviar-jumper">Enviar Compra Jumper</button>
+
+                    <div class="total-display" id="totalJumper" style="display: none;">
+                        <h3>Total a Pagar: <span id="montoTotalJumper">$0</span></h3>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-enviar-jumper">
+                        🤸 Solicitar Entradas Jumper Park
+                    </button>
                 </form>
+                
+                <!-- Footer -->
+                <footer class="footer">
+                    <div class="container">
+                        <p>&copy; 2025 Servicio Bienestar APS - Corporación Municipal de Puente Alto</p>
+                    </div>
+                </footer>
             </div>
 
-            <!-- Tab: Compra de Gimnasio -->
+            <!-- Tab: Compra Gimnasio -->
             <div class="tab-content" id="tab-compra-gimnasio">
-                <h2>💪 Compra de Entradas Gimnasio Energy</h2>
-                <div class="info-box" style="background: #a4eb8a; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <h2>💪 Compra Gimnasio</h2>
+                
+                <div class="info-box" style="background: #d4edda; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
                     <p><strong>📋 Información:</strong></p>
                     <ul style="margin: 10px 0; padding-left: 20px;">
-                        <li>Máximo 4 entradas por mes</li>
-                        <li>Valor: $18.000 por ticket mensual</li>
-                        <li>Válido en todas las sucursales Energy</li>
-                        <li>Sin restricción de horarios</li>
-                        <li>Incluye todos los servicios</li>
+                        <li>Mensualidades para gimnasios asociados</li>
+                        <li>Pacific: $25.000 por mes</li>
+                        <li>Sportlife: $30.000 por mes</li>
+                        <li>Máximo 3 meses por solicitud</li>
+                        <li>Debe presentar certificado médico para inicio</li>
                     </ul>
                 </div>
-                
+
                 <form id="formCompraGimnasio" enctype="multipart/form-data">
                     <div class="form-grid">
                         <div class="form-group">
-                            <label for="rutGimnasio">RUT *</label>
-                            <input type="text" id="rutGimnasio" name="rutGimnasio" required placeholder="12.345.678-9">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="nombreGimnasio">Nombre y Apellido Afiliado *</label>
-                            <input type="text" id="nombreGimnasio" name="nombreGimnasio" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="telefonoGimnasio">Teléfono *</label>
-                            <input type="tel" id="telefonoGimnasio" name="telefonoGimnasio" required placeholder="+569...">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="emailGimnasio">Correo Electrónico *</label>
-                            <input type="email" id="emailGimnasio" name="emailGimnasio" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="fechaCompraGimnasio">Fecha de Compra *</label>
-                            <input type="date" id="fechaCompraGimnasio" name="fechaCompraGimnasio" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="cantidadGimnasio">Cantidad de Tickets *</label>
-                            <select id="cantidadGimnasio" name="cantidadGimnasio" required>
-                                <option value="0">Seleccione cantidad</option>
-                                <option value="1">1</option>
-                                <option value="2">2</option>
-                                <option value="3">3</option>
-                                <option value="4">4</option>
+                            <label for="redGimnasio">Red de Gimnasio</label>
+                            <select id="redGimnasio" name="redGimnasio" required>
+                                <option value="">Seleccione un gimnasio</option>
+                                <option value="pacific">Pacific ($25.000/mes)</option>
+                                <option value="sportlife">Sportlife ($30.000/mes)</option>
                             </select>
                         </div>
-                        
-                        <div class="form-group" style="grid-column: 1 / -1;">
-                            <label for="comprobanteGimnasio">Adjuntar Comprobante de Transferencia *</label>
-                            <input type="file" id="comprobanteGimnasio" name="comprobanteGimnasio" required accept="image/*,.pdf">
-                            <small>Formatos aceptados: JPG, PNG, PDF</small>
+
+                        <div class="form-group">
+                            <label for="cantidadMeses">Cantidad de Meses</label>
+                            <input type="number" id="cantidadMeses" name="cantidadMeses" min="1" max="3" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="sucursalGimnasio">Sucursal Preferida</label>
+                            <input type="text" id="sucursalGimnasio" name="sucursalGimnasio" required 
+                                   placeholder="Ej: Puente Alto Mall">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="comentariosGimnasio">Comentarios (Opcional)</label>
+                            <textarea id="comentariosGimnasio" name="comentariosGimnasio" rows="3" 
+                                    placeholder="Algún comentario adicional"></textarea>
                         </div>
                     </div>
-                    
-                    <button type="submit" class="btn btn-primary btn-enviar-gimnasio">Enviar Compra Gimnasio</button>
+
+                    <div class="total-display" id="totalGimnasio" style="display: none;">
+                        <h3>Total a Pagar: <span id="montoTotalGimnasio">$0</span></h3>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-enviar-gimnasio">
+                        💪 Solicitar Mensualidad Gimnasio
+                    </button>
                 </form>
+                
+                <!-- Footer -->
+                <footer class="footer">
+                    <div class="container">
+                        <p>&copy; 2025 Servicio Bienestar APS - Corporación Municipal de Puente Alto</p>
+                    </div>
+                </footer>
+            </div>
+
+            <!-- NUEVA PESTAÑA: Préstamos / Fondo Solidario -->
+            <div class="tab-content" id="tab-prestamos">
+                <div class="container">
+                    <h2>💰 Préstamos y Fondo Solidario</h2>
+
+                    <!-- Información General -->
+                    <div class="info-box" style="background: #e0b0f5; padding: 20px; border-radius: 12px; margin-bottom: 30px; border-left: 4px solid #2196F3;">
+                        <h3 style="color: #1976D2; margin-top: 0;">📋 Información General</h3>
+                        <p style="margin-bottom: 10px;"><strong>Requisitos básicos para préstamos:</strong></p>
+                        <ul style="margin: 10px 0; padding-left: 20px;">
+                            <li>Tener al menos 3 descuentos del Servicio de Bienestar APS</li>
+                            <li>Presentar documentación completa y vigente</li>
+                            <li>Evaluación por parte del Trabajador/a Social del Servicio</li>
+                        </ul>
+                        <p>
+                            Puedes descargar los formularios oficiales (PDF generado desde las imágenes subidas al sitio) y completarlos para solicitar el beneficio correspondiente.
+                        </p>
+                    </div>
+
+                    <!-- Grid de Tipos de Préstamos y Fondo -->
+                    <div class="prestamos-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 25px; margin-bottom: 40px;">
+                        
+                        <!-- Préstamos Médicos -->
+                        <div class="prestamo-card" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; padding: 25px; border-radius: 15px; box-shadow: 0 6px 20px rgba(255, 107, 107, 0.3);">
+                            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                                <span style="font-size: 2.5em;">🏥</span>
+                                <h3 style="margin: 0; font-size: 1.4em;">Préstamos Médicos</h3>
+                            </div>
+                            <div style="background: rgba(255, 255, 255, 0.2); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                                <p style="margin: 0 0 10px 0; font-weight: 500;">Características:</p>
+                                <ul style="margin: 0; padding-left: 15px; list-style: none;">
+                                    <li style="margin-bottom: 5px;">💵 Tope: $500.000</li>
+                                    <li style="margin-bottom: 5px;">📅 Máximo: 12 cuotas</li>
+                                    <li style="margin-bottom: 5px;">⚡ Sujeto a evaluación del Trabajador/a Social</li>
+                                    <li style="margin-bottom: 5px;">📋 Requiere al menos 3 descuentos al Servicio de Bienestar APS</li>
+                                </ul>
+                            </div>
+                            <button class="btn btn-primary btn-download" data-img="../assets/formulario-prestamos.png" data-name="formulario-prestamo-medico.pdf" style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.2); border: 2px solid white; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; transition: all 0.3s;">
+                                📄 Descargar Formulario
+                            </button>
+                        </div>
+
+                        <!-- Préstamos de Emergencia -->
+                        <div class="prestamo-card" style="background: linear-gradient(135deg, #ff9500 0%, #ff6b35 100%); color: white; padding: 25px; border-radius: 15px; box-shadow: 0 6px 20px rgba(255, 149, 0, 0.3);">
+                            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                                <span style="font-size: 2.5em;">🚨</span>
+                                <h3 style="margin: 0; font-size: 1.4em;">Préstamos de Emergencia</h3>
+                            </div>
+                            <div style="background: rgba(255, 255, 255, 0.2); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                                <p style="margin: 0 0 10px 0; font-weight: 500;">Características:</p>
+                                <ul style="margin: 0; padding-left: 15px; list-style: none;">
+                                    <li style="margin-bottom: 5px;">💵 Tope: $500.000</li>
+                                    <li style="margin-bottom: 5px;">📅 Cuotas según condiciones contractuales</li>
+                                    <li style="margin-bottom: 5px;">⚡ Evaluación por Trabajador/a Social</li>
+                                    <li style="margin-bottom: 5px;">💰 Descontado de liquidación de sueldo</li>
+                                </ul>
+                            </div>
+                            <button class="btn btn-primary btn-download" data-img="../assets/formulario-prestamos.png" data-name="formulario-prestamo-emergencia.pdf" style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.2); border: 2px solid white; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; transition: all 0.3s;">
+                                📄 Descargar Formulario
+                            </button>
+                        </div>
+
+                        <!-- Préstamo Libre Disposición -->
+                        <div class="prestamo-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 25px; border-radius: 15px; box-shadow: 0 6px 20px rgba(79, 172, 254, 0.3);">
+                            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                                <span style="font-size: 2.5em;">💳</span>
+                                <h3 style="margin: 0; font-size: 1.4em;">Préstamo Libre Disposición</h3>
+                            </div>
+                            <div style="background: rgba(255, 255, 255, 0.2); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                                <p style="margin: 0 0 10px 0; font-weight: 500;">Características:</p>
+                                <ul style="margin: 0; padding-left: 15px; list-style: none;">
+                                    <li style="margin-bottom: 5px;">💵 Tope: $300.000</li>
+                                    <li style="margin-bottom: 5px;">📅 Máximo: 6 cuotas</li>
+                                    <li style="margin-bottom: 5px;">📋 Requiere las últimas 3 liquidaciones</li>
+                                    <li style="margin-bottom: 5px;">🆔 Fotocopia de cédula de identidad</li>
+                                    <li style="margin-bottom: 5px;">📝 Formulario de préstamo de libre disposición</li>
+                                </ul>
+                            </div>
+                            <button class="btn btn-primary btn-download" data-img="../assets/formulario-prestamos-libre-disposicion.png" data-name="formulario-prestamo-libre-disposicion.pdf" style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.2); border: 2px solid white; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; transition: all 0.3s;">
+                                📄 Descargar Formulario
+                            </button>
+                        </div>
+
+                        <!-- Fondo Solidario -->
+                        <div class="prestamo-card" style="background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%); color: white; padding: 25px; border-radius: 15px; box-shadow: 0 6px 20px rgba(86, 171, 47, 0.3);">
+                            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                                <span style="font-size: 2.5em;">🤝</span>
+                                <h3 style="margin: 0; font-size: 1.4em;">Fondo Solidario</h3>
+                            </div>
+                            <div style="background: rgba(255, 255, 255, 0.2); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                                <p style="margin: 0 0 10px 0; font-weight: 500;">Características:</p>
+                                <ul style="margin: 0; padding-left: 15px; list-style: none;">
+                                    <li style="margin-bottom: 5px;">🎁 Ayudas sin retorno</li>
+                                    <li style="margin-bottom: 5px;">🏥 Emergencias de salud</li>
+                                    <li style="margin-bottom: 5px;">👨‍👩‍👧‍👦 Situaciones familiares complejas</li>
+                                    <li style="margin-bottom: 5px;">📋 Evaluación previa por Trabajador/a Social</li>
+                                    <li style="margin-bottom: 5px;">🤝 En conjunto con Comité del Servicio de Bienestar APS</li>
+                                </ul>
+                            </div>
+                            <button class="btn btn-primary btn-download" data-img="../assets/formulario-prestamos.png" data-name="formulario-fondo-solidario.pdf" style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.2); border: 2px solid white; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; transition: all 0.3s;">
+                                📄 Descargar Formulario
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Footer -->
+                <footer class="footer">
+                    <div class="container">
+                        <p>&copy; 2025 Servicio Bienestar APS - Corporación Municipal de Puente Alto</p>
+                    </div>
+                </footer>
             </div>
 
             <!-- Tab: Solicitudes -->
             <div class="tab-content" id="tab-solicitudes">
                 <h2>📝 Mis Solicitudes</h2>
-                <div class="actions-bar">
-                    <button class="btn btn-primary" onclick="nuevaSolicitud()">
-                        ➕ Nueva Solicitud
-                    </button>
+                
+                <div class="solicitudes-container">
+                    <div class="solicitudes-filtros" style="margin-bottom: 20px;">
+                        <button class="btn btn-secondary" onclick="filtrarSolicitudes('todas')">Todas</button>
+                        <button class="btn btn-warning" onclick="filtrarSolicitudes('pendientes')">Pendientes</button>
+                        <button class="btn btn-success" onclick="filtrarSolicitudes('aprobadas')">Aprobadas</button>
+                        <button class="btn btn-danger" onclick="filtrarSolicitudes('rechazadas')">Rechazadas</button>
+                    </div>
+                    
+                    <div id="listaSolicitudes">
+                        <!-- Aquí se cargan dinámicamente las solicitudes -->
+                        <p>Cargando solicitudes...</p>
+                    </div>
                 </div>
-                <div class="solicitudes-list"></div>
+                
+                <!-- Footer -->
+                <footer class="footer">
+                    <div class="container">
+                        <p>&copy; 2025 Servicio Bienestar APS - Corporación Municipal de Puente Alto</p>
+                    </div>
+                </footer>
             </div>
 
             <!-- Tab: Mi Perfil -->
             <div class="tab-content" id="tab-perfil">
                 <h2>⚙️ Mi Perfil</h2>
-                <div class="profile-grid">
-                    <div class="profile-card">
+                
+                <div class="perfil-container">
+                    <div class="perfil-info">
                         <h3>Información Personal</h3>
-                        <form class="profile-form">
-                            <div class="form-group">
-                                <label>Nombre Completo</label>
-                                <input type="text" readonly>
-                            </div>
-                            <div class="form-group">
-                                <label>RUT</label>
-                                <input type="text" readonly>
-                            </div>
-                            <div class="form-group">
-                                <label>Email</label>
-                                <input type="email">
-                            </div>
-                            <div class="form-group">
-                                <label>Teléfono</label>
-                                <input type="tel">
-                            </div>
-                            <button type="submit" class="btn btn-primary">Actualizar Información</button>
-                        </form>
-                    </div>
-                    <div class="profile-card">
-                        <h3>Cambiar Contraseña</h3>
-                        <form class="profile-form">
-                            <div class="form-group">
-                                <label>Contraseña Actual</label>
-                                <input type="password" placeholder="••••••••">
-                            </div>
-                            <div class="form-group">
-                                <label>Nueva Contraseña</label>
-                                <input type="password" placeholder="••••••••">
-                            </div>
-                            <div class="form-group">
-                                <label>Confirmar Contraseña</label>
-                                <input type="password" placeholder="••••••••">
-                            </div>
-                            <button type="submit" class="btn btn-primary">Cambiar Contraseña</button>
-                        </form>
-                    </div>
-                    <div class="profile-card">
-                        <h3>Información de Cuenta</h3>
-                        <div class="info-list">
-                            <div class="info-item">
-                                <span class="info-label">Fecha de afiliación:</span>
-                                <span class="info-value"></span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Centro de Salud:</span>
-                                <span class="info-value"></span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Cargas familiares:</span>
-                                <span class="info-value"></span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Estado:</span>
-                                <span class="badge success"></span>
-                            </div>
+                        <div class="form-group">
+                            <label>Nombre Completo:</label>
+                            <input type="text" id="nombrePerfil" readonly>
                         </div>
-                        <button class="btn btn-secondary">Ver Cargas Familiares</button>
+                        <div class="form-group">
+                            <label>RUT:</label>
+                            <input type="text" id="rutPerfil" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Email:</label>
+                            <input type="email" id="emailPerfil" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Fecha de Afiliación:</label>
+                            <input type="text" id="fechaAfiliacion" readonly>
+                        </div>
                     </div>
-                </div>
-            </div>
-
-  <!-- NUEVA PESTAÑA: Préstamos / Fondo Solidario -->
-<div class="tab-content" id="tab-prestamos">
-    <div class="container">
-        <h2>💰 Préstamos y Fondo Solidario</h2>
-
-        <!-- Información General -->
-        <div class="info-box" style="background: #e0b0f5; padding: 20px; border-radius: 12px; margin-bottom: 30px; border-left: 4px solid #2196F3;">
-            <h3 style="color: #1976D2; margin-top: 0;">📋 Información General</h3>
-            <p style="margin-bottom: 10px;"><strong>Requisitos básicos para préstamos:</strong></p>
-            <ul style="margin: 10px 0; padding-left: 20px;">
-                <li>Tener al menos 3 descuentos del Servicio de Bienestar APS</li>
-                <li>Presentar documentación completa y vigente</li>
-                <li>Evaluación por parte del Trabajador/a Social del Servicio</li>
-            </ul>
-            <p>
-                Puedes descargar los formularios oficiales (PDF generado desde las imágenes subidas al sitio) y luego subir el formulario completado
-                junto a los documentos complementarios (liquidaciones, cédula, certificados) para solicitar el beneficio.
-            </p>
-        </div>
-
-        <!-- Grid de Tipos de Préstamos y Fondo -->
-        <div class="prestamos-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 25px; margin-bottom: 40px;">
-            
-            <!-- Préstamos Médicos -->
-            <div class="prestamo-card" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; padding: 25px; border-radius: 15px; box-shadow: 0 6px 20px rgba(255, 107, 107, 0.3);">
-                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
-                    <span style="font-size: 2.5em;">🏥</span>
-                    <h3 style="margin: 0; font-size: 1.4em;">Préstamos Médicos</h3>
-                </div>
-                <div style="background: rgba(255, 255, 255, 0.2); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                    <p style="margin: 0 0 10px 0; font-weight: 500;">Características:</p>
-                    <ul style="margin: 0; padding-left: 15px; list-style: none;">
-                        <li style="margin-bottom: 5px;">💵 Tope: $500.000</li>
-                        <li style="margin-bottom: 5px;">📅 Máximo: 12 cuotas</li>
-                        <li style="margin-bottom: 5px;">⚡ Sujeto a evaluación del Trabajador/a Social</li>
-                        <li style="margin-bottom: 5px;">📋 Requiere al menos 3 descuentos al Servicio de Bienestar APS</li>
-                    </ul>
-                </div>
-                <div style="display:flex; gap:8px; flex-direction: column;">
-                    <button class="btn btn-primary btn-download" data-img="../assets/formulario-prestamos.png" data-name="formulario-prestamo-medico.pdf" style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.2); border: 2px solid white; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; transition: all 0.3s;">
-                        📄 Descargar Formulario (PDF)
-                    </button>
-                    <button class="btn btn-secondary btn-open-upload" data-tipo="medico" style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.9); border: 2px solid white; border-radius: 8px; color: #ff6b6b; font-weight: bold; cursor: pointer; transition: all 0.3s;">
-                        📤 Solicitar / Subir Documentos
-                    </button>
-                </div>
-            </div>
-
-            <!-- Préstamos de Emergencia -->
-            <div class="prestamo-card" style="background: linear-gradient(135deg, #ff9500 0%, #ff6b35 100%); color: white; padding: 25px; border-radius: 15px; box-shadow: 0 6px 20px rgba(255, 149, 0, 0.3);">
-                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
-                    <span style="font-size: 2.5em;">🚨</span>
-                    <h3 style="margin: 0; font-size: 1.4em;">Préstamos de Emergencia</h3>
-                </div>
-                <div style="background: rgba(255, 255, 255, 0.2); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                    <p style="margin: 0 0 10px 0; font-weight: 500;">Características:</p>
-                    <ul style="margin: 0; padding-left: 15px; list-style: none;">
-                        <li style="margin-bottom: 5px;">💵 Tope: $500.000</li>
-                        <li style="margin-bottom: 5px;">📅 Cuotas según condiciones contractuales</li>
-                        <li style="margin-bottom: 5px;">⚡ Evaluación por Trabajador/a Social</li>
-                        <li style="margin-bottom: 5px;">💰 Descontado de liquidación de sueldo</li>
-                    </ul>
-                </div>
-                <div style="display:flex; gap:8px; flex-direction: column;">
-                    <button class="btn btn-primary btn-download" data-img="../assets/formulario-prestamos.png" data-name="formulario-prestamo-emergencia.pdf" style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.2); border: 2px solid white; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; transition: all 0.3s;">
-                        📄 Descargar Formulario (PDF)
-                    </button>
-                    <button class="btn btn-secondary btn-open-upload" data-tipo="emergencia" style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.9); border: 2px solid white; border-radius: 8px; color: #ff9500; font-weight: bold; cursor: pointer; transition: all 0.3s;">
-                        📤 Solicitar / Subir Documentos
-                    </button>
-                </div>
-            </div>
-
-            <!-- Préstamo Libre Disposición -->
-            <div class="prestamo-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 25px; border-radius: 15px; box-shadow: 0 6px 20px rgba(79, 172, 254, 0.3);">
-                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
-                    <span style="font-size: 2.5em;">💳</span>
-                    <h3 style="margin: 0; font-size: 1.4em;">Préstamo Libre Disposición</h3>
-                </div>
-                <div style="background: rgba(255, 255, 255, 0.2); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                    <p style="margin: 0 0 10px 0; font-weight: 500;">Características:</p>
-                    <ul style="margin: 0; padding-left: 15px; list-style: none;">
-                        <li style="margin-bottom: 5px;">💵 Tope: $300.000</li>
-                        <li style="margin-bottom: 5px;">📅 Máximo: 6 cuotas</li>
-                        <li style="margin-bottom: 5px;">📋 Requiere las últimas 3 liquidaciones</li>
-                        <li style="margin-bottom: 5px;">🆔 Fotocopia de cédula de identidad</li>
-                        <li style="margin-bottom: 5px;">📝 Formulario de préstamo de libre disposición</li>
-                    </ul>
-                </div>
-                <div style="display:flex; gap:8px; flex-direction: column;">
-                    <button class="btn btn-primary btn-download" data-img="../assets/formulario-prestamos-libre-disposicion.png" data-name="formulario-prestamo-libre-disposicion.pdf" style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.2); border: 2px solid white; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; transition: all 0.3s;">
-                        📄 Descargar Formulario (PDF)
-                    </button>
-                    <button class="btn btn-secondary btn-open-upload" data-tipo="libre_disposicion" style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.9); border: 2px solid white; border-radius: 8px; color: #4facfe; font-weight: bold; cursor: pointer; transition: all 0.3s;">
-                        📤 Solicitar / Subir Documentos
-                    </button>
-                </div>
-            </div>
-
-            <!-- Fondo Solidario -->
-            <div class="prestamo-card" style="background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%); color: white; padding: 25px; border-radius: 15px; box-shadow: 0 6px 20px rgba(86, 171, 47, 0.3);">
-                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
-                    <span style="font-size: 2.5em;">🤝</span>
-                    <h3 style="margin: 0; font-size: 1.4em;">Fondo Solidario</h3>
-                </div>
-                <div style="background: rgba(255, 255, 255, 0.2); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                    <p style="margin: 0 0 10px 0; font-weight: 500;">Características:</p>
-                    <ul style="margin: 0; padding-left: 15px; list-style: none;">
-                        <li style="margin-bottom: 5px;">🎁 Ayudas sin retorno</li>
-                        <li style="margin-bottom: 5px;">🏥 Emergencias de salud</li>
-                        <li style="margin-bottom: 5px;">👨‍👩‍👧‍👦 Situaciones familiares complejas</li>
-                        <li style="margin-bottom: 5px;">📋 Evaluación previa por Trabajador/a Social</li>
-                        <li style="margin-bottom: 5px;">🤝 En conjunto con Comité del Servicio de Bienestar APS</li>
-                    </ul>
-                </div>
-                <div style="display:flex; gap:8px; flex-direction: column;">
-                    <button class="btn btn-primary btn-download" data-img="../assets/formulario-prestamos.png" data-name="formulario-fondo-solidario.pdf" style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.2); border: 2px solid white; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; transition: all 0.3s;">
-                        📄 Descargar Formulario (PDF)
-                    </button>
-                    <button class="btn btn-secondary btn-open-upload" data-tipo="fondo_solidario" style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.9); border: 2px solid white; border-radius: 8px; color: #56ab2f; font-weight: bold; cursor: pointer; transition: all 0.3s;">
-                        📤 Solicitar / Subir Documentos
-                    </button>
-                </div>
-            </div>
-        </div>
-    
-                <!-- Formulario de Solicitud -->
-                <div class="solicitud-section" style="background: #f8f9fa; padding: 30px; border-radius: 15px; margin-top: 30px;">
-                    <h3 style="color: #495057; margin-bottom: 20px; text-align: center;">📋 Solicitar Préstamo o Fondo Solidario</h3>
                     
-                    <form id="formSolicitudPrestamo" enctype="multipart/form-data">
-                        <div class="form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
-                            
-                            <!-- Información Personal -->
-                            <div class="form-group">
-                                <label for="rutPrestamo">RUT del Afiliado *</label>
-                                <input type="text" id="rutPrestamo" name="rutPrestamo" required placeholder="12.345.678-9" style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
+                    <div class="perfil-estadisticas">
+                        <h3>Estadísticas</h3>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <span class="stat-number" id="totalSolicitudes">0</span>
+                                <span class="stat-label">Total Solicitudes</span>
                             </div>
-                            
-                            <div class="form-group">
-                                <label for="nombrePrestamo">Nombre Completo *</label>
-                                <input type="text" id="nombrePrestamo" name="nombrePrestamo" required style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
+                            <div class="stat-item">
+                                <span class="stat-number" id="solicitudesAprobadas">0</span>
+                                <span class="stat-label">Aprobadas</span>
                             </div>
-                            
-                            <div class="form-group">
-                                <label for="emailPrestamo">Correo Electrónico *</label>
-                                <input type="email" id="emailPrestamo" name="emailPrestamo" required style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="telefonoPrestamo">Teléfono *</label>
-                                <input type="tel" id="telefonoPrestamo" name="telefonoPrestamo" required placeholder="+569..." style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
-                            </div>
-                            
-                            <!-- Tipo de Solicitud -->
-                            <div class="form-group">
-                                <label for="tipoSolicitud">Tipo de Solicitud *</label>
-                                <select id="tipoSolicitud" name="tipoSolicitud" required style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
-                                    <option value="">Seleccione tipo de solicitud</option>
-                                    <option value="prestamo-medico">Préstamo Médico</option>
-                                    <option value="prestamo-emergencia">Préstamo de Emergencia</option>
-                                    <option value="prestamo-libre-disposicion">Préstamo de Libre Disposición</option>
-                                    <option value="fondo-solidario">Fondo Solidario</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="montoSolicitado">Monto Solicitado *</label>
-                                <input type="number" id="montoSolicitado" name="montoSolicitado" required min="1" placeholder="Ejemplo: 250000" style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
-                            </div>
-                            
-                            <!-- Descripción de la solicitud -->
-                            <div class="form-group" style="grid-column: 1 / -1;">
-                                <label for="descripcionSolicitud">Descripción de la Solicitud *</label>
-                                <textarea id="descripcionSolicitud" name="descripcionSolicitud" required rows="4" placeholder="Describa detalladamente el motivo de su solicitud..." style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px; resize: vertical;"></textarea>
+                            <div class="stat-item">
+                                <span class="stat-number" id="solicitudesPendientes">0</span>
+                                <span class="stat-label">Pendientes</span>
                             </div>
                         </div>
-                        
-                        <!-- Documentos Requeridos -->
-                        <div class="documentos-section" style="margin-top: 30px;">
-                            <h4 style="color: #495057; margin-bottom: 20px;">📎 Documentos Requeridos</h4>
-                            <div class="documentos-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
-                                
-                                <div class="form-group">
-                                    <label for="formularioCompleto">Formulario Completo y Firmado *</label>
-                                    <input type="file" id="formularioCompleto" name="formularioCompleto" required accept=".pdf,.jpg,.jpeg,.png" style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
-                                    <small style="color: #6c757d;">Formulario descargado y completado del tipo de préstamo seleccionado</small>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="cedulaIdentidad">Fotocopia Cédula de Identidad *</label>
-                                    <input type="file" id="cedulaIdentidad" name="cedulaIdentidad" required accept=".pdf,.jpg,.jpeg,.png" style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
-                                    <small style="color: #6c757d;">Ambas caras de la cédula en un solo archivo</small>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="liquidacionesSueldo">Últimas 3 Liquidaciones de Sueldo *</label>
-                                    <input type="file" id="liquidacionesSueldo" name="liquidacionesSueldo" required accept=".pdf,.jpg,.jpeg,.png" multiple style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
-                                    <small style="color: #6c757d;">Puede seleccionar múltiples archivos</small>
-                                </div>
-                                
-                                <!-- Documentos adicionales según tipo -->
-                                <div class="form-group" id="documentosAdicionales" style="display: none;">
-                                    <label for="documentosExtras">Documentos Adicionales</label>
-                                    <input type="file" id="documentosExtras" name="documentosExtras" accept=".pdf,.jpg,.jpeg,.png" multiple style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
-                                    <small id="documentosExtrasInfo" style="color: #6c757d;"></small>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div style="text-align: center; margin-top: 30px;">
-                            <button type="submit" class="btn btn-primary btn-enviar-prestamo" style="padding: 15px 40px; font-size: 1.1em; font-weight: 600; background: linear-gradient(135deg, #007bff, #0056b3); border: none; border-radius: 10px; color: white; cursor: pointer; transition: all 0.3s;">
-                                📤 Enviar Solicitud de Préstamo
-                            </button>
-                        </div>
-                    </form>
+                    </div>
                 </div>
+                
+                <!-- Footer -->
+                <footer class="footer">
+                    <div class="container">
+                        <p>&copy; 2025 Servicio Bienestar APS - Corporación Municipal de Puente Alto</p>
+                    </div>
+                </footer>
             </div>
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; 2025 Servicio Bienestar APS - Corporación Municipal de Puente Alto</p>
+
         </div>
-    </footer>
+    </section>
 
     <!-- SCRIPTS CORREGIDOS -->
     <script type="module" src="../js/dashboard-afiliado-firebase.js"></script>
@@ -816,9 +617,16 @@
             }
         }
 
+        // Función para filtrar solicitudes
+        function filtrarSolicitudes(tipo) {
+            console.log('Filtrando solicitudes:', tipo);
+            // Aquí puedes agregar la lógica para filtrar solicitudes
+        }
+
         // Hacer las funciones globales para que puedan ser llamadas desde HTML
         window.nuevaSolicitud = nuevaSolicitud;
         window.logout = logout;
+        window.filtrarSolicitudes = filtrarSolicitudes;
     </script>
 
     <!-- Librerías para generar PDF desde imágenes -->
@@ -876,6 +684,17 @@
             max-height: 90vh;
             overflow-y: auto;
             box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+        }
+
+        /* Estilos adicionales para footer */
+        .footer {
+            margin-top: 40px;
+            padding: 20px 0;
+            background-color: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+            text-align: center;
+            color: #6c757d;
+            font-size: 0.9em;
         }
     </style>
 
