@@ -484,7 +484,99 @@
                         </div>
                     </div>
                 </div>
-                
+               
+                <!-- Formulario de Solicitud -->
+                <div class="solicitud-section" style="background: #f8f9fa; padding: 30px; border-radius: 15px; margin-top: 30px;">
+                    <h3 style="color: #495057; margin-bottom: 20px; text-align: center;">📋 Solicitar Préstamo o Fondo Solidario</h3>
+                    
+                    <form id="formSolicitudPrestamo" enctype="multipart/form-data">
+                        <div class="form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                            
+                            <!-- Información Personal -->
+                            <div class="form-group">
+                                <label for="rutPrestamo">RUT del Afiliado *</label>
+                                <input type="text" id="rutPrestamo" name="rutPrestamo" required placeholder="12.345.678-9" style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="nombrePrestamo">Nombre Completo *</label>
+                                <input type="text" id="nombrePrestamo" name="nombrePrestamo" required style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="emailPrestamo">Correo Electrónico *</label>
+                                <input type="email" id="emailPrestamo" name="emailPrestamo" required style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="telefonoPrestamo">Teléfono *</label>
+                                <input type="tel" id="telefonoPrestamo" name="telefonoPrestamo" required placeholder="+569..." style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
+                            </div>
+                            
+                            <!-- Tipo de Solicitud -->
+                            <div class="form-group">
+                                <label for="tipoSolicitud">Tipo de Solicitud *</label>
+                                <select id="tipoSolicitud" name="tipoSolicitud" required style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
+                                    <option value="">Seleccione tipo de solicitud</option>
+                                    <option value="prestamo-medico">Préstamo Médico</option>
+                                    <option value="prestamo-emergencia">Préstamo de Emergencia</option>
+                                    <option value="prestamo-libre-disposicion">Préstamo de Libre Disposición</option>
+                                    <option value="fondo-solidario">Fondo Solidario</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="montoSolicitado">Monto Solicitado *</label>
+                                <input type="number" id="montoSolicitado" name="montoSolicitado" required min="1" placeholder="Ejemplo: 250000" style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
+                            </div>
+                            
+                            <!-- Descripción de la solicitud -->
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label for="descripcionSolicitud">Descripción de la Solicitud *</label>
+                                <textarea id="descripcionSolicitud" name="descripcionSolicitud" required rows="4" placeholder="Describa detalladamente el motivo de su solicitud..." style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px; resize: vertical;"></textarea>
+                            </div>
+                        </div>
+                        
+                        <!-- Documentos Requeridos -->
+                        <div class="documentos-section" style="margin-top: 30px;">
+                            <h4 style="color: #495057; margin-bottom: 20px;">📎 Documentos Requeridos</h4>
+                            <div class="documentos-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                                
+                                <div class="form-group">
+                                    <label for="formularioCompleto">Formulario Completo y Firmado *</label>
+                                    <input type="file" id="formularioCompleto" name="formularioCompleto" required accept=".pdf,.jpg,.jpeg,.png" style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
+                                    <small style="color: #6c757d;">Formulario descargado y completado del tipo de préstamo seleccionado</small>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="cedulaIdentidad">Fotocopia Cédula de Identidad *</label>
+                                    <input type="file" id="cedulaIdentidad" name="cedulaIdentidad" required accept=".pdf,.jpg,.jpeg,.png" style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
+                                    <small style="color: #6c757d;">Ambas caras de la cédula en un solo archivo</small>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="liquidacionesSueldo">Últimas 3 Liquidaciones de Sueldo *</label>
+                                    <input type="file" id="liquidacionesSueldo" name="liquidacionesSueldo" required accept=".pdf,.jpg,.jpeg,.png" multiple style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
+                                    <small style="color: #6c757d;">Puede seleccionar múltiples archivos</small>
+                                </div>
+                                
+                                <!-- Documentos adicionales según tipo -->
+                                <div class="form-group" id="documentosAdicionales" style="display: none;">
+                                    <label for="documentosExtras">Documentos Adicionales</label>
+                                    <input type="file" id="documentosExtras" name="documentosExtras" accept=".pdf,.jpg,.jpeg,.png" multiple style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
+                                    <small id="documentosExtrasInfo" style="color: #6c757d;"></small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="text-align: center; margin-top: 30px;">
+                            <button type="submit" class="btn btn-primary btn-enviar-prestamo" style="padding: 15px 40px; font-size: 1.1em; font-weight: 600; background: linear-gradient(135deg, #007bff, #0056b3); border: none; border-radius: 10px; color: white; cursor: pointer; transition: all 0.3s;">
+                                📤 Enviar Solicitud de Préstamo
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div> 
                 <!-- Footer -->
                 <footer class="footer">
                     <div class="container">
