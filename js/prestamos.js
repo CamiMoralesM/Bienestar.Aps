@@ -3,22 +3,22 @@ class SimplePDFConverter {
     constructor() {
         this.formularios = {
             'medico': {
-                imagen: './images/formulario-prestamos.png',
+                imagen: '.assets/images/formulario-prestamos.png',
                 nombre: 'Formulario_Prestamo_Medico.pdf',
                 titulo: 'Préstamos Médicos'
             },
             'emergencia': {
-                imagen: './images/formulario-prestamos.png',
+                imagen: '.assets/images/formulario-prestamos.png',
                 nombre: 'Formulario_Prestamo_Emergencia.pdf',
                 titulo: 'Préstamos de Emergencia'
             },
             'libre-disposicion': {
-                imagen: './images/formulario-prestamos-libre-disposicion.png',
+                imagen: '.assets/images/formulario-prestamos-libre-disposicion.png',
                 nombre: 'Formulario_Prestamo_Libre_Disposicion.pdf',
                 titulo: 'Préstamos de Libre Disposición'
             },
             'fondo-solidario': {
-                imagen: './images/formulario-prestamos.png',
+                imagen: '.assets/images/formulario-prestamos.png',
                 nombre: 'Formulario_Fondo_Solidario.pdf',
                 titulo: 'Fondo Solidario'
             }
