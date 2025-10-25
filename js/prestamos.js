@@ -1,305 +1,322 @@
-// Sistema para convertir TUS imágenes de formularios existentes a PDF
-class ConvertirImagenesAPDF {
+// Gestor de descarga de IMÁGENES convertidas a PDF
+class FormulariosDownloadManager {
     constructor() {
-        // Configuración de TUS formularios existentes
+        // RUTAS CORREGIDAS basadas en el error - usando lo que SÍ funciona
         this.formularios = {
             'medico': {
-                imagen: '.assets/images/formulario-prestamos.png', // Tu imagen existente
+                archivos: [
+                    './assets/images/formulario-prestamos.png',  // Basado en la ruta que SÍ funciona
+                    'assets/formulario-prestamos.png',
+                    'formulario-prestamos.png'
+                ],
                 nombre: 'Formulario_Prestamo_Medico.pdf',
                 titulo: 'Préstamos Médicos'
             },
             'emergencia': {
-                imagen: '.assets/images/formulario-prestamos.png', // Tu imagen existente
+                archivos: [
+                    './assets/images/formulario-prestamos.png',
+                    'assets/formulario-prestamos.png',
+                    'formulario-prestamos.png'
+                ],
                 nombre: 'Formulario_Prestamo_Emergencia.pdf',
                 titulo: 'Préstamos de Emergencia'
             },
             'libre-disposicion': {
-                imagen: '.assets/images/formulario-prestamos-libre-disposicion.png', // Tu imagen existente
+                archivos: [
+                    './assets/images/formulario-prestamos-libre-disposicion.png',  // Esta SÍ funciona según el error
+                    'assets/formulario-prestamos-libre-disposicion.png',
+                    'formulario-prestamos-libre-disposicion.png'
+                ],
                 nombre: 'Formulario_Prestamo_Libre_Disposicion.pdf',
                 titulo: 'Préstamos de Libre Disposición'
             },
             'fondo-solidario': {
-                imagen: '.assets/images/formulario-prestamos.png', // Tu imagen existente
+                archivos: [
+                    './assets/images/formulario-prestamos.png',
+                    'assets/formulario-prestamos.png',
+                    'formulario-prestamos.png'
+                ],
                 nombre: 'Formulario_Fondo_Solidario.pdf',
                 titulo: 'Fondo Solidario'
             }
         };
         
-        // Rutas adicionales donde pueden estar TUS imágenes
-        this.rutasAlternativas = [
-            './',
-            './images/',
-            './assets/',
-            './assets/images/',
-            '../images/',
-            '../assets/images/'
-        ];
-        
-        this.cargarjsPDF();
-        this.inicializar();
+        console.log('🚀 Descargador de imágenes a PDF inicializado');
+        this.loadJsPDF();
+        this.initializeEventListeners();
     }
 
-    async cargarjsPDF() {
+    // Cargar jsPDF dinámicamente
+    loadJsPDF() {
         if (window.jsPDF) {
-            console.log('✅ jsPDF ya disponible');
-            return true;
+            this.jsPDFReady = true;
+            return;
         }
 
         const script = document.createElement('script');
         script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-        
-        return new Promise((resolve) => {
-            script.onload = () => {
-                console.log('✅ jsPDF cargado');
-                resolve(true);
-            };
-            script.onerror = () => {
-                console.error('❌ Error cargando jsPDF');
-                resolve(false);
-            };
-            document.head.appendChild(script);
-        });
+        script.onload = () => {
+            this.jsPDFReady = true;
+            console.log('✅ jsPDF cargado');
+        };
+        script.onerror = () => {
+            console.error('❌ Error cargando jsPDF');
+            this.jsPDFReady = false;
+        };
+        document.head.appendChild(script);
     }
 
-    inicializar() {
+    initializeEventListeners() {
         document.addEventListener('click', (e) => {
             if (e.target.classList.contains('btn-download-form')) {
                 e.preventDefault();
                 const tipo = e.target.getAttribute('data-tipo');
-                this.convertirTuImagen(tipo);
+                this.descargarFormulario(tipo);
             }
         });
-        console.log('🚀 Conversor de TUS imágenes inicializado');
     }
 
-    // Buscar TU imagen en diferentes ubicaciones
-    async buscarTuImagen(nombreImagen) {
-        // Primero probar la ruta directa
+    async descargarFormulario(tipo) {
+        const formulario = this.formularios[tipo];
+        
+        if (!formulario) {
+            console.error('❌ Tipo no encontrado:', tipo);
+            this.mostrarMensaje('Tipo de formulario no encontrado', 'error');
+            return;
+        }
+
+        if (!this.jsPDFReady) {
+            this.mostrarMensaje('Cargando herramientas PDF...', 'warning');
+            setTimeout(() => this.descargarFormulario(tipo), 1000);
+            return;
+        }
+
+        console.log(`🎯 Descargando: ${formulario.titulo}`);
+        this.mostrarMensaje(`Buscando imagen: ${formulario.titulo}...`, 'info');
+        
         try {
-            const response = await fetch(nombreImagen, { method: 'HEAD' });
-            if (response.ok) {
-                console.log(`✅ Tu imagen encontrada: ${nombreImagen}`);
-                return nombreImagen;
+            // Buscar la imagen en múltiples ubicaciones
+            const archivoEncontrado = await this.buscarArchivo(formulario.archivos);
+            
+            if (!archivoEncontrado) {
+                this.mostrarMensaje('❌ No se encontró la imagen del formulario', 'error');
+                console.error('❌ Ninguna imagen encontrada en las rutas:', formulario.archivos);
+                return;
             }
-        } catch (e) {
-            console.log(`❌ No en ruta directa: ${nombreImagen}`);
+            
+            console.log(`✅ Imagen encontrada: ${archivoEncontrado}`);
+            this.mostrarMensaje(`Convirtiendo a PDF: ${formulario.titulo}...`, 'info');
+            
+            await this.convertirImagenAPDF(archivoEncontrado, formulario.nombre);
+            this.mostrarMensaje(`✅ PDF descargado: ${formulario.titulo}`, 'success');
+            
+        } catch (error) {
+            console.error('❌ Error en conversión:', error);
+            this.mostrarMensaje('Error al convertir a PDF', 'error');
         }
+    }
 
-        // Probar en rutas alternativas
-        for (const ruta of this.rutasAlternativas) {
-            const rutaCompleta = ruta + nombreImagen;
+    // Nuevo método para buscar archivo en múltiples ubicaciones
+    async buscarArchivo(rutasPosibles) {
+        for (const ruta of rutasPosibles) {
             try {
-                const response = await fetch(rutaCompleta, { method: 'HEAD' });
-                if (response.ok) {
-                    console.log(`✅ Tu imagen encontrada en: ${rutaCompleta}`);
-                    return rutaCompleta;
+                const existe = await this.verificarImagen(ruta);
+                if (existe) {
+                    return ruta;
                 }
-            } catch (e) {
-                console.log(`❌ No encontrada en: ${rutaCompleta}`);
+            } catch (error) {
+                // Continuar con la siguiente ruta
+                continue;
             }
         }
-
         return null;
     }
 
-    async convertirTuImagen(tipo) {
-        const formulario = this.formularios[tipo];
-        if (!formulario) {
-            this.mostrarMensaje('Tipo de formulario no válido', 'error');
-            return;
-        }
-
-        // Verificar jsPDF
-        if (!window.jspdf) {
-            this.mostrarMensaje('Cargando jsPDF...', 'info');
-            await this.cargarjsPDF();
-            if (!window.jspdf) {
-                this.mostrarMensaje('Error: No se pudo cargar jsPDF', 'error');
-                return;
-            }
-        }
-
-        this.mostrarMensaje(`🔍 Buscando tu imagen: ${formulario.titulo}`, 'info');
-
-        // Buscar TU imagen
-        const rutaImagen = await this.buscarTuImagen(formulario.imagen.replace('./', ''));
-        
-        if (!rutaImagen) {
-            this.mostrarMensaje(`❌ No se encontró tu imagen: ${formulario.imagen}`, 'error');
-            console.error('❌ Tu imagen no se encontró en ninguna ubicación:', formulario.imagen);
-            return;
-        }
-
-        this.mostrarMensaje(`⚙️ Convirtiendo tu imagen a PDF...`, 'info');
-
-        try {
-            await this.imagenAPDF(rutaImagen, formulario.nombre, formulario.titulo);
-            this.mostrarMensaje(`✅ PDF generado: ${formulario.titulo}`, 'success');
-        } catch (error) {
-            console.error('❌ Error convirtiendo tu imagen:', error);
-            this.mostrarMensaje(`❌ Error al convertir: ${formulario.titulo}`, 'error');
-        }
+    // Método para verificar si una imagen existe
+    verificarImagen(ruta) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => resolve(true);
+            img.onerror = () => resolve(false);
+            img.src = ruta;
+            
+            // Timeout después de 3 segundos
+            setTimeout(() => resolve(false), 3000);
+        });
     }
 
-    async imagenAPDF(rutaImagen, nombrePDF, titulo) {
+    async convertirImagenAPDF(nombreArchivo, nombrePDF) {
         return new Promise((resolve, reject) => {
             const img = new Image();
-            img.crossOrigin = 'anonymous';
             
             img.onload = () => {
                 try {
-                    console.log(`📐 Procesando tu imagen: ${img.width}x${img.height}px`);
-                    
+                    // Crear instancia de jsPDF
                     const { jsPDF } = window.jspdf;
                     
-                    // Dimensiones A4 en mm
+                    // Calcular dimensiones para que la imagen ocupe toda la página
+                    const imgWidth = img.width;
+                    const imgHeight = img.height;
+                    
+                    // Formato A4: 210 x 297 mm
                     const pageWidth = 210;
                     const pageHeight = 297;
-                    const margin = 10;
                     
-                    // Área útil
-                    const maxWidth = pageWidth - (margin * 2);
-                    const maxHeight = pageHeight - (margin * 2);
+                    // Calcular escala para ajustar a la página
+                    const scaleX = pageWidth / imgWidth;
+                    const scaleY = pageHeight / imgHeight;
+                    const scale = Math.min(scaleX, scaleY);
                     
-                    // Calcular escala manteniendo proporción
-                    const imgRatio = img.width / img.height;
-                    const pageRatio = maxWidth / maxHeight;
+                    const finalWidth = imgWidth * scale;
+                    const finalHeight = imgHeight * scale;
                     
-                    let finalWidth, finalHeight, x, y;
-                    
-                    if (imgRatio > pageRatio) {
-                        // Imagen más ancha - ajustar al ancho
-                        finalWidth = maxWidth;
-                        finalHeight = maxWidth / imgRatio;
-                        x = margin;
-                        y = margin + (maxHeight - finalHeight) / 2;
-                    } else {
-                        // Imagen más alta - ajustar a la altura
-                        finalHeight = maxHeight;
-                        finalWidth = maxHeight * imgRatio;
-                        x = margin + (maxWidth - finalWidth) / 2;
-                        y = margin;
-                    }
+                    // Centrar la imagen
+                    const x = (pageWidth - finalWidth) / 2;
+                    const y = (pageHeight - finalHeight) / 2;
                     
                     // Crear PDF
                     const pdf = new jsPDF({
-                        orientation: 'portrait',
+                        orientation: finalHeight > finalWidth ? 'portrait' : 'landscape',
                         unit: 'mm',
                         format: 'a4'
                     });
                     
-                    // Agregar tu imagen al PDF
-                    pdf.addImage(img, 'PNG', x, y, finalWidth, finalHeight, undefined, 'FAST');
+                    // Agregar imagen al PDF
+                    pdf.addImage(img, 'PNG', x, y, finalWidth, finalHeight);
                     
                     // Descargar
                     pdf.save(nombrePDF);
                     
-                    console.log(`✅ Tu imagen convertida exitosamente: ${nombrePDF}`);
+                    console.log('✅ PDF creado y descargado');
                     resolve();
                     
                 } catch (error) {
-                    console.error('❌ Error procesando tu imagen:', error);
+                    console.error('❌ Error creando PDF:', error);
                     reject(error);
                 }
             };
             
-            img.onerror = (error) => {
-                console.error(`❌ Error cargando tu imagen: ${rutaImagen}`, error);
-                reject(new Error(`No se pudo cargar tu imagen: ${rutaImagen}`));
+            img.onerror = () => {
+                console.error('❌ Error cargando imagen:', nombreArchivo);
+                reject(new Error('Error cargando imagen'));
             };
             
-            console.log(`📷 Cargando tu imagen: ${rutaImagen}`);
-            img.src = rutaImagen;
+            // Cargar imagen con nombre simple
+            img.src = nombreArchivo;
         });
     }
 
-    mostrarMensaje(texto, tipo) {
+    mostrarMensaje(mensaje, tipo) {
         const colores = {
-            success: { bg: '#d4edda', color: '#155724', icon: '✅' },
-            error: { bg: '#f8d7da', color: '#721c24', icon: '❌' },
-            info: { bg: '#d1ecf1', color: '#0c5460', icon: 'ℹ️' }
+            'success': { bg: '#d4edda', color: '#155724', border: '#c3e6cb' },
+            'error': { bg: '#f8d7da', color: '#721c24', border: '#f5c6cb' },
+            'warning': { bg: '#fff3cd', color: '#856404', border: '#ffeaa7' },
+            'info': { bg: '#d1ecf1', color: '#0c5460', border: '#bee5eb' }
         };
         
-        const estilo = colores[tipo] || colores.info;
-        
-        // Remover mensajes anteriores
-        document.querySelectorAll('.mensaje-conversion').forEach(m => m.remove());
+        const estilo = colores[tipo] || colores['info'];
         
         const div = document.createElement('div');
-        div.className = 'mensaje-conversion';
         div.style.cssText = `
-            position: fixed; top: 20px; right: 20px; z-index: 9999;
-            background: ${estilo.bg}; color: ${estilo.color};
-            padding: 15px 20px; border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            font-family: system-ui, sans-serif; font-size: 14px;
-            max-width: 350px; word-wrap: break-word;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: ${estilo.bg};
+            color: ${estilo.color};
+            border: 1px solid ${estilo.border};
+            border-radius: 8px;
+            z-index: 9999;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            max-width: 300px;
+            word-wrap: break-word;
         `;
         
         div.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 10px;">
-                ${estilo.icon} ${texto}
-                <button onclick="this.parentElement.parentElement.remove()" 
-                        style="margin-left: auto; background: none; border: none; 
-                               font-size: 16px; cursor: pointer; opacity: 0.7;">×</button>
-            </div>
+            ${mensaje} 
+            <button onclick="this.parentElement.remove()" 
+                    style="margin-left:10px; background:none; border:none; cursor:pointer; font-size:16px; font-weight:bold;">×</button>
         `;
         
         document.body.appendChild(div);
-        setTimeout(() => div.remove(), 4000);
+        
+        // Auto-remover después de 5 segundos
+        setTimeout(() => {
+            if (div.parentElement) {
+                div.remove();
+            }
+        }, 5000);
     }
 
-    // Función para listar dónde busca las imágenes
-    mostrarRutasBusqueda() {
-        console.log('🔍 El sistema busca TUS imágenes en estas ubicaciones:');
-        Object.entries(this.formularios).forEach(([tipo, config]) => {
-            console.log(`\n📄 ${config.titulo}:`);
-            console.log(`   Archivo: ${config.imagen.replace('./', '')}`);
-            console.log('   Ubicaciones de búsqueda:');
-            this.rutasAlternativas.forEach(ruta => {
-                console.log(`   - ${ruta}${config.imagen.replace('./', '')}`);
-            });
-        });
+    // Método de respaldo para descarga directa de imagen
+    async descargarImagenDirecta(tipo) {
+        const formulario = this.formularios[tipo];
+        if (!formulario) return;
+        
+        // Buscar la imagen en múltiples ubicaciones
+        const archivoEncontrado = await this.buscarArchivo(formulario.archivos);
+        
+        if (!archivoEncontrado) {
+            this.mostrarMensaje('❌ No se encontró la imagen', 'error');
+            return;
+        }
+        
+        const link = document.createElement('a');
+        link.href = archivoEncontrado;
+        link.download = formulario.nombre.replace('.pdf', '.png');
+        link.style.display = 'none';
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        this.mostrarMensaje('Imagen descargada como respaldo', 'warning');
     }
 }
 
-// Inicializar cuando el DOM esté listo
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        window.convertirImagenes = new ConvertirImagenesAPDF();
-    });
-} else {
-    window.convertirImagenes = new ConvertirImagenesAPDF();
-}
+// Inicialización
+document.addEventListener('DOMContentLoaded', () => {
+    window.formulariosManager = new FormulariosDownloadManager();
+    console.log('✅ Sistema de conversión imagen a PDF listo');
+});
 
 // Funciones globales para compatibilidad
 window.descargarFormulario = function(tipo) {
-    if (window.convertirImagenes) {
-        window.convertirImagenes.convertirTuImagen(tipo);
+    if (window.formulariosManager) {
+        window.formulariosManager.descargarFormulario(tipo);
     } else {
-        alert('Sistema no inicializado');
+        console.error('❌ Manager no inicializado');
     }
 };
 
-window.probarConversion = function() {
-    console.log('🧪 Probando conversión de TUS imágenes...');
-    if (window.convertirImagenes) {
-        window.convertirImagenes.convertirTuImagen('medico');
+// Método de emergencia - descarga directa de imagen
+window.descargarImagenDirecta = function(tipo) {
+    if (window.formulariosManager) {
+        window.formulariosManager.descargarImagenDirecta(tipo);
+    } else {
+        // Fallback básico
+        const archivos = {
+            'medico': 'formulario-prestamos.png',
+            'emergencia': 'formulario-prestamos.png',
+            'libre-disposicion': 'formulario-prestamos-libre-disposicion.png',
+            'fondo-solidario': 'formulario-prestamos.png'
+        };
+        
+        if (archivos[tipo]) {
+            const link = document.createElement('a');
+            link.href = archivos[tipo];
+            link.download = `Formulario_${tipo}.png`;
+            link.click();
+        }
     }
 };
 
-window.verificarSistema = function() {
-    console.log('🔍 Estado del sistema:');
-    console.log('- jsPDF:', !!window.jspdf);
-    console.log('- Conversor:', !!window.convertirImagenes);
-    
-    if (window.convertirImagenes) {
-        window.convertirImagenes.mostrarRutasBusqueda();
-    }
-};
-
-window.mostrarDondeBusca = function() {
-    if (window.convertirImagenes) {
-        window.convertirImagenes.mostrarRutasBusqueda();
+// Función para testing
+window.testConversion = function() {
+    console.log('🧪 Probando conversión...');
+    if (window.formulariosManager) {
+        window.formulariosManager.descargarFormulario('medico');
     }
 };
