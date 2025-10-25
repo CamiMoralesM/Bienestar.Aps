@@ -4,22 +4,22 @@ class FormulariosDownloadManager {
         // RUTAS CORREGIDAS basadas en el error - usando lo que SÍ funciona
         this.formularios = {
             'medico': {
-                archivos: './assets/images/formulario-prestamos.jpg',  // Basado en la ruta que SÍ funciona
+                archivos: './assets/images/formulario-prestamos.png',  // Basado en la ruta que SÍ funciona
                 nombre: 'Formulario_Prestamo_Medico.pdf',
                 titulo: 'Préstamos Médicos'
             },
             'emergencia': {
-                archivos: './assets/images/formulario-prestamos.jpg',
+                archivos: './assets/images/formulario-prestamos.png',
                 nombre: 'Formulario_Prestamo_Emergencia.pdf',
                 titulo: 'Préstamos de Emergencia'
             },
             'libre-disposicion': {
-                archivos: './assets/images/formulario-prestamos-libre-disposicion.jpg',  // Esta SÍ funciona según el error
+                archivos: './assets/images/formulario-prestamos-libre-disposicion.png',  // Esta SÍ funciona según el error
                 nombre: 'Formulario_Prestamo_Libre_Disposicion.pdf',
                 titulo: 'Préstamos de Libre Disposición'
             },
             'fondo-solidario': {
-                archivos:'./assets/images/formulario-prestamos.jpg',
+                archivos:'./assets/images/formulario-prestamos.png',
                 nombre: 'Formulario_Fondo_Solidario.pdf',
                 titulo: 'Fondo Solidario'
             }
@@ -282,10 +282,10 @@ window.descargarImagenDirecta = function(tipo) {
     } else {
         // Fallback básico
         const archivos = {
-            'medico': 'formulario-prestamos.jpg',
-            'emergencia': 'formulario-prestamos.jpg',
-            'libre-disposicion': 'formulario-prestamos-libre-disposicion.jpg',
-            'fondo-solidario': 'formulario-prestamos.jpg'
+            'medico': 'formulario-prestamos.png',
+            'emergencia': 'formulario-prestamos.png',
+            'libre-disposicion': 'formulario-prestamos-libre-disposicion.png',
+            'fondo-solidario': 'formulario-prestamos.png'
         };
         
         if (archivos[tipo]) {
