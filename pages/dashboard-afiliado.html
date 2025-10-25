@@ -468,198 +468,8 @@
                 </form>
             </div>
 
-            <!-- Tab: Préstamos y Fondo Solidario -->
-            <div class="tab-content" id="tab-prestamos">
-                <h2>💰 Préstamos y Fondo Solidario</h2>
-                
-                <!-- Información General -->
-                <div class="info-box" style="background: #e0b0f5; padding: 20px; border-radius: 12px; margin-bottom: 30px; border-left: 4px solid #2196F3;">
-                    <h3 style="color: #1976D2; margin-top: 0;">📋 Información General</h3>
-                    <p style="margin-bottom: 10px;"><strong>Requisitos básicos para préstamos:</strong></p>
-                    <ul style="margin: 10px 0; padding-left: 20px;">
-                        <li>Tener al menos 3 descuentos del Servicio de Bienestar APS</li>
-                        <li>Presentar documentación completa y vigente</li>
-                        <li>Evaluación por parte del Trabajador/a Social del Servicio</li>
-                    </ul>
-                </div>
-
-                <!-- Grid de Tipos de Préstamos y Fondo -->
-                <div class="prestamos-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 25px; margin-bottom: 40px;">
-                    
-                    <!-- Préstamos Médicos -->
-                    <div class="prestamo-card" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; padding: 25px; border-radius: 15px; box-shadow: 0 6px 20px rgba(255, 107, 107, 0.3);">
-                        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
-                            <span style="font-size: 2.5em;">🏥</span>
-                            <h3 style="margin: 0; font-size: 1.4em;">Préstamos Médicos</h3>
-                        </div>
-                        <div style="background: rgba(255, 255, 255, 0.2); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                            <p style="margin: 0 0 10px 0; font-weight: 500;">Características:</p>
-                            <ul style="margin: 0; padding-left: 15px; list-style: none;">
-                                <li style="margin-bottom: 5px;">💵 Tope: $500.000</li>
-                                <li style="margin-bottom: 5px;">📅 Máximo: 12 cuotas</li>
-                                <li style="margin-bottom: 5px;">⚡ Sujeto a evaluación del Trabajador/a Social</li>
-                            </ul>
-                        </div>
-                        <button class="btn-download-form" data-tipo="medico" style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.2); border: 2px solid white; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; transition: all 0.3s;">
-                            📄 Descargar Formulario
-                        </button>
-                    </div>
-
-                    <!-- Préstamos de Emergencia -->
-                    <div class="prestamo-card" style="background: linear-gradient(135deg, #ff9500 0%, #ff6b35 100%); color: white; padding: 25px; border-radius: 15px; box-shadow: 0 6px 20px rgba(255, 149, 0, 0.3);">
-                        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
-                            <span style="font-size: 2.5em;">🚨</span>
-                            <h3 style="margin: 0; font-size: 1.4em;">Préstamos de Emergencia</h3>
-                        </div>
-                        <div style="background: rgba(255, 255, 255, 0.2); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                            <p style="margin: 0 0 10px 0; font-weight: 500;">Características:</p>
-                            <ul style="margin: 0; padding-left: 15px; list-style: none;">
-                                <li style="margin-bottom: 5px;">💵 Tope: $500.000</li>
-                                <li style="margin-bottom: 5px;">📅 Cuotas según condiciones contractuales</li>
-                                <li style="margin-bottom: 5px;">⚡ Evaluación por Trabajador/a Social</li>
-                                <li style="margin-bottom: 5px;">💰 Descontado de liquidación de sueldo</li>
-                            </ul>
-                        </div>
-                        <button class="btn-download-form" data-tipo="emergencia" style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.2); border: 2px solid white; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; transition: all 0.3s;">
-                            📄 Descargar Formulario
-                        </button>
-                    </div>
-
-                    <!-- Préstamos de Libre Disposición -->
-                    <div class="prestamo-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 25px; border-radius: 15px; box-shadow: 0 6px 20px rgba(79, 172, 254, 0.3);">
-                        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
-                            <span style="font-size: 2.5em;">💳</span>
-                            <h3 style="margin: 0; font-size: 1.4em;">Préstamos de Libre Disposición</h3>
-                        </div>
-                        <div style="background: rgba(255, 255, 255, 0.2); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                            <p style="margin: 0 0 10px 0; font-weight: 500;">Características:</p>
-                            <ul style="margin: 0; padding-left: 15px; list-style: none;">
-                                <li style="margin-bottom: 5px;">💵 Tope: $300.000</li>
-                                <li style="margin-bottom: 5px;">📅 Máximo: 6 cuotas</li>
-                                <li style="margin-bottom: 5px;">📋 Requiere las últimas 3 liquidaciones</li>
-                                <li style="margin-bottom: 5px;">🆔 Fotocopia de cédula de identidad</li>
-                                <li style="margin-bottom: 5px;">📝 Formulario de préstamo de libre disposición</li>
-                            </ul>
-                        </div>
-                        <button class="btn-download-form" data-tipo="libre-disposicion" style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.2); border: 2px solid white; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; transition: all 0.3s;">
-                            📄 Descargar Formulario
-                        </button>
-                    </div>
-
-                    <!-- Fondos Solidarios -->
-                    <div class="prestamo-card" style="background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%); color: white; padding: 25px; border-radius: 15px; box-shadow: 0 6px 20px rgba(86, 171, 47, 0.3);">
-                        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
-                            <span style="font-size: 2.5em;">🤝</span>
-                            <h3 style="margin: 0; font-size: 1.4em;">Fondos Solidarios</h3>
-                        </div>
-                        <div style="background: rgba(255, 255, 255, 0.2); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                            <p style="margin: 0 0 10px 0; font-weight: 500;">Características:</p>
-                            <ul style="margin: 0; padding-left: 15px; list-style: none;">
-                                <li style="margin-bottom: 5px;">🎁 Ayudas sin retorno</li>
-                                <li style="margin-bottom: 5px;">🏥 Emergencias de salud</li>
-                                <li style="margin-bottom: 5px;">👨‍👩‍👧‍👦 Situaciones familiares complejas</li>
-                                <li style="margin-bottom: 5px;">📋 Evaluación previa por Trabajador/a Social</li>
-                                <li style="margin-bottom: 5px;">🤝 En conjunto con Comité del Servicio de Bienestar APS</li>
-                            </ul>
-                        </div>
-                        <button class="btn-download-form" data-tipo="fondo-solidario" style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.2); border: 2px solid white; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; transition: all 0.3s;">
-                            📄 Descargar Formulario
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Formulario de Solicitud -->
-                <div class="solicitud-section" style="background: #f8f9fa; padding: 30px; border-radius: 15px; margin-top: 30px;">
-                    <h3 style="color: #495057; margin-bottom: 20px; text-align: center;">📋 Solicitar Préstamo o Fondo Solidario</h3>
-                    
-                    <form id="formSolicitudPrestamo" enctype="multipart/form-data">
-                        <div class="form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
-                            
-                            <!-- Información Personal -->
-                            <div class="form-group">
-                                <label for="rutPrestamo">RUT del Afiliado *</label>
-                                <input type="text" id="rutPrestamo" name="rutPrestamo" required placeholder="12.345.678-9" style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="nombrePrestamo">Nombre Completo *</label>
-                                <input type="text" id="nombrePrestamo" name="nombrePrestamo" required style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="emailPrestamo">Correo Electrónico *</label>
-                                <input type="email" id="emailPrestamo" name="emailPrestamo" required style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="telefonoPrestamo">Teléfono *</label>
-                                <input type="tel" id="telefonoPrestamo" name="telefonoPrestamo" required placeholder="+569..." style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
-                            </div>
-                            
-                            <!-- Tipo de Solicitud -->
-                            <div class="form-group">
-                                <label for="tipoSolicitud">Tipo de Solicitud *</label>
-                                <select id="tipoSolicitud" name="tipoSolicitud" required style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
-                                    <option value="">Seleccione tipo de solicitud</option>
-                                    <option value="prestamo-medico">Préstamo Médico</option>
-                                    <option value="prestamo-emergencia">Préstamo de Emergencia</option>
-                                    <option value="prestamo-libre-disposicion">Préstamo de Libre Disposición</option>
-                                    <option value="fondo-solidario">Fondo Solidario</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="montoSolicitado">Monto Solicitado *</label>
-                                <input type="number" id="montoSolicitado" name="montoSolicitado" required min="1" placeholder="Ejemplo: 250000" style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
-                            </div>
-                            
-                            <!-- Descripción de la solicitud -->
-                            <div class="form-group" style="grid-column: 1 / -1;">
-                                <label for="descripcionSolicitud">Descripción de la Solicitud *</label>
-                                <textarea id="descripcionSolicitud" name="descripcionSolicitud" required rows="4" placeholder="Describa detalladamente el motivo de su solicitud..." style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px; resize: vertical;"></textarea>
-                            </div>
-                        </div>
-                        
-                        <!-- Documentos Requeridos -->
-                        <div class="documentos-section" style="margin-top: 30px;">
-                            <h4 style="color: #495057; margin-bottom: 20px;">📎 Documentos Requeridos</h4>
-                            <div class="documentos-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
-                                
-                                <div class="form-group">
-                                    <label for="formularioCompleto">Formulario Completo y Firmado *</label>
-                                    <input type="file" id="formularioCompleto" name="formularioCompleto" required accept=".pdf,.jpg,.jpeg,.png" style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
-                                    <small style="color: #6c757d;">Formulario descargado y completado del tipo de préstamo seleccionado</small>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="cedulaIdentidad">Fotocopia Cédula de Identidad *</label>
-                                    <input type="file" id="cedulaIdentidad" name="cedulaIdentidad" required accept=".pdf,.jpg,.jpeg,.png" style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
-                                    <small style="color: #6c757d;">Ambas caras de la cédula en un solo archivo</small>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="liquidacionesSueldo">Últimas 3 Liquidaciones de Sueldo *</label>
-                                    <input type="file" id="liquidacionesSueldo" name="liquidacionesSueldo" required accept=".pdf,.jpg,.jpeg,.png" multiple style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
-                                    <small style="color: #6c757d;">Puede seleccionar múltiples archivos</small>
-                                </div>
-                                
-                                <!-- Documentos adicionales según tipo -->
-                                <div class="form-group" id="documentosAdicionales" style="display: none;">
-                                    <label for="documentosExtras">Documentos Adicionales</label>
-                                    <input type="file" id="documentosExtras" name="documentosExtras" accept=".pdf,.jpg,.jpeg,.png" multiple style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
-                                    <small id="documentosExtrasInfo" style="color: #6c757d;"></small>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div style="text-align: center; margin-top: 30px;">
-                            <button type="submit" class="btn btn-primary btn-enviar-prestamo" style="padding: 15px 40px; font-size: 1.1em; font-weight: 600; background: linear-gradient(135deg, #007bff, #0056b3); border: none; border-radius: 10px; color: white; cursor: pointer; transition: all 0.3s;">
-                                📤 Enviar Solicitud de Préstamo
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+            <!-- Tab: Préstamos y Fondo Solidario (ya definido más arriba) -->
+            <!-- (está completamente incluido en la sección precedente con id="tab-prestamos") -->
 
             <!-- Tab: Solicitudes -->
             <div class="tab-content" id="tab-solicitudes">
@@ -669,7 +479,7 @@
                         ➕ Nueva Solicitud
                     </button>
                 </div>
-                <div class="solicitudes-list"></div>
+                <div class="solicitudes-list" id="solicitudesListPrestamos"></div>
             </div>
 
             <!-- Tab: Mi Perfil -->
@@ -750,37 +560,41 @@
         </div>
     </footer>
 
-    <!-- SCRIPTS CORREGIDOS -->
+    <!-- SCRIPTS -->
     <script type="module" src="../js/dashboard-afiliado-firebase.js"></script>
     <script type="module" src="../js/compras-unificadas.js"></script>
-    <script type="module" src="../js/prestamos.js"></script>
-    <script type="module" src="../js/prestamos-firebase.js"></script>
-    <script type="module">
-        // Sistema de pestañas mejorado
-        const tabs = document.querySelectorAll('.nav-tab');
-        const tabContents = document.querySelectorAll('.tab-content');
-        
-        tabs.forEach(tab => {
-            tab.addEventListener('click', function() {
-                const targetTab = this.getAttribute('data-tab');
-                
-                // Remover clase active de todas las pestañas
-                tabs.forEach(t => t.classList.remove('active'));
-                tabContents.forEach(content => content.classList.remove('active'));
-                
-                // Agregar clase active a la pestaña clickeada
-                this.classList.add('active');
-                
-                // Mostrar el contenido correspondiente
-                const targetContent = document.getElementById(`tab-${targetTab}`);
-                if (targetContent) {
-                    targetContent.classList.add('active');
-                }
-            });
-        });
 
-        // Manejo de documentos adicionales según tipo de préstamo
-        document.getElementById('tipoSolicitud').addEventListener('change', function() {
+    <!-- Librerías para generar PDF desde imágenes -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <!-- Módulos nuevos (asegúrate de tener estos archivos en /js) -->
+    <script type="module" src="../js/prestamos-firebase.js"></script>
+    <script type="module" src="../js/prestamos.js"></script>
+
+    <script>
+    // Sistema de pestañas mejorado (mantener estilo)
+    const tabs = document.querySelectorAll('.nav-tab');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const targetTab = this.getAttribute('data-tab');
+            tabs.forEach(t => t.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+            this.classList.add('active');
+            const targetContent = document.getElementById(`tab-${targetTab}`);
+            if (targetContent) {
+                targetContent.classList.add('active');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        });
+    });
+
+    // Manejo de documentos adicionales según tipo de préstamo
+    const tipoSelect = document.getElementById('tipoSolicitud');
+    if (tipoSelect) {
+        tipoSelect.addEventListener('change', function() {
             const documentosAdicionales = document.getElementById('documentosAdicionales');
             const documentosExtrasInfo = document.getElementById('documentosExtrasInfo');
             
@@ -797,47 +611,201 @@
                     documentosAdicionales.style.display = 'block';
                     documentosExtrasInfo.textContent = 'Documentos que respalden la situación de emergencia familiar';
                     break;
+                case 'prestamo-libre-disposicion':
+                    documentosAdicionales.style.display = 'block';
+                    documentosExtrasInfo.textContent = 'Cualquier documento adicional que respalde la solicitud';
+                    break;
                 default:
                     documentosAdicionales.style.display = 'none';
             }
         });
+    }
 
-        // Función para nueva solicitud
-        function nuevaSolicitud() {
-            console.log('Nueva solicitud clickeada');
-            // Aquí puedes agregar la lógica para nueva solicitud
-        }
-
-        // Función para logout
-        function logout() {
-            if (confirm('¿Está seguro que desea cerrar sesión?')) {
-                sessionStorage.clear();
-                localStorage.clear();
-                window.location.href = '../index.html';
+    // Abrir el formulario y preseleccionar tipo cuando se hace click en "Solicitar / Subir documentos"
+    document.querySelectorAll('.btn-open-upload').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tipo = btn.dataset.tipo || '';
+            const tipoMap = {
+                medico: 'prestamo-medico',
+                emergencia: 'prestamo-emergencia',
+                libre_disposicion: 'prestamo-libre-disposicion',
+                'libre-disposicion': 'prestamo-libre-disposicion',
+                'fondo_solidario': 'fondo-solidario',
+                'fondo-solidario': 'fondo-solidario'
+            };
+            const selectVal = tipoMap[tipo] || '';
+            if (selectVal && document.getElementById('tipoSolicitud')) {
+                document.getElementById('tipoSolicitud').value = selectVal;
+                document.getElementById('tipoSolicitud').dispatchEvent(new Event('change'));
+                document.getElementById('formSolicitudPrestamo').scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
-        }
+        });
+    });
 
-        // Hacer las funciones globales para que puedan ser llamadas desde HTML
-        window.nuevaSolicitud = nuevaSolicitud;
-        window.logout = logout;
+    // Exponer image->PDF helper (usa html2canvas + jsPDF)
+    async function imageToPDFAndDownload(imageUrl, outFileName = 'formulario.pdf') {
+        // crear imagen oculta
+        const img = document.createElement('img');
+        img.src = imageUrl;
+        img.style.position = 'fixed';
+        img.style.left = '-9999px';
+        document.body.appendChild(img);
 
-        // Manejo de descarga de formularios
-        document.querySelectorAll('.btn-download-form').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const tipo = this.dataset.tipo;
-                descargarFormulario(tipo);
-            });
+        await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = () => reject(new Error('No se pudo cargar la imagen: ' + imageUrl));
         });
 
-        function descargarFormulario(tipo) {
-            // Aquí implementarías la lógica para descargar el formulario correspondiente
-            // Por ahora solo mostramos un mensaje
-            alert(`Descargando formulario de ${tipo}`);
-            console.log(`Descargando formulario de tipo: ${tipo}`);
+        const canvas = await html2canvas(img, { scale: 2, useCORS: true });
+        const imgData = canvas.toDataURL('image/png');
+
+        const { jsPDF } = window.jspdf;
+        // tamaño en puntos
+        const pdf = new jsPDF({
+            orientation: canvas.width >= canvas.height ? 'landscape' : 'portrait',
+            unit: 'pt',
+            format: [canvas.width, canvas.height]
+        });
+        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+        pdf.save(outFileName);
+
+        document.body.removeChild(img);
+    }
+    window.imageToPDFAndDownload = imageToPDFAndDownload;
+
+    // Botones descarga (usa el helper anterior)
+    document.querySelectorAll('.btn-download-form, .btn-download').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const img = this.dataset.img;
+            const name = this.dataset.name || (`formulario_${this.dataset.tipo||'prestamo'}.pdf`);
+            if (img) {
+                try {
+                    await imageToPDFAndDownload(img, name);
+                } catch (err) {
+                    console.error('Error generando PDF, abriendo imagen:', err);
+                    window.open(img, '_blank');
+                }
+            } else {
+                // Fallback: si no hay data-img, intentar seleccionar el formulario PNG por tipo
+                const tipo = this.dataset.tipo;
+                let path = null;
+                if (tipo === 'libre_disposicion' || tipo === 'libre-disposicion') path = '../assets/formulario-prestamos-libre-disposicion.png';
+                else path = '../assets/formulario-prestamos.png';
+                if (path) {
+                    try {
+                        await imageToPDFAndDownload(path, name);
+                    } catch (err) {
+                        window.open(path, '_blank');
+                    }
+                } else {
+                    alert('Formulario no disponible para descarga.');
+                }
+            }
+        });
+    });
+
+    // Envío del formulario principal de préstamos -> llama al módulo prestamos-firebase.js
+    async function enviarSolicitudHandler(ev) {
+        ev.preventDefault();
+        const estadoEl = document.getElementById('estadoEnvioGlobal');
+        estadoEl.textContent = '⏳ Enviando solicitud...';
+
+        const tipoSelect = document.getElementById('tipoSolicitud').value || '';
+        const tipoMap = {
+            'prestamo-medico': 'medico',
+            'prestamo-emergencia': 'emergencia',
+            'prestamo-libre-disposicion': 'libre_disposicion',
+            'fondo-solidario': 'fondo_solidario'
+        };
+        const tipo = tipoMap[tipoSelect] || tipoSelect;
+
+        const datos = {
+            nombre: document.getElementById('nombrePrestamo').value.trim(),
+            rut: document.getElementById('rutPrestamo').value.trim(),
+            email: document.getElementById('emailPrestamo').value.trim(),
+            telefono: document.getElementById('telefonoPrestamo').value.trim(),
+            comentario: document.getElementById('descripcionSolicitud').value.trim(),
+            montoSolicitado: document.getElementById('montoSolicitado').value
+        };
+
+        const archivos = [];
+        const pushFileInput = (inputId) => {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            if (input.files && input.files.length) {
+                for (const f of input.files) archivos.push(f);
+            }
+        };
+        pushFileInput('formularioCompleto');
+        pushFileInput('cedulaIdentidad');
+        pushFileInput('liquidacionesSueldo');
+        pushFileInput('documentosExtras');
+
+        if (!datos.nombre || !datos.rut || !datos.email) {
+            estadoEl.textContent = '❌ Complete nombre, RUT y correo.';
+            return;
+        }
+        if (!tipo) {
+            estadoEl.textContent = '❌ Seleccione un tipo de solicitud.';
+            return;
+        }
+        if (archivos.length === 0) {
+            estadoEl.textContent = '❌ Adjunte al menos un documento requerido.';
+            return;
         }
 
-        // Hacer función global
-        window.descargarFormulario = descargarFormulario;
+        try {
+            // Import dinámico y llamada
+            const module = await import('../js/prestamos-firebase.js');
+            if (!module || !module.guardarSolicitudPrestamo) {
+                throw new Error('Módulo de Firebase no disponible.');
+            }
+            const resultado = await module.guardarSolicitudPrestamo(tipo, datos, archivos);
+            if (resultado.success) {
+                estadoEl.textContent = `✅ Solicitud enviada correctamente. ID: ${resultado.id}`;
+                document.getElementById('formSolicitudPrestamo').reset();
+                if (window.cargarMisSolicitudesPrestamos) window.cargarMisSolicitudesPrestamos();
+            } else {
+                estadoEl.textContent = `❌ Error: ${resultado.error || 'No definido'}`;
+            }
+        } catch (err) {
+            console.error('Error enviando solicitud:', err);
+            estadoEl.textContent = `❌ Error inesperado: ${err.message || err}`;
+        }
+    }
+
+    const formPrestamo = document.getElementById('formSolicitudPrestamo');
+    if (formPrestamo) formPrestamo.addEventListener('submit', enviarSolicitudHandler);
+
+    // Funciones globales
+    function nuevaSolicitud() {
+        document.getElementById('formSolicitudPrestamo').reset();
+        document.getElementById('estadoEnvioGlobal').textContent = '';
+        document.getElementById('formSolicitudPrestamo').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    function logout() {
+        if (confirm('¿Está seguro que desea cerrar sesión?')) {
+            sessionStorage.clear();
+            localStorage.clear();
+            window.location.href = '../index.html';
+        }
+    }
+    window.nuevaSolicitud = nuevaSolicitud;
+    window.logout = logout;
     </script>
+
+    <style>
+        /* Mantener estilos de visibilidad de pestañas */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Modal simple (si se usan modales en prestamos.js) */
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: none; align-items:center; justify-content:center; z-index:9999; }
+        .modal.show { display:flex; }
+
+        /* Mantener apariencia consistente de botones usados aquí */
+        .btn-download { background: rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.08); padding:10px 12px; border-radius:8px; cursor:pointer; }
+        .btn-open-upload { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.18); padding:10px 12px; border-radius:8px; cursor:pointer; color:inherit; }
+    </style>
 </body>
 </html>
