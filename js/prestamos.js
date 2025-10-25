@@ -1,48 +1,40 @@
 // Gestor de descarga de IMÁGENES convertidas a PDF
 class FormulariosDownloadManager {
     constructor() {
-        // NOMBRES DE ARCHIVOS - El sistema buscará automáticamente en varias ubicaciones
+        // RUTAS CORREGIDAS basadas en el error - usando lo que SÍ funciona
         this.formularios = {
             'medico': {
                 archivos: [
-                    'formulario-prestamos.png',
-                    'assets/formulario-prestamos.png', 
-                    'assets/formularios/formulario-prestamos.png',
-                    '../assets/formulario-prestamos.png',
-                    './formulario-prestamos.png'
+                    './assets/formulario-prestamos.png',  // Basado en la ruta que SÍ funciona
+                    'assets/formulario-prestamos.png',
+                    'formulario-prestamos.png'
                 ],
                 nombre: 'Formulario_Prestamo_Medico.pdf',
                 titulo: 'Préstamos Médicos'
             },
             'emergencia': {
                 archivos: [
-                    'formulario-prestamos.png',
+                    './assets/formulario-prestamos.png',
                     'assets/formulario-prestamos.png',
-                    'assets/formularios/formulario-prestamos.png',
-                    '../assets/formulario-prestamos.png',
-                    './formulario-prestamos.png'
+                    'formulario-prestamos.png'
                 ],
                 nombre: 'Formulario_Prestamo_Emergencia.pdf',
                 titulo: 'Préstamos de Emergencia'
             },
             'libre-disposicion': {
                 archivos: [
-                    'formulario-prestamos-libre-disposicion.png',
-                    'formulario-prestamos-libre-disp.png',
+                    './assets/formulario-prestamos-libre-disposicion.png',  // Esta SÍ funciona según el error
                     'assets/formulario-prestamos-libre-disposicion.png',
-                    'assets/formularios/formulario-prestamos-libre-disposicion.png',
-                    '../assets/formulario-prestamos-libre-disposicion.png'
+                    'formulario-prestamos-libre-disposicion.png'
                 ],
                 nombre: 'Formulario_Prestamo_Libre_Disposicion.pdf',
                 titulo: 'Préstamos de Libre Disposición'
             },
             'fondo-solidario': {
                 archivos: [
-                    'formulario-prestamos.png',
+                    './assets/formulario-prestamos.png',
                     'assets/formulario-prestamos.png',
-                    'assets/formularios/formulario-prestamos.png',
-                    '../assets/formulario-prestamos.png',
-                    './formulario-prestamos.png'
+                    'formulario-prestamos.png'
                 ],
                 nombre: 'Formulario_Fondo_Solidario.pdf',
                 titulo: 'Fondo Solidario'
