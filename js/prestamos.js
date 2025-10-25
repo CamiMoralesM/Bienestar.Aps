@@ -1,36 +1,52 @@
-// Gestor de descarga SIMPLIFICADO - Solo rutas que funcionan
+// Gestor de descarga de IMÁGENES convertidas a PDF
 class FormulariosDownloadManager {
     constructor() {
-        // RUTAS EXACTAS que funcionan según tu consola
+        // RUTAS CORREGIDAS basadas en el error - usando lo que SÍ funciona
         this.formularios = {
             'medico': {
-                archivo: './assets/formulario-prestamos.png',
+                archivos: [
+                    './assets/formulario-prestamos.png',  // Basado en la ruta que SÍ funciona
+                    'assets/formulario-prestamos.png',
+                    'formulario-prestamos.png'
+                ],
                 nombre: 'Formulario_Prestamo_Medico.pdf',
                 titulo: 'Préstamos Médicos'
             },
             'emergencia': {
-                archivo: './assets/formulario-prestamos.png',
+                archivos: [
+                    './assets/formulario-prestamos.png',
+                    'assets/formulario-prestamos.png',
+                    'formulario-prestamos.png'
+                ],
                 nombre: 'Formulario_Prestamo_Emergencia.pdf',
                 titulo: 'Préstamos de Emergencia'
             },
             'libre-disposicion': {
-                archivo: './assets/formulario-prestamos-libre-disposicion.png',
+                archivos: [
+                    './assets/formulario-prestamos-libre-disposicion.png',  // Esta SÍ funciona según el error
+                    'assets/formulario-prestamos-libre-disposicion.png',
+                    'formulario-prestamos-libre-disposicion.png'
+                ],
                 nombre: 'Formulario_Prestamo_Libre_Disposicion.pdf',
                 titulo: 'Préstamos de Libre Disposición'
             },
             'fondo-solidario': {
-                archivo: './assets/formulario-prestamos.png',
+                archivos: [
+                    './assets/formulario-prestamos.png',
+                    'assets/formulario-prestamos.png',
+                    'formulario-prestamos.png'
+                ],
                 nombre: 'Formulario_Fondo_Solidario.pdf',
                 titulo: 'Fondo Solidario'
             }
         };
         
-        console.log('🚀 Descargador simplificado inicializado');
+        console.log('🚀 Descargador de imágenes a PDF inicializado');
         this.loadJsPDF();
         this.initializeEventListeners();
     }
 
-    // Cargar jsPDF
+    // Cargar jsPDF dinámicamente
     loadJsPDF() {
         if (window.jsPDF) {
             this.jsPDFReady = true;
@@ -76,20 +92,60 @@ class FormulariosDownloadManager {
         }
 
         console.log(`🎯 Descargando: ${formulario.titulo}`);
-        console.log(`📁 Archivo: ${formulario.archivo}`);
-        
-        this.mostrarMensaje(`Convirtiendo a PDF: ${formulario.titulo}...`, 'info');
+        this.mostrarMensaje(`Buscando imagen: ${formulario.titulo}...`, 'info');
         
         try {
-            await this.convertirImagenAPDF(formulario.archivo, formulario.nombre);
+            // Buscar la imagen en múltiples ubicaciones
+            const archivoEncontrado = await this.buscarArchivo(formulario.archivos);
+            
+            if (!archivoEncontrado) {
+                this.mostrarMensaje('❌ No se encontró la imagen del formulario', 'error');
+                console.error('❌ Ninguna imagen encontrada en las rutas:', formulario.archivos);
+                return;
+            }
+            
+            console.log(`✅ Imagen encontrada: ${archivoEncontrado}`);
+            this.mostrarMensaje(`Convirtiendo a PDF: ${formulario.titulo}...`, 'info');
+            
+            await this.convertirImagenAPDF(archivoEncontrado, formulario.nombre);
             this.mostrarMensaje(`✅ PDF descargado: ${formulario.titulo}`, 'success');
+            
         } catch (error) {
             console.error('❌ Error en conversión:', error);
             this.mostrarMensaje('Error al convertir a PDF', 'error');
         }
     }
 
-    async convertirImagenAPDF(rutaImagen, nombrePDF) {
+    // Nuevo método para buscar archivo en múltiples ubicaciones
+    async buscarArchivo(rutasPosibles) {
+        for (const ruta of rutasPosibles) {
+            try {
+                const existe = await this.verificarImagen(ruta);
+                if (existe) {
+                    return ruta;
+                }
+            } catch (error) {
+                // Continuar con la siguiente ruta
+                continue;
+            }
+        }
+        return null;
+    }
+
+    // Método para verificar si una imagen existe
+    verificarImagen(ruta) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => resolve(true);
+            img.onerror = () => resolve(false);
+            img.src = ruta;
+            
+            // Timeout después de 3 segundos
+            setTimeout(() => resolve(false), 3000);
+        });
+    }
+
+    async convertirImagenAPDF(nombreArchivo, nombrePDF) {
         return new Promise((resolve, reject) => {
             const img = new Image();
             
@@ -141,12 +197,12 @@ class FormulariosDownloadManager {
             };
             
             img.onerror = () => {
-                console.error('❌ Error cargando imagen:', rutaImagen);
+                console.error('❌ Error cargando imagen:', nombreArchivo);
                 reject(new Error('Error cargando imagen'));
             };
             
-            // Cargar imagen
-            img.src = rutaImagen;
+            // Cargar imagen con nombre simple
+            img.src = nombreArchivo;
         });
     }
 
@@ -194,13 +250,21 @@ class FormulariosDownloadManager {
         }, 5000);
     }
 
-    // Método de respaldo simple
-    descargarImagenDirecta(tipo) {
+    // Método de respaldo para descarga directa de imagen
+    async descargarImagenDirecta(tipo) {
         const formulario = this.formularios[tipo];
         if (!formulario) return;
         
+        // Buscar la imagen en múltiples ubicaciones
+        const archivoEncontrado = await this.buscarArchivo(formulario.archivos);
+        
+        if (!archivoEncontrado) {
+            this.mostrarMensaje('❌ No se encontró la imagen', 'error');
+            return;
+        }
+        
         const link = document.createElement('a');
-        link.href = formulario.archivo;
+        link.href = archivoEncontrado;
         link.download = formulario.nombre.replace('.pdf', '.png');
         link.style.display = 'none';
         
@@ -215,10 +279,10 @@ class FormulariosDownloadManager {
 // Inicialización
 document.addEventListener('DOMContentLoaded', () => {
     window.formulariosManager = new FormulariosDownloadManager();
-    console.log('✅ Sistema simplificado listo');
+    console.log('✅ Sistema de conversión imagen a PDF listo');
 });
 
-// Funciones globales
+// Funciones globales para compatibilidad
 window.descargarFormulario = function(tipo) {
     if (window.formulariosManager) {
         window.formulariosManager.descargarFormulario(tipo);
@@ -227,17 +291,17 @@ window.descargarFormulario = function(tipo) {
     }
 };
 
-// Método de emergencia
+// Método de emergencia - descarga directa de imagen
 window.descargarImagenDirecta = function(tipo) {
     if (window.formulariosManager) {
         window.formulariosManager.descargarImagenDirecta(tipo);
     } else {
-        // Fallback con rutas exactas
+        // Fallback básico
         const archivos = {
-            'medico': './assets/formulario-prestamos.png',
-            'emergencia': './assets/formulario-prestamos.png',
-            'libre-disposicion': './assets/formulario-prestamos-libre-disposicion.png',
-            'fondo-solidario': './assets/formulario-prestamos.png'
+            'medico': 'formulario-prestamos.png',
+            'emergencia': 'formulario-prestamos.png',
+            'libre-disposicion': 'formulario-prestamos-libre-disposicion.png',
+            'fondo-solidario': 'formulario-prestamos.png'
         };
         
         if (archivos[tipo]) {
