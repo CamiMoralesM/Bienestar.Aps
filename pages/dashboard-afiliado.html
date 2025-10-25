@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mi Panel - Bienestar APS</title>
     <link rel="stylesheet" href="../css/styles.css">
 </head>
@@ -36,7 +36,7 @@
                 <li class="nav-tab" data-tab="compra-cine">🎬 Compra de Cine</li>
                 <li class="nav-tab" data-tab="compra-jumper">🤸 Compra Jumper Park</li>
                 <li class="nav-tab" data-tab="compra-gimnasio">💪 Compra Gimnasio</li>
-                 <li class="nav-tab" data-tab="prestamos">💳 Préstamos / Fondo Solidario</li>
+                <li class="nav-tab" data-tab="prestamos">💰 Préstamos y Fondo Solidario</li>
                 <li class="nav-tab" data-tab="solicitudes">📝 Solicitudes</li>
                 <li class="nav-tab" data-tab="perfil">⚙️ Mi Perfil</li>
             </ul>
@@ -76,7 +76,8 @@
                     <h2>🔔 Notificaciones Recientes</h2>
                     <div class="notifications" id="notificaciones-recientes"></div>
                 </div>
-                
+            </div>
+
             <!-- Tab: Compra de Gas -->
             <div class="tab-content" id="tab-compras-gas">
                 <h2>🛒 Compra de Vales de Gas</h2>
@@ -93,7 +94,7 @@
                 <!-- Información de Precios -->
                 <div class="info-precios-gas" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
                     <!-- Precios Lipigas -->
-                    <div class="info-box" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(255, 107, 107, 0.12);">
+                    <div class="info-box" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);">
                         <h3 style="margin: 0 0 15px 0; font-size: 1.3em; display: flex; align-items: center; gap: 10px;">
                             <span style="font-size: 1.5em;">🔥</span> Lipigas
                         </h3>
@@ -118,7 +119,7 @@
                     </div>
                     
                     <!-- Precios Abastible -->
-                    <div class="info-box" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(79, 172, 254, 0.12);">
+                    <div class="info-box" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);">
                         <h3 style="margin: 0 0 15px 0; font-size: 1.3em; display: flex; align-items: center; gap: 10px;">
                             <span style="font-size: 1.5em;">⛽</span> Abastible
                         </h3>
@@ -145,202 +146,327 @@
 
                 <form id="formCompraGas" enctype="multipart/form-data">
                     <div class="form-grid">
+                        <!-- Información básica -->
                         <div class="form-group">
-                            <label for="proveedor">Proveedor de Gas</label>
-                            <select id="proveedor" name="proveedor" required>
-                                <option value="">Seleccione un proveedor</option>
-                                <option value="lipigas">Lipigas</option>
-                                <option value="abastible">Abastible</option>
+                            <label for="rutGas">RUT *</label>
+                            <input type="text" id="rutGas" name="rutGas" required placeholder="12.345.678-9">
+                        </div>
+                        <div class="form-group">
+                            <label for="nombreGas">Nombre y Apellido Afiliado</label>
+                            <input type="text" id="nombreGas" name="nombreGas" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="fechaCompraGas">Fecha de compra</label>
+                            <input type="date" id="fechaCompraGas" name="fechaCompraGas" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="emailGas">Correo Electrónico</label>
+                            <input type="email" id="emailGas" name="emailGas" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="telefonoGas">Teléfono *</label>
+                            <input type="tel" id="telefonoGas" name="telefonoGas" required placeholder="+569...">
+                        </div>
+
+                        <!-- Selector de empresa -->
+                        <div class="form-group">
+                            <label>Compra Lipigas</label>
+                            <select id="compraLipigas" name="compraLipigas">
+                                <option value="no">No</option>
+                                <option value="si">Sí</option>
                             </select>
                         </div>
 
+                        <!-- Opciones Lipigas -->
+                        <div id="lipigasOpciones" style="display:none;">
+                            <div class="gas-options-container">
+                                <div class="gas-option">
+                                    <label class="gas-label">5 kilos</label>
+                                    <div class="gas-select-container">
+                                        <select id="lipigas5" name="lipigas5" class="gas-select">
+                                            <option value="0">Seleccionar cantidad</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="gas-option">
+                                    <label class="gas-label">11 kilos</label>
+                                    <div class="gas-select-container">
+                                        <select id="lipigas11" name="lipigas11" class="gas-select">
+                                            <option value="0">Seleccionar cantidad</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="gas-option">
+                                    <label class="gas-label">15 kilos</label>
+                                    <div class="gas-select-container">
+                                        <select id="lipigas15" name="lipigas15" class="gas-select">
+                                            <option value="0">Seleccionar cantidad</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="gas-option">
+                                    <label class="gas-label">45 kilos</label>
+                                    <div class="gas-select-container">
+                                        <select id="lipigas45" name="lipigas45" class="gas-select">
+                                            <option value="0">Seleccionar cantidad</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="total-info">Total seleccionado: <span class="total-count">0</span></div>
+                        </div>
+
+                        <!-- Selector Abastible -->
                         <div class="form-group">
-                            <label for="tipoGas">Tipo de Gas</label>
-                            <select id="tipoGas" name="tipoGas" required>
-                                <option value="">Seleccione el tipo</option>
-                                <option value="5kg">5 kilos</option>
-                                <option value="11kg">11 kilos</option>
-                                <option value="15kg">15 kilos</option>
-                                <option value="45kg">45 kilos</option>
+                            <label>Compra Abastible</label>
+                            <select id="compraAbastible" name="compraAbastible">
+                                <option value="no">No</option>
+                                <option value="si">Sí</option>
                             </select>
                         </div>
 
-                        <div class="form-group">
-                            <label for="cantidad">Cantidad</label>
-                            <input type="number" id="cantidad" name="cantidad" min="1" max="10" required>
+                        <!-- Opciones Abastible -->
+                        <div id="abastibleOpciones" style="display:none;">
+                            <div class="gas-options-container">
+                                <div class="gas-option">
+                                    <label class="gas-label">5 kilos</label>
+                                    <div class="gas-select-container">
+                                        <select id="abastible5" name="abastible5" class="gas-select">
+                                            <option value="0">Seleccionar cantidad</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="gas-option">
+                                    <label class="gas-label">11 kilos</label>
+                                    <div class="gas-select-container">
+                                        <select id="abastible11" name="abastible11" class="gas-select">
+                                            <option value="0">Seleccionar cantidad</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="gas-option">
+                                    <label class="gas-label">15 kilos</label>
+                                    <div class="gas-select-container">
+                                        <select id="abastible15" name="abastible15" class="gas-select">
+                                            <option value="0">Seleccionar cantidad</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="gas-option">
+                                    <label class="gas-label">45 kilos</label>
+                                    <div class="gas-select-container">
+                                        <select id="abastible45" name="abastible45" class="gas-select">
+                                            <option value="0">Seleccionar cantidad</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="total-info">Total seleccionado: <span class="total-count">0</span></div>
+                            <div class="form-group saldo-favor">
+                                <label for="saldoFavor">Saldo a favor (si aplica)</label>
+                                <input type="text" id="saldoFavor" name="saldoFavor" placeholder="Fecha y monto">
+                            </div>
                         </div>
 
+                        <!-- Comprobante -->
                         <div class="form-group">
-                            <label for="direccionEntrega">Dirección de Entrega</label>
-                            <textarea id="direccionEntrega" name="direccionEntrega" rows="3" required 
-                                    placeholder="Ingrese dirección completa con referencias"></textarea>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="telefonoContacto">Teléfono de Contacto</label>
-                            <input type="tel" id="telefonoContacto" name="telefonoContacto" required 
-                                   placeholder="Ej: +56912345678">
+                            <label for="comprobanteGas">Adjuntar comprobante de transferencia</label>
+                            <input type="file" id="comprobanteGas" name="comprobanteGas" required>
+                            <small>Recuerde que el asunto debe indicar cantidad y carga de gas (5k-11k-15k-45k).</small>
                         </div>
                     </div>
-
-                    <div class="total-display" id="totalGas" style="display: none;">
-                        <h3>Total a Pagar: <span id="montoTotal">$0</span></h3>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary btn-enviar-gas">
-                        🛒 Solicitar Compra de Gas
-                    </button>
+                    <button type="submit" class="btn btn-primary btn-enviar-gas">Enviar Compra Gas</button>
                 </form>
+            </div>
 
             <!-- Tab: Compra de Cine -->
             <div class="tab-content" id="tab-compra-cine">
                 <h2>🎬 Compra de Entradas de Cine</h2>
-                
-                <div class="info-box" style="background: #f8d7da; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <div class="info-box" style="background: #87ceed; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
                     <p><strong>📋 Información:</strong></p>
                     <ul style="margin: 10px 0; padding-left: 20px;">
-                        <li>Entradas disponibles para Cinemark y Cineplanet</li>
-                        <li>Precio: $4.000 por entrada</li>
-                        <li>Máximo 4 entradas por solicitud</li>
-                        <li>Vigencia: 6 meses desde la compra</li>
+                        <li>Máximo 4 entradas por mes</li>
+                        <li>Valor: $7.000 (incluye entrada + combo)</li>
+                        <li>Válido en cualquier complejo Cinépolis o Hoyts</li>
+                        <li>Incluye películas en estreno</li>
                     </ul>
                 </div>
-
+                
                 <form id="formCompraCine" enctype="multipart/form-data">
                     <div class="form-grid">
                         <div class="form-group">
-                            <label for="cineComplejo">Complejo de Cine</label>
-                            <select id="cineComplejo" name="cineComplejo" required>
-                                <option value="">Seleccione un cine</option>
-                                <option value="cinemark">Cinemark</option>
-                                <option value="cineplanet">Cineplanet</option>
+                            <label for="rutCine">RUT *</label>
+                            <input type="text" id="rutCine" name="rutCine" required placeholder="12.345.678-9">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="nombreCine">Nombre y Apellido Afiliado *</label>
+                            <input type="text" id="nombreCine" name="nombreCine" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="telefonoCine">Teléfono *</label>
+                            <input type="tel" id="telefonoCine" name="telefonoCine" required placeholder="+569...">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="emailCine">Correo Electrónico *</label>
+                            <input type="email" id="emailCine" name="emailCine" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="fechaCompraCine">Fecha de Compra *</label>
+                            <input type="date" id="fechaCompraCine" name="fechaCompraCine" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="cantidadCine">Cantidad de Entradas *</label>
+                            <select id="cantidadCine" name="cantidadCine" required>
+                                <option value="0">Seleccione cantidad</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
                             </select>
                         </div>
-
-                        <div class="form-group">
-                            <label for="cantidadEntradas">Cantidad de Entradas</label>
-                            <input type="number" id="cantidadEntradas" name="cantidadEntradas" min="1" max="4" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="comentariosCine">Comentarios (Opcional)</label>
-                            <textarea id="comentariosCine" name="comentariosCine" rows="3" 
-                                    placeholder="Algún comentario adicional"></textarea>
+                        
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label for="comprobanteCine">Adjuntar Comprobante de Transferencia *</label>
+                            <input type="file" id="comprobanteCine" name="comprobanteCine" required accept="image/*,.pdf">
+                            <small>Formatos aceptados: JPG, PNG, PDF</small>
                         </div>
                     </div>
-
-                    <div class="total-display" id="totalCine" style="display: none;">
-                        <h3>Total a Pagar: <span id="montoTotalCine">$0</span></h3>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary btn-enviar-cine">
-                        🎬 Solicitar Entradas de Cine
-                    </button>
+                    
+                    <button type="submit" class="btn btn-primary btn-enviar-cine">Enviar Compra Cine</button>
                 </form>
-                
+            </div>  
 
-            <!-- Tab: Compra Jumper Park -->
+            <!-- Tab: Compra de Jumper Trampoline Park -->
             <div class="tab-content" id="tab-compra-jumper">
-                <h2>🤸 Compra Jumper Park</h2>
-                
-                <div class="info-box" style="background: #d1ecf1; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <h2>🤸 Compra de Entradas Jumper Trampoline Park</h2>
+                <div class="info-box" style="background: #f0d481; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
                     <p><strong>📋 Información:</strong></p>
                     <ul style="margin: 10px 0; padding-left: 20px;">
-                        <li>Entradas para Jumper Park</li>
-                        <li>Precio: $8.000 por entrada</li>
-                        <li>Incluye 1 hora de salto + calcetines antideslizantes</li>
-                        <li>Máximo 6 entradas por solicitud</li>
-                        <li>Vigencia: 3 meses desde la compra</li>
+                        <li>Máximo 6 entradas por mes</li>
+                        <li>Valor: $6.500 </li>
+                        <li>Diversión garantizada para toda la familia</li>
+                        <li>Incluye acceso a todas las áreas del parque</li>
                     </ul>
                 </div>
-
+                
                 <form id="formCompraJumper" enctype="multipart/form-data">
                     <div class="form-grid">
                         <div class="form-group">
-                            <label for="sucursalJumper">Sucursal Jumper Park</label>
-                            <select id="sucursalJumper" name="sucursalJumper" required>
-                                <option value="">Seleccione una sucursal</option>
-                                <option value="puente-alto">Puente Alto</option>
-                                <option value="plaza-sur">Plaza Sur</option>
-                                <option value="alto-las-condes">Alto Las Condes</option>
+                            <label for="rutJumper">RUT *</label>
+                            <input type="text" id="rutJumper" name="rutJumper" required placeholder="12.345.678-9">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="nombreJumper">Nombre y Apellido Afiliado *</label>
+                            <input type="text" id="nombreJumper" name="nombreJumper" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="telefonoJumper">Teléfono *</label>
+                            <input type="tel" id="telefonoJumper" name="telefonoJumper" required placeholder="+569...">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="emailJumper">Correo Electrónico *</label>
+                            <input type="email" id="emailJumper" name="emailJumper" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="fechaCompraJumper">Fecha de Compra *</label>
+                            <input type="date" id="fechaCompraJumper" name="fechaCompraJumper" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="cantidadJumper">Cantidad de Entradas *</label>
+                            <select id="cantidadJumper" name="cantidadJumper" required>
+                                <option value="0">Seleccione cantidad</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
                             </select>
                         </div>
-
-                        <div class="form-group">
-                            <label for="cantidadJumper">Cantidad de Entradas</label>
-                            <input type="number" id="cantidadJumper" name="cantidadJumper" min="1" max="6" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="comentariosJumper">Comentarios (Opcional)</label>
-                            <textarea id="comentariosJumper" name="comentariosJumper" rows="3" 
-                                    placeholder="Algún comentario adicional"></textarea>
+                        
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label for="comprobanteJumper">Adjuntar Comprobante de Transferencia *</label>
+                            <input type="file" id="comprobanteJumper" name="comprobanteJumper" required accept="image/*,.pdf">
+                            <small>Formatos aceptados: JPG, PNG, PDF</small>
                         </div>
                     </div>
-
-                    <div class="total-display" id="totalJumper" style="display: none;">
-                        <h3>Total a Pagar: <span id="montoTotalJumper">$0</span></h3>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary btn-enviar-jumper">
-                        🤸 Solicitar Entradas Jumper Park
-                    </button>
+                    
+                    <button type="submit" class="btn btn-primary btn-enviar-jumper">Enviar Compra Jumper</button>
                 </form>
-                
+            </div>
 
-            <!-- Tab: Compra Gimnasio -->
+            <!-- Tab: Compra de Gimnasio -->
             <div class="tab-content" id="tab-compra-gimnasio">
-                <h2>💪 Compra Gimnasio</h2>
-                
-                <div class="info-box" style="background: #d4edda; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <h2>💪 Compra de Entradas Gimnasio Energy</h2>
+                <div class="info-box" style="background: #a4eb8a; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
                     <p><strong>📋 Información:</strong></p>
                     <ul style="margin: 10px 0; padding-left: 20px;">
-                        <li>Mensualidades para gimnasios asociados</li>
-                        <li>Pacific: $25.000 por mes</li>
-                        <li>Sportlife: $30.000 por mes</li>
-                        <li>Máximo 3 meses por solicitud</li>
-                        <li>Debe presentar certificado médico para inicio</li>
+                        <li>Máximo 4 entradas por mes</li>
+                        <li>Valor: $18.000 por ticket mensual</li>
+                        <li>Válido en todas las sucursales Energy</li>
+                        <li>Sin restricción de horarios</li>
+                        <li>Incluye todos los servicios</li>
                     </ul>
                 </div>
-
+                
                 <form id="formCompraGimnasio" enctype="multipart/form-data">
                     <div class="form-grid">
                         <div class="form-group">
-                            <label for="redGimnasio">Red de Gimnasio</label>
-                            <select id="redGimnasio" name="redGimnasio" required>
-                                <option value="">Seleccione un gimnasio</option>
-                                <option value="pacific">Pacific ($25.000/mes)</option>
-                                <option value="sportlife">Sportlife ($30.000/mes)</option>
+                            <label for="rutGimnasio">RUT *</label>
+                            <input type="text" id="rutGimnasio" name="rutGimnasio" required placeholder="12.345.678-9">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="nombreGimnasio">Nombre y Apellido Afiliado *</label>
+                            <input type="text" id="nombreGimnasio" name="nombreGimnasio" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="telefonoGimnasio">Teléfono *</label>
+                            <input type="tel" id="telefonoGimnasio" name="telefonoGimnasio" required placeholder="+569...">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="emailGimnasio">Correo Electrónico *</label>
+                            <input type="email" id="emailGimnasio" name="emailGimnasio" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="fechaCompraGimnasio">Fecha de Compra *</label>
+                            <input type="date" id="fechaCompraGimnasio" name="fechaCompraGimnasio" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="cantidadGimnasio">Cantidad de Tickets *</label>
+                            <select id="cantidadGimnasio" name="cantidadGimnasio" required>
+                                <option value="0">Seleccione cantidad</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
                             </select>
                         </div>
-
-                        <div class="form-group">
-                            <label for="cantidadMeses">Cantidad de Meses</label>
-                            <input type="number" id="cantidadMeses" name="cantidadMeses" min="1" max="3" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="sucursalGimnasio">Sucursal Preferida</label>
-                            <input type="text" id="sucursalGimnasio" name="sucursalGimnasio" required 
-                                   placeholder="Ej: Puente Alto Mall">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="comentariosGimnasio">Comentarios (Opcional)</label>
-                            <textarea id="comentariosGimnasio" name="comentariosGimnasio" rows="3" 
-                                    placeholder="Algún comentario adicional"></textarea>
+                        
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label for="comprobanteGimnasio">Adjuntar Comprobante de Transferencia *</label>
+                            <input type="file" id="comprobanteGimnasio" name="comprobanteGimnasio" required accept="image/*,.pdf">
+                            <small>Formatos aceptados: JPG, PNG, PDF</small>
                         </div>
                     </div>
-
-                    <div class="total-display" id="totalGimnasio" style="display: none;">
-                        <h3>Total a Pagar: <span id="montoTotalGimnasio">$0</span></h3>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary btn-enviar-gimnasio">
-                        💪 Solicitar Mensualidad Gimnasio
-                    </button>
+                    
+                    <button type="submit" class="btn btn-primary btn-enviar-gimnasio">Enviar Compra Gimnasio</button>
                 </form>
-                
+            </div>
             <!-- NUEVA PESTAÑA: Préstamos / Fondo Solidario -->
             <div class="tab-content" id="tab-prestamos">
                 <div class="container">
@@ -559,57 +685,85 @@
                 </div>
                 
 
-            <!-- Tab: Mi Perfil -->
+          <!-- Tab: Mi Perfil -->
             <div class="tab-content" id="tab-perfil">
                 <h2>⚙️ Mi Perfil</h2>
-                
-                <div class="perfil-container">
-                    <div class="perfil-info">
+                <div class="profile-grid">
+                    <div class="profile-card">
                         <h3>Información Personal</h3>
-                        <div class="form-group">
-                            <label>Nombre Completo:</label>
-                            <input type="text" id="nombrePerfil" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label>RUT:</label>
-                            <input type="text" id="rutPerfil" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label>Email:</label>
-                            <input type="email" id="emailPerfil" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label>Fecha de Afiliación:</label>
-                            <input type="text" id="fechaAfiliacion" readonly>
-                        </div>
+                        <form class="profile-form">
+                            <div class="form-group">
+                                <label>Nombre Completo</label>
+                                <input type="text" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>RUT</label>
+                                <input type="text" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email">
+                            </div>
+                            <div class="form-group">
+                                <label>Teléfono</label>
+                                <input type="tel">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Actualizar Información</button>
+                        </form>
                     </div>
-                    
-                    <div class="perfil-estadisticas">
-                        <h3>Estadísticas</h3>
-                        <div class="stats-grid">
-                            <div class="stat-item">
-                                <span class="stat-number" id="totalSolicitudes">0</span>
-                                <span class="stat-label">Total Solicitudes</span>
+                    <div class="profile-card">
+                        <h3>Cambiar Contraseña</h3>
+                        <form class="profile-form">
+                            <div class="form-group">
+                                <label>Contraseña Actual</label>
+                                <input type="password" placeholder="••••••••">
                             </div>
-                            <div class="stat-item">
-                                <span class="stat-number" id="solicitudesAprobadas">0</span>
-                                <span class="stat-label">Aprobadas</span>
+                            <div class="form-group">
+                                <label>Nueva Contraseña</label>
+                                <input type="password" placeholder="••••••••">
                             </div>
-                            <div class="stat-item">
-                                <span class="stat-number" id="solicitudesPendientes">0</span>
-                                <span class="stat-label">Pendientes</span>
+                            <div class="form-group">
+                                <label>Confirmar Contraseña</label>
+                                <input type="password" placeholder="••••••••">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Cambiar Contraseña</button>
+                        </form>
+                    </div>
+                    <div class="profile-card">
+                        <h3>Información de Cuenta</h3>
+                        <div class="info-list">
+                            <div class="info-item">
+                                <span class="info-label">Fecha de afiliación:</span>
+                                <span class="info-value"></span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Centro de Salud:</span>
+                                <span class="info-value"></span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Cargas familiares:</span>
+                                <span class="info-value"></span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Estado:</span>
+                                <span class="badge success"></span>
                             </div>
                         </div>
+                        <button class="btn btn-secondary">Ver Cargas Familiares</button>
                     </div>
                 </div>
+            </div>
+        </div>
+    </section>
+    
                 
-          <!-- Footer -->
+     <!-- Footer -->
+    <!-- Footer -->
     <footer class="footer">
         <div class="container">
             <p>&copy; 2025 Servicio Bienestar APS - Corporación Municipal de Puente Alto</p>
         </div>
-    </footer>
-                
+    </footer>        
     <!-- SCRIPTS CORREGIDOS -->
     <script type="module" src="../js/dashboard-afiliado-firebase.js"></script>
     <script type="module" src="../js/compras-unificadas.js"></script>
@@ -672,67 +826,6 @@
     <!-- Nuevos módulos para préstamos -->
     <script type="module" src="../js/prestamos-firebase.js"></script>
     <script type="module" src="../js/prestamos.js"></script>
-
-    <style>
-        /* Estilos para mostrar/ocultar botones según la pestaña activa */
-        .btn-enviar-gas,
-        .btn-enviar-cine,
-        .btn-enviar-jumper,
-        .btn-enviar-gimnasio {
-            margin-top: 20px;
-            width: 100%;
-            padding: 12px;
-            font-size: 1.1em;
-            font-weight: 600;
-        }
-
-        /* Solo mostrar los botones cuando su pestaña correspondiente está activa */
-        #tab-compras-gas:not(.active) .btn-enviar-gas,
-        #tab-compra-cine:not(.active) .btn-enviar-cine,
-        #tab-compra-jumper:not(.active) .btn-enviar-jumper,
-        #tab-compra-gimnasio:not(.active) .btn-enviar-gimnasio {
-            display: none !important;
-        }
-
-        /* Asegurar que el contenido de las pestañas solo se muestre cuando está activo */
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        /* Modal básico override si no está definido en CSS */
-        .modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 9999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .modal .modal-content {
-            background: #fff;
-            border-radius: 8px;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
-        }
-
-        /* Estilos adicionales para footer */
-        .footer {
-            margin-top: 40px;
-            padding: 20px 0;
-            background-color: #f8f9fa;
-            border-top: 1px solid #dee2e6;
-            text-align: center;
-            color: #6c757d;
-            font-size: 0.9em;
-        }
-    </style>
-
+                
 </body>
 </html>
