@@ -16,13 +16,13 @@ export const prestamosConfig = {
     // Subcarpeta en Storage para archivos de préstamos
     carpetaStorage: 'prestamos',
     
-    // Rutas de los formularios en IMÁGENES PNG (se convierten a PDF en descarga)
-    // IMPORTANTE: Actualizar estas rutas con la ubicación real de sus imágenes
+    // Nombres de archivos de formularios en IMÁGENES PNG (se convierten a PDF en descarga)
+    // IMPORTANTE: Colocar estos archivos en la misma carpeta que el HTML o JS
     formulariosImagenes: {
-        'medico': './assets/formulario-prestamos.png',
-        'emergencia': './assets/formulario-prestamos.png',
-        'libre-disposicion': './assets/formulario-prestamos-libre-disposicion.png',
-        'fondo-solidario': './assets/formulario-prestamos.png'
+        'medico': 'formulario-prestamos.png',
+        'emergencia': 'formulario-prestamos.png',
+        'libre-disposicion': 'formulario-prestamos-libre-disposicion.png',
+        'fondo-solidario': 'formulario-prestamos.png'
     },
     
     // Nombres de descarga para los PDFs generados
