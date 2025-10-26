@@ -337,7 +337,7 @@ function generarMensajeDetallado(tipoServicio, usoActual, limiteCupo, disponible
                 cantidad = compra.cantidad || 1;
             }
             
-            const estadoCompra = compra.estado === 'pendiente_comprobante' ? '⏳' : 
+            const estadoCompra = compra.estado === 'pendiente' ? '⏳' : 
                                compra.estado === 'aprobada' ? '✅' : 
                                compra.estado === 'rechazada' ? '❌' : '❓';
             
