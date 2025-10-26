@@ -1,10 +1,10 @@
-// UI para la pestaña de Préstamos / Fondo Solidario
-import { guardarSolicitudPrestamo, validarArchivos } from './prestamos-firebase.js';
+// UI simplificada para préstamos (SIN subida de archivos para evitar CORS)
+import { guardarSolicitudPrestamo, validarDatosSolicitud, generarInstruccionesEmail } from './prestamos-firebase-sin-cors.js';
 import { auth } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🔄 Inicializando módulo de préstamos...');
+    console.log('🔄 Inicializando módulo de préstamos (versión sin CORS)...');
     
     // Botones descargar (convierten imagen -> PDF)
     document.querySelectorAll('.btn-download').forEach(btn => {
@@ -23,18 +23,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Abrir modal de subida (si usas botones que abren modal)
-    document.querySelectorAll('.btn-open-upload').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const tipo = btn.dataset.tipo || '';
-            abrirModalSolicitud(tipo);
-        });
-    });
-
-    // Manejo del formulario de solicitud (si existe en la página)
+    // Manejo del formulario de solicitud
     const form = document.getElementById('formSolicitudPrestamo');
     if (form) {
-        console.log('✅ Formulario de solicitud encontrado, agregando event listener...');
+        console.log('✅ Formulario de solicitud encontrado');
         form.addEventListener('submit', async (ev) => {
             ev.preventDefault();
             await enviarSolicitudPrestamo();
@@ -43,13 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn('⚠️ Formulario de solicitud no encontrado');
     }
 
-    // Cerrar modal cuando se hace click fuera (opcional)
-    window.cerrarModalSolicitud = function() {
-        const modal = document.getElementById('modalSolicitudPrestamo');
-        if (modal) modal.style.display = 'none';
-    };
-
-    // Si está logueado, precargar datos del usuario
+    // Precargar datos cuando el usuario esté autenticado
     onAuthStateChanged(auth, user => {
         if (user) {
             console.log('👤 Usuario autenticado:', user.uid);
@@ -58,6 +44,14 @@ document.addEventListener('DOMContentLoaded', () => {
             console.warn('❌ Usuario no autenticado');
         }
     });
+
+    // Agregar event listeners para mostrar información de documentos según tipo
+    const tipoSelect = document.getElementById('tipoSolicitud');
+    if (tipoSelect) {
+        tipoSelect.addEventListener('change', function() {
+            mostrarInformacionDocumentos(this.value);
+        });
+    }
 });
 
 /**
@@ -66,16 +60,22 @@ document.addEventListener('DOMContentLoaded', () => {
 function precargarDatosUsuario() {
     try {
         const userData = JSON.parse(sessionStorage.getItem('userData') || '{}');
-        console.log('📋 Datos del usuario:', userData);
+        console.log('📋 Datos del usuario disponibles');
         
         if (userData && Object.keys(userData).length) {
-            const nombreEl = document.getElementById('nombrePrestamo');
-            const rutEl = document.getElementById('rutPrestamo');
-            const emailEl = document.getElementById('emailPrestamo');
+            const campos = [
+                { id: 'nombrePrestamo', valor: userData.nombre },
+                { id: 'rutPrestamo', valor: userData.rut },
+                { id: 'emailPrestamo', valor: userData.email },
+                { id: 'telefonoPrestamo', valor: userData.telefono }
+            ];
             
-            if (nombreEl) nombreEl.value = userData.nombre || '';
-            if (rutEl) rutEl.value = userData.rut || '';
-            if (emailEl) emailEl.value = userData.email || '';
+            campos.forEach(campo => {
+                const element = document.getElementById(campo.id);
+                if (element && campo.valor) {
+                    element.value = campo.valor;
+                }
+            });
             
             console.log('✅ Datos precargados en el formulario');
         }
@@ -85,36 +85,43 @@ function precargarDatosUsuario() {
 }
 
 /**
- * Abre el modal y setea el tipo de préstamo
+ * Muestra información específica de documentos según el tipo de préstamo
  */
-function abrirModalSolicitud(tipo) {
-    const tipoEl = document.getElementById('tipoPrestamo') || document.getElementById('tipoSolicitud');
-    if (tipoEl) tipoEl.value = tipo || '';
+function mostrarInformacionDocumentos(tipo) {
+    const infoElement = document.getElementById('documentosExtrasInfo');
+    const extraDiv = document.getElementById('documentosAdicionales');
     
-    const titulo = {
-        medico: 'Solicitud - Préstamo Médico',
-        emergencia: 'Solicitud - Préstamo de Emergencia',
-        libre_disposicion: 'Solicitud - Préstamo Libre Disposición',
-        fondo_solidario: 'Solicitud - Fondo Solidario'
-    }[tipo] || 'Solicitud - Préstamo / Fondo Solidario';
+    if (!infoElement || !extraDiv) return;
     
-    const modalTitulo = document.getElementById('modalTitulo');
-    if (modalTitulo) modalTitulo.textContent = titulo;
-
-    precargarDatosUsuario();
-
-    const estadoEl = document.getElementById('estadoEnvio');
-    if (estadoEl) estadoEl.innerHTML = '';
+    const informacion = {
+        'prestamo-medico': {
+            texto: 'Para préstamos médicos: Certificado médico, presupuesto o factura médica',
+            mostrar: true
+        },
+        'prestamo-emergencia': {
+            texto: 'Para emergencias: Documentos que justifiquen la emergencia (certificados, facturas, etc.)',
+            mostrar: true
+        },
+        'prestamo-libre-disposicion': {
+            texto: 'No se requieren documentos adicionales para libre disposición',
+            mostrar: false
+        }
+    };
     
-    const modal = document.getElementById('modalSolicitudPrestamo');
-    if (modal) modal.style.display = 'block';
+    const info = informacion[tipo];
+    if (info) {
+        infoElement.textContent = info.texto;
+        extraDiv.style.display = info.mostrar ? 'block' : 'none';
+    } else {
+        extraDiv.style.display = 'none';
+    }
 }
 
 /**
- * Envia la solicitud: valida campos, sube archivos y crea documento en Firestore
+ * Envia la solicitud (SIN subir archivos - solo guarda datos)
  */
 async function enviarSolicitudPrestamo() {
-    console.log('📤 Iniciando envío de solicitud...');
+    console.log('📤 Iniciando envío de solicitud (versión simplificada)...');
     
     try {
         // Verificar autenticación
@@ -123,148 +130,94 @@ async function enviarSolicitudPrestamo() {
             return;
         }
 
-        // Buscar valores con varios IDs posibles (compatibilidad)
-        const tipoEl = document.getElementById('tipoPrestamo') || document.getElementById('tipoSolicitud');
-        const nombreEl = document.getElementById('nombreSolicitante') || document.getElementById('nombrePrestamo');
-        const rutEl = document.getElementById('rutSolicitante') || document.getElementById('rutPrestamo');
-        const emailEl = document.getElementById('emailSolicitante') || document.getElementById('emailPrestamo');
-        const comentarioEl = document.getElementById('comentarioPrestamo') || document.getElementById('descripcionSolicitud');
+        // Obtener datos del formulario
+        const datos = {
+            tipo: document.getElementById('tipoSolicitud')?.value?.trim() || '',
+            nombre: document.getElementById('nombrePrestamo')?.value?.trim() || '',
+            rut: document.getElementById('rutPrestamo')?.value?.trim() || '',
+            email: document.getElementById('emailPrestamo')?.value?.trim() || '',
+            telefono: document.getElementById('telefonoPrestamo')?.value?.trim() || '',
+            comentario: document.getElementById('descripcionSolicitud')?.value?.trim() || ''
+        };
 
-        // Elemento de estado opcional
-        const estadoEl = document.getElementById('estadoEnvio');
+        console.log('📝 Datos del formulario:', datos);
 
-        // Recoger tipo, nombre, rut, email, comentario
-        const tipoRaw = tipoEl ? (tipoEl.value || '').trim() : '';
-        const nombre = nombreEl ? (nombreEl.value || '').trim() : '';
-        const rut = rutEl ? (rutEl.value || '').trim() : '';
-        const email = emailEl ? (emailEl.value || '').trim() : '';
-        const comentario = comentarioEl ? (comentarioEl.value || '').trim() : '';
-
-        console.log('📝 Datos del formulario:', { tipoRaw, nombre, rut, email, comentario: comentario.substring(0, 50) + '...' });
-
-        // Mapear tipos del dashboard a los que espera la función de Firebase
+        // Mapear tipos
         const tipoMap = {
             'prestamo-medico': 'medico',
             'prestamo-emergencia': 'emergencia',
-            'prestamo-libre-disposicion': 'libre_disposicion',
-            'fondo_solidario': 'fondo_solidario',
-            'medico': 'medico',
-            'emergencia': 'emergencia',
-            'libre_disposicion': 'libre_disposicion'
+            'prestamo-libre-disposicion': 'libre_disposicion'
         };
-        const tipo = tipoMap[tipoRaw] || tipoRaw;
+        const tipo = tipoMap[datos.tipo] || datos.tipo;
 
-        // Recolectar archivos desde varios inputs posibles
-        const fileInputIds = [
-            'archivosPrestamo',        // antiguo
-            'formularioCompleto',
-            'cedulaIdentidad',
-            'liquidacionesSueldo',
-            'documentosExtras',
-            'comprobantePrestamo'      // por si existe otro id
-        ];
-        
-        const archivosArray = [];
-        for (const id of fileInputIds) {
-            const inp = document.getElementById(id);
-            if (inp && inp.files && inp.files.length) {
-                for (const f of Array.from(inp.files)) {
-                    archivosArray.push(f);
-                }
-            }
-        }
-
-        console.log('📎 Archivos recolectados:', archivosArray.length);
-
-        // Validaciones básicas
-        let errores = [];
-        
-        if (!tipo) {
-            errores.push('Tipo de solicitud no definido');
-        }
-        if (!nombre) {
-            errores.push('El nombre es obligatorio');
-        }
-        if (!rut) {
-            errores.push('El RUT es obligatorio');
-        }
-        if (!email || !email.includes('@')) {
-            errores.push('El correo electrónico es obligatorio y debe ser válido');
-        }
-        if (!comentario) {
-            errores.push('La descripción de la solicitud es obligatoria');
-        }
-
-        // Validar archivos
-        const validacionArchivos = validarArchivos(archivosArray);
-        if (!validacionArchivos.valido) {
-            errores = errores.concat(validacionArchivos.errores);
-        }
-
-        if (errores.length > 0) {
-            const mensajeError = '❌ Errores encontrados:\n\n' + errores.map(e => `• ${e}`).join('\n');
+        // Validar datos básicos
+        const validacion = validarDatosSolicitud(datos);
+        if (!validacion.valido) {
+            const mensajeError = '❌ Errores encontrados:\n\n' + validacion.errores.map(e => `• ${e}`).join('\n');
             alert(mensajeError);
-            console.error('❌ Errores de validación:', errores);
             return;
         }
 
-        // Mostrar estado de subida
+        // Obtener información de archivos (solo para mostrar al usuario)
+        const archivos = obtenerArchivosSeleccionados();
+        
+        // Mostrar estado
+        const estadoEl = document.getElementById('estadoEnvio');
         if (estadoEl) {
-            estadoEl.innerHTML = '⏳ Subiendo archivos y guardando solicitud...';
+            estadoEl.innerHTML = '⏳ Guardando solicitud...';
             estadoEl.style.color = '#007bff';
-        } else {
-            console.log('⏳ Subiendo archivos y guardando solicitud...');
         }
 
-        // Deshabilitar botón de envío
+        // Deshabilitar botón
         const btnSubmit = document.querySelector('button[type="submit"]');
         if (btnSubmit) {
             btnSubmit.disabled = true;
             btnSubmit.textContent = '⏳ Enviando...';
         }
 
-        // Preparar datos
-        const datos = {
-            nombre,
-            rut,
-            email,
-            comentario
-        };
-
-        console.log('🚀 Llamando a guardarSolicitudPrestamo...');
-        const resultado = await guardarSolicitudPrestamo(tipo, datos, archivosArray);
-
-        console.log('📊 Resultado:', resultado);
+        // Guardar solicitud (sin subir archivos)
+        const resultado = await guardarSolicitudPrestamo(tipo, datos, archivos);
 
         if (resultado.success) {
-            const mensaje = `✅ Solicitud enviada correctamente\n\n` +
-                          `ID: ${resultado.id}\n` +
-                          `Tipo: ${tipo}\n` +
-                          `Archivos subidos: ${resultado.archivosSubidos}\n\n` +
-                          `Su solicitud será revisada por el equipo de Bienestar APS.`;
+            // Generar instrucciones de email
+            const instrucciones = generarInstruccionesEmail(resultado.id, tipo, datos.nombre);
+            
+            // Mostrar mensaje de éxito con instrucciones
+            const mensaje = `✅ SOLICITUD CREADA EXITOSAMENTE\n\n` +
+                          `📋 ID de Solicitud: ${resultado.id}\n` +
+                          `👤 Solicitante: ${datos.nombre}\n` +
+                          `📧 Tipo: ${tipo}\n` +
+                          `📎 Archivos detectados: ${archivos.length}\n\n` +
+                          `📧 IMPORTANTE - ENVÍO DE DOCUMENTOS:\n` +
+                          `Para completar su solicitud, debe enviar los documentos por email a:\n\n` +
+                          `📧 Para: ${instrucciones.para}\n` +
+                          `📝 Asunto: ${instrucciones.asunto}\n\n` +
+                          `Los documentos requeridos son:\n` +
+                          `• Formulario completo y firmado\n` +
+                          `• Fotocopia de cédula de identidad\n` +
+                          `• Últimas 3 liquidaciones de sueldo\n` +
+                          `• Otros documentos según el tipo de préstamo\n\n` +
+                          `Su solicitud será procesada una vez recibidos los documentos.`;
             
             if (estadoEl) {
-                estadoEl.innerHTML = `✅ Solicitud enviada correctamente. ID: ${resultado.id}`;
+                estadoEl.innerHTML = `✅ Solicitud creada. ID: ${resultado.id}<br><strong>Envíe documentos por email a bienestar@aps.cl</strong>`;
                 estadoEl.style.color = '#28a745';
             }
             
             alert(mensaje);
             
+            // Crear enlace de email automático
+            crearEnlaceEmail(instrucciones);
+            
             // Limpiar formulario
             const form = document.getElementById('formSolicitudPrestamo');
             if (form) {
                 form.reset();
-                precargarDatosUsuario(); // Volver a precargar datos básicos
+                precargarDatosUsuario();
             }
-
-            // Cerrar modal tras 2s si existe
-            setTimeout(() => {
-                const modal = document.getElementById('modalSolicitudPrestamo');
-                if (modal) modal.style.display = 'none';
-            }, 2000);
             
         } else {
-            const mensajeError = `❌ Error al enviar la solicitud:\n\n${resultado.error}`;
+            const mensajeError = `❌ Error al crear la solicitud:\n\n${resultado.error}`;
             
             if (estadoEl) {
                 estadoEl.innerHTML = `❌ Error: ${resultado.error}`;
@@ -272,11 +225,10 @@ async function enviarSolicitudPrestamo() {
             }
             
             alert(mensajeError);
-            console.error('❌ Error en el resultado:', resultado);
         }
         
     } catch (error) {
-        console.error('❌ Error inesperado al enviar solicitud:', error);
+        console.error('❌ Error inesperado:', error);
         
         const estadoEl = document.getElementById('estadoEnvio');
         const mensajeError = `❌ Error inesperado: ${error.message || error}`;
@@ -288,7 +240,7 @@ async function enviarSolicitudPrestamo() {
         
         alert(mensajeError);
     } finally {
-        // Rehabilitar botón de envío
+        // Rehabilitar botón
         const btnSubmit = document.querySelector('button[type="submit"]');
         if (btnSubmit) {
             btnSubmit.disabled = false;
@@ -298,53 +250,81 @@ async function enviarSolicitudPrestamo() {
 }
 
 /**
- * Convierte una imagen (ruta relativa a este dominio) en un PDF y lo descarga.
- * Usa html2canvas + jsPDF para evitar problemas con tamaños.
+ * Obtiene los archivos seleccionados (para información)
+ */
+function obtenerArchivosSeleccionados() {
+    const fileInputIds = [
+        'formularioCompleto',
+        'cedulaIdentidad', 
+        'liquidacionesSueldo',
+        'documentosExtras'
+    ];
+    
+    const archivos = [];
+    fileInputIds.forEach(id => {
+        const input = document.getElementById(id);
+        if (input && input.files) {
+            for (const file of input.files) {
+                archivos.push(file);
+            }
+        }
+    });
+    
+    return archivos;
+}
+
+/**
+ * Crea un enlace de email automático para facilitar el envío
+ */
+function crearEnlaceEmail(instrucciones) {
+    const emailUrl = `mailto:${instrucciones.para}?subject=${encodeURIComponent(instrucciones.asunto)}&body=${encodeURIComponent(instrucciones.cuerpo)}`;
+    
+    // Crear botón para abrir email
+    const emailBtn = document.createElement('button');
+    emailBtn.innerHTML = '📧 Abrir Email para Enviar Documentos';
+    emailBtn.className = 'btn btn-success';
+    emailBtn.style.cssText = 'margin: 10px 0; padding: 10px 20px; font-weight: bold;';
+    emailBtn.onclick = () => window.open(emailUrl);
+    
+    // Buscar donde insertarlo
+    const estadoEl = document.getElementById('estadoEnvio');
+    if (estadoEl && estadoEl.parentNode) {
+        estadoEl.parentNode.insertBefore(emailBtn, estadoEl.nextSibling);
+        
+        // Remover después de 30 segundos
+        setTimeout(() => {
+            if (emailBtn.parentNode) {
+                emailBtn.parentNode.removeChild(emailBtn);
+            }
+        }, 30000);
+    }
+}
+
+/**
+ * Convierte imagen a PDF (mantenido para descargas de formularios)
  */
 async function imageToPDFAndDownload(imageUrl, outFileName = 'formulario.pdf') {
     console.log('🖼️ Generando PDF desde imagen:', imageUrl);
     
     try {
-        // Crear elemento imagen oculto
         const img = document.createElement('img');
-        img.style.maxWidth = '100%';
-        img.style.display = 'block';
         img.style.position = 'fixed';
         img.style.left = '-9999px';
         img.style.zIndex = '-1';
         img.src = imageUrl;
+        img.style.maxWidth = '100%';
 
         document.body.appendChild(img);
 
-        // Esperar a que cargue la imagen
         await new Promise((resolve, reject) => {
-            img.onload = () => {
-                console.log('✅ Imagen cargada correctamente');
-                resolve();
-            };
-            img.onerror = (e) => {
-                console.error('❌ Error cargando imagen:', e);
-                reject(new Error('No se pudo cargar la imagen: ' + imageUrl));
-            };
+            img.onload = resolve;
+            img.onerror = () => reject(new Error('Error cargando imagen'));
         });
 
-        console.log('🎨 Generando canvas...');
-        
-        // Usar html2canvas para sacar un canvas de la imagen y generar PDF
-        const canvas = await html2canvas(img, { 
-            scale: 2, 
-            useCORS: true,
-            allowTaint: true 
-        });
-        
+        const canvas = await html2canvas(img, { scale: 2 });
         const imgData = canvas.toDataURL('image/png');
 
-        console.log('📄 Creando PDF...');
-        
-        // usar jsPDF
         const { jsPDF } = window.jspdf;
-        
-        // Determinar orientación según dimensiones
         const pdf = new jsPDF({
             orientation: canvas.width >= canvas.height ? 'landscape' : 'portrait',
             unit: 'pt',
@@ -354,9 +334,6 @@ async function imageToPDFAndDownload(imageUrl, outFileName = 'formulario.pdf') {
         pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
         pdf.save(outFileName);
 
-        console.log('✅ PDF generado y descargado:', outFileName);
-
-        // limpiar
         document.body.removeChild(img);
         
     } catch (error) {
@@ -365,6 +342,5 @@ async function imageToPDFAndDownload(imageUrl, outFileName = 'formulario.pdf') {
     }
 }
 
-// Hacer la función global para compatibilidad
+// Función global para compatibilidad
 window.enviarSolicitudPrestamo = enviarSolicitudPrestamo;
-window.abrirModalSolicitud = abrirModalSolicitud;
