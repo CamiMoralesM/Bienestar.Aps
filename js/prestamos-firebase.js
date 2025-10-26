@@ -1,6 +1,6 @@
 // Lógica de subida y guardado en Firebase para solicitudes de préstamos/fondo solidario
 import { db, storage, auth } from './firebase-config.js';
-import { collection, addDoc, Timestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, addDoc, Timestamp, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 /**
@@ -11,7 +11,7 @@ import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/fireba
  */
 export async function guardarSolicitudPrestamo(tipo, datos, files = []) {
     try {
-        const uid = auth.currentUser ? auth.currentUser.uid : (datos.uid || '');
+        const uid = auth && auth.currentUser ? auth.currentUser.uid : (datos.uid || '');
         const rutLimpio = (datos.rut || '').replace(/\./g, '').replace(/-/g, '');
 
         // Subir archivos a Storage y obtener URLs
@@ -73,16 +73,13 @@ export async function guardarSolicitudPrestamo(tipo, datos, files = []) {
  */
 export async function obtenerSolicitudesPrestamosPorUID(uid) {
     try {
-        const q = collection(db, 'solicitudesPrestamos');
-        // Para mantenerlo simple, obtener todas y filtrar en el cliente por uid.
-        // En producción, haría una query con where('uid', '==', uid) usando getDocs(query(...))
+        if (!uid) return [];
+
+        // Query en el servidor para obtener solo los documentos del uid
+        const q = query(collection(db, 'solicitudesPrestamos'), where('uid', '==', uid));
         const snapshot = await getDocs(q);
-        const resultados = [];
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            resultados.push({ id: doc.id, ...data });
-        });
-        return resultados.filter(r => r.uid === uid);
+        const resultados = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        return resultados;
     } catch (error) {
         console.error('Error al obtener solicitudesPrestamos:', error);
         return [];
