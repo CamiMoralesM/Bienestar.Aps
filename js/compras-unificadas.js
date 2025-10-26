@@ -541,7 +541,7 @@ async function guardarCompraEnFirebase(formData, comprobanteFile, tipo = 'gas') 
             comprobanteNombre: comprobanteFile ? comprobanteFile.name : null,
             comprobanteTamaño: comprobanteFile ? comprobanteFile.size : null,
             comprobanteNota: 'Usuario debe enviar por email',
-            estado: 'pendiente_comprobante',
+            estado: 'pendiente',
             createdAt: Timestamp.now(),
             updatedAt: Timestamp.now()
         };
