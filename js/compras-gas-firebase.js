@@ -24,7 +24,7 @@ const STORAGE_FOLDERS = {
     gas: 'comprobantesGas',
     cine: 'comprobantesCine',
     jumper: 'comprobantesJumper',
-    gimnasio: 'comprobantesGimnasio'
+    gimnasio: 'comprobantesGimnasios'
 };
 
 // Precios para entretenimiento
@@ -501,14 +501,15 @@ export async function obtenerEstadisticasCompras(filtros = {}) {
 
 // ========================================
 // FUNCIONES DE EXPORTACIÓN PARA ADMIN
+// (Renombradas para evitar conflicto con otros módulos)
 // ========================================
 
 /**
- * Exporta compras de gas en formato para Excel (Lipigas)
+ * Exporta compras de gas en formato para Excel (Lipigas) - versión admin renombrada
  * @param {string} fecha - Fecha en formato YYYY-MM-DD
  * @returns {Promise<Array>} Datos formateados para Excel
  */
-export async function exportarLipigasExcel(fecha = null) {
+export async function exportarLipigasExcelAdmin(fecha = null) {
     try {
         const fechaFiltro = fecha || new Date().toISOString().split('T')[0];
         
@@ -552,11 +553,11 @@ export async function exportarLipigasExcel(fecha = null) {
 }
 
 /**
- * Exporta compras de gas en formato para Excel (Abastible)
+ * Exporta compras de gas en formato para Excel (Abastible) - versión admin renombrada
  * @param {string} fecha - Fecha en formato YYYY-MM-DD
  * @returns {Promise<Array>} Datos formateados para Excel
  */
-export async function exportarAbastibleExcel(fecha = null) {
+export async function exportarAbastibleExcelAdmin(fecha = null) {
     try {
         const fechaFiltro = fecha || new Date().toISOString().split('T')[0];
         
@@ -593,6 +594,49 @@ export async function exportarAbastibleExcel(fecha = null) {
     }
 }
 
+/**
+ * Exporta compras de gas en formato general (versión admin renombrada)
+ * @param {string} fecha - Fecha en formato YYYY-MM-DD
+ * @returns {Promise<Array>} Datos formateados para Excel
+ */
+export async function exportarGeneralExcelAdmin(fecha = null) {
+    try {
+        const fechaFiltro = fecha || new Date().toISOString().split('T')[0];
+        const compras = await obtenerComprasPorTipo('gas', {
+            fechaInicio: fechaFiltro,
+            fechaFin: fechaFiltro
+        });
+        
+        const comprasFormateadas = compras.map(data => {
+            const compraFecha = data.fechaCompra?.slice?.(0,10) || data.fechaCompra || '';
+            return {
+                Fecha: compraFecha,
+                Nombre: `${data.nombre} ${data.apellido || ''}`.trim(),
+                Rut: data.rut,
+                Teléfono: data.telefono,
+                Correo: data.email,
+                "Tipo de carga": `${data.tipoCarga || ''} kg`,
+                Cantidad: data.cantidad || data.totalCargas || 0,
+                Empresa: data.empresa || '',
+                "Comprobante URL": data.comprobanteUrl || ''
+            };
+        });
+        
+        return comprasFormateadas;
+        
+    } catch (error) {
+        console.error('Error al exportar General:', error);
+        return [];
+    }
+}
+
+// PARA COMPATIBILIDAD CON EL ADMIN (mantener llamadas onclick existentes en HTML)
+if (typeof window !== 'undefined') {
+    window.exportarLipigasExcel = exportarLipigasExcelAdmin;
+    window.exportarAbastibleExcel = exportarAbastibleExcelAdmin;
+    window.exportarGeneralExcel = exportarGeneralExcelAdmin;
+}
+
 // ========================================
 // EXPORTAR FUNCIONES PRINCIPALES
 // ========================================
@@ -615,9 +659,10 @@ export {
     // Funciones de estadísticas
     obtenerEstadisticasCompras,
     
-    // Funciones de exportación
-    exportarLipigasExcel,
-    exportarAbastibleExcel,
+    // Funciones de exportación (se exportan con nombres nuevos para evitar colisiones)
+    exportarLipigasExcelAdmin,
+    exportarAbastibleExcelAdmin,
+    exportarGeneralExcelAdmin,
     
     // Función auxiliar
     subirComprobante
