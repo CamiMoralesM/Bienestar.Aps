@@ -77,7 +77,7 @@ async function subirComprobante(file, tipoCompra) {
  * @param {File} comprobanteFile - Archivo de comprobante
  * @returns {Promise<Object>} Resultado de la operación
  */
-export async function guardarCompraGas(datosCompra, comprobanteFile) {
+async function guardarCompraGas(datosCompra, comprobanteFile) {
     try {
         console.log('💾 Guardando compra de gas en Firebase...');
         
@@ -174,7 +174,7 @@ export async function guardarCompraGas(datosCompra, comprobanteFile) {
  * @param {File} comprobanteFile - Archivo de comprobante
  * @returns {Promise<Object>} Resultado de la operación
  */
-export async function guardarCompraEntretenimiento(tipoEntretenimiento, datosCompra, comprobanteFile) {
+async function guardarCompraEntretenimiento(tipoEntretenimiento, datosCompra, comprobanteFile) {
     try {
         console.log(`💾 Guardando compra de ${tipoEntretenimiento} en Firebase...`);
         
@@ -222,17 +222,17 @@ export async function guardarCompraEntretenimiento(tipoEntretenimiento, datosCom
             updatedAt: Timestamp.now()
         };
         
-        // Guardar en la colección específica
-        const coleccion = COLECCIONES[tipoEntretenimiento];
-        const docRef = await addDoc(collection(db, coleccion), compraData);
+        // Guardar en Firestore
+        const coleccionTipo = COLECCIONES[tipoEntretenimiento];
+        const docRef = await addDoc(collection(db, coleccionTipo), compraData);
         
-        console.log(`✅ Compra de ${tipoEntretenimiento} guardada con ID: ${docRef.id} en colección: ${coleccion}`);
+        console.log(`✅ Compra de ${tipoEntretenimiento} guardada con ID: ${docRef.id}`);
         
         return {
             success: true,
             id: docRef.id,
-            coleccion: coleccion,
-            tipoEntretenimiento: tipoEntretenimiento,
+            tipo: tipoEntretenimiento,
+            coleccion: coleccionTipo,
             cantidad: cantidad,
             montoTotal: montoTotal,
             message: `Compra de ${tipoEntretenimiento} registrada exitosamente`
@@ -252,30 +252,26 @@ export async function guardarCompraEntretenimiento(tipoEntretenimiento, datosCom
 // ========================================
 
 /**
- * Función unificada para guardar cualquier tipo de compra
- * @param {string} tipoCompra - Tipo de compra (gas, cine, jumper, gimnasio)
+ * Función unificada para guardar compras (gas o entretenimiento)
+ * @param {string} tipoCompra - Tipo de compra ('gas', 'cine', 'jumper', 'gimnasio')
  * @param {Object} datosCompra - Datos del formulario
  * @param {File} comprobanteFile - Archivo de comprobante
  * @returns {Promise<Object>} Resultado de la operación
  */
-export async function guardarCompraUnificada(tipoCompra, datosCompra, comprobanteFile) {
+async function guardarCompraUnificada(tipoCompra, datosCompra, comprobanteFile) {
     try {
-        console.log(`🔄 Iniciando guardado unificado para: ${tipoCompra}`);
-        
         if (tipoCompra === 'gas') {
             return await guardarCompraGas(datosCompra, comprobanteFile);
         } else if (['cine', 'jumper', 'gimnasio'].includes(tipoCompra)) {
             return await guardarCompraEntretenimiento(tipoCompra, datosCompra, comprobanteFile);
         } else {
-            throw new Error(`Tipo de compra no reconocido: ${tipoCompra}`);
+            throw new Error(`Tipo de compra no válido: ${tipoCompra}`);
         }
-        
     } catch (error) {
-        console.error('❌ Error en guardado unificado:', error);
+        console.error('Error en guardarCompraUnificada:', error);
         return {
             success: false,
-            error: error.message,
-            tipoCompra: tipoCompra
+            error: error.message
         };
     }
 }
@@ -285,47 +281,23 @@ export async function guardarCompraUnificada(tipoCompra, datosCompra, comprobant
 // ========================================
 
 /**
- * Obtiene todas las compras de un tipo específico
- * @param {string} tipoCompra - Tipo de compra
+ * Obtiene compras por tipo con filtros opcionales
+ * @param {string} tipo - Tipo de compra ('gas', 'cine', 'jumper', 'gimnasio')
  * @param {Object} filtros - Filtros opcionales
  * @returns {Promise<Array>} Array de compras
  */
-export async function obtenerComprasPorTipo(tipoCompra, filtros = {}) {
+async function obtenerComprasPorTipo(tipo, filtros = {}) {
     try {
-        if (!COLECCIONES[tipoCompra]) {
-            throw new Error(`Tipo de compra no válido: ${tipoCompra}`);
+        if (!COLECCIONES[tipo]) {
+            throw new Error(`Tipo de compra no válido: ${tipo}`);
         }
         
-        const coleccionRef = collection(db, COLECCIONES[tipoCompra]);
-        let q = coleccionRef;
+        let q = collection(db, COLECCIONES[tipo]);
         
-        // Aplicar filtros
-        const condiciones = [];
-        
-        if (filtros.rut) {
-            const rutLimpio = filtros.rut.replace(/\./g, '').replace(/-/g, '');
-            condiciones.push(where("rut", "==", rutLimpio));
-        }
-        
-        if (filtros.estado) {
-            condiciones.push(where("estado", "==", filtros.estado));
-        }
-        
-        if (filtros.fechaInicio || filtros.fechaFin) {
-            if (filtros.fechaInicio) {
-                const fechaInicio = new Date(filtros.fechaInicio);
-                condiciones.push(where("createdAt", ">=", Timestamp.fromDate(fechaInicio)));
-            }
-            if (filtros.fechaFin) {
-                const fechaFin = new Date(filtros.fechaFin);
-                fechaFin.setHours(23, 59, 59); // Final del día
-                condiciones.push(where("createdAt", "<=", Timestamp.fromDate(fechaFin)));
-            }
-        }
-        
-        // Construir query
-        if (condiciones.length > 0) {
-            q = query(q, ...condiciones, orderBy("createdAt", "desc"));
+        // Aplicar filtros básicos
+        if (filtros.fechaInicio && filtros.fechaFin) {
+            // Nota: Para filtros de fecha más complejos necesitarías indices compuestos
+            q = query(q, orderBy("createdAt", "desc"));
         } else {
             q = query(q, orderBy("createdAt", "desc"));
         }
@@ -334,81 +306,122 @@ export async function obtenerComprasPorTipo(tipoCompra, filtros = {}) {
         const compras = [];
         
         querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            
+            // Aplicar filtros de fecha en memoria (menos eficiente pero funcional)
+            if (filtros.fechaInicio || filtros.fechaFin) {
+                const fechaCompra = data.fechaCompra;
+                if (fechaCompra) {
+                    if (filtros.fechaInicio && fechaCompra < filtros.fechaInicio) return;
+                    if (filtros.fechaFin && fechaCompra > filtros.fechaFin) return;
+                }
+            }
+            
             compras.push({
                 id: doc.id,
-                ...doc.data(),
-                tipoCompra: tipoCompra
+                ...data
             });
         });
         
-        console.log(`📊 ${tipoCompra}: ${compras.length} compras obtenidas`);
         return compras;
         
     } catch (error) {
-        console.error(`Error al obtener compras de ${tipoCompra}:`, error);
+        console.error(`Error al obtener compras de ${tipo}:`, error);
         return [];
     }
 }
 
 /**
- * Obtiene compras por RUT (todos los tipos)
- * @param {string} rut - RUT del usuario
- * @param {Object} filtros - Filtros adicionales
- * @returns {Promise<Object>} Compras organizadas por tipo
+ * Obtiene todas las compras de un usuario por RUT
+ * @param {string} rut - RUT del usuario (con o sin puntos y guión)
+ * @returns {Promise<Object>} Objeto con compras agrupadas por tipo
  */
-export async function obtenerComprasPorRUT(rut, filtros = {}) {
+async function obtenerComprasPorRUT(rut) {
     try {
         const rutLimpio = rut.replace(/\./g, '').replace(/-/g, '');
+        console.log(`🔍 Buscando compras para RUT: ${rutLimpio}`);
+        
         const comprasPorTipo = {};
         
-        // Obtener compras de cada tipo
+        // Iterar sobre todos los tipos de compra
         for (const [tipo, coleccion] of Object.entries(COLECCIONES)) {
             try {
-                const filtrosConRUT = { ...filtros, rut: rutLimpio };
-                comprasPorTipo[tipo] = await obtenerComprasPorTipo(tipo, filtrosConRUT);
+                const q = query(
+                    collection(db, coleccion),
+                    where("rut", "==", rutLimpio),
+                    orderBy("createdAt", "desc")
+                );
+                
+                const querySnapshot = await getDocs(q);
+                const compras = [];
+                
+                querySnapshot.forEach((doc) => {
+                    compras.push({
+                        id: doc.id,
+                        ...doc.data(),
+                        tipoCompra: tipo
+                    });
+                });
+                
+                comprasPorTipo[tipo] = compras;
+                console.log(`📋 ${tipo}: ${compras.length} compras encontradas`);
+                
             } catch (error) {
                 console.error(`Error al obtener compras de ${tipo}:`, error);
                 comprasPorTipo[tipo] = [];
             }
         }
         
+        // Calcular totales
+        const totalCompras = Object.values(comprasPorTipo).reduce((total, compras) => total + compras.length, 0);
+        
         return {
             success: true,
-            rut: rut,
             comprasPorTipo: comprasPorTipo,
-            totalCompras: Object.values(comprasPorTipo).reduce((total, compras) => total + compras.length, 0)
+            totalCompras: totalCompras,
+            rutConsultado: rutLimpio
         };
         
     } catch (error) {
         console.error('Error al obtener compras por RUT:', error);
         return {
             success: false,
-            error: error.message
+            error: error.message,
+            comprasPorTipo: {}
         };
     }
 }
 
 /**
- * Obtiene compras recientes (para notificaciones)
- * @param {string} rut - RUT del usuario
- * @param {number} limite - Número máximo de compras a obtener
+ * Obtiene las compras más recientes (todas las categorías)
+ * @param {string} rut - RUT del usuario (opcional)
+ * @param {number} limite - Límite de resultados
  * @returns {Promise<Array>} Array de compras recientes
  */
-export async function obtenerComprasRecientes(rut, limite = 10) {
+async function obtenerComprasRecientes(rut = null, limite = 10) {
     try {
-        const rutLimpio = rut.replace(/\./g, '').replace(/-/g, '');
         const todasLasCompras = [];
         
-        // Obtener compras recientes de cada tipo
         for (const [tipo, coleccion] of Object.entries(COLECCIONES)) {
             try {
-                const comprasRef = collection(db, coleccion);
-                const q = query(
-                    comprasRef,
-                    where("rut", "==", rutLimpio),
-                    orderBy("createdAt", "desc"),
-                    limit(5) // 5 por tipo
-                );
+                let comprasRef = collection(db, coleccion);
+                
+                let q;
+                if (rut) {
+                    const rutLimpio = rut.replace(/\./g, '').replace(/-/g, '');
+                    q = query(
+                        comprasRef,
+                        where("rut", "==", rutLimpio),
+                        orderBy("createdAt", "desc"),
+                        limit(5) // 5 por tipo
+                    );
+                } else {
+                    q = query(
+                        comprasRef,
+                        orderBy("createdAt", "desc"),
+                        limit(5) // 5 por tipo
+                    );
+                }
                 
                 const querySnapshot = await getDocs(q);
                 
@@ -444,7 +457,7 @@ export async function obtenerComprasRecientes(rut, limite = 10) {
  * @param {Object} filtros - Filtros opcionales
  * @returns {Promise<Object>} Estadísticas por tipo
  */
-export async function obtenerEstadisticasCompras(filtros = {}) {
+async function obtenerEstadisticasCompras(filtros = {}) {
     try {
         const estadisticas = {};
         
@@ -508,7 +521,7 @@ export async function obtenerEstadisticasCompras(filtros = {}) {
  * @param {string} fecha - Fecha en formato YYYY-MM-DD
  * @returns {Promise<Array>} Datos formateados para Excel
  */
-export async function exportarLipigasExcel(fecha = null) {
+async function exportarLipigasExcel(fecha = null) {
     try {
         const fechaFiltro = fecha || new Date().toISOString().split('T')[0];
         
@@ -556,7 +569,7 @@ export async function exportarLipigasExcel(fecha = null) {
  * @param {string} fecha - Fecha en formato YYYY-MM-DD
  * @returns {Promise<Array>} Datos formateados para Excel
  */
-export async function exportarAbastibleExcel(fecha = null) {
+async function exportarAbastibleExcel(fecha = null) {
     try {
         const fechaFiltro = fecha || new Date().toISOString().split('T')[0];
         
@@ -593,6 +606,42 @@ export async function exportarAbastibleExcel(fecha = null) {
     }
 }
 
+/**
+ * Exporta reporte general de compras
+ * @param {string} fecha - Fecha en formato YYYY-MM-DD
+ * @returns {Promise<Array>} Datos formateados para Excel
+ */
+async function exportarGeneralExcelAdmin(fecha = null) {
+    try {
+        const fechaFiltro = fecha || new Date().toISOString().split('T')[0];
+        const compras = await obtenerComprasPorTipo('gas', {
+            fechaInicio: fechaFiltro,
+            fechaFin: fechaFiltro
+        });
+
+        const comprasFormateadas = compras.map(data => {
+            const compraFecha = data.fechaCompra?.slice?.(0,10) || data.fechaCompra || '';
+            return {
+                Fecha: compraFecha,
+                Nombre: `${data.nombre} ${data.apellido || ''}`.trim(),
+                Rut: data.rut,
+                Teléfono: data.telefono,
+                Correo: data.email,
+                "Tipo de carga": `${data.tipoCarga || ''} kg`,
+                Cantidad: data.cantidad || data.totalCargas || 0,
+                Empresa: data.empresa || '',
+                "Comprobante URL": data.comprobanteUrl || ''
+            };
+        });
+
+        return comprasFormateadas;
+
+    } catch (error) {
+        console.error('Error al exportar General:', error);
+        return [];
+    }
+}
+
 // ========================================
 // EXPORTAR FUNCIONES PRINCIPALES
 // ========================================
@@ -618,6 +667,7 @@ export {
     // Funciones de exportación
     exportarLipigasExcel,
     exportarAbastibleExcel,
+    exportarGeneralExcelAdmin,
     
     // Función auxiliar
     subirComprobante
