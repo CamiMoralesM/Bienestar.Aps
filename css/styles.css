@@ -2993,3 +2993,50 @@ body.modal-open {
             .form-grid {
                 grid-template-columns: 1fr !important;
             }
+/* ----- Layout horizontal para el formulario de Solicitar Préstamo ----- */
+/* Contenedor general: en pantallas grandes muestra formulario + documentos en 2 columnas */
+.solicitud-section {
+  display: grid;
+  grid-template-columns: 1fr 420px; /* izquierda: formulario (flexible), derecha: panel documentos (anchura fija) */
+  gap: 24px;
+  align-items: start;
+}
+
+/* Formulario interno: mostrar campos en 2 columnas */
+.solicitud-section .form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+/* Asegurar que los elementos que deben ocupar todo el ancho sigan haciéndolo */
+.solicitud-section .form-grid textarea,
+.solicitud-section .form-grid .full-width,
+.solicitud-section .form-grid [style*="grid-column: 1 / -1"] {
+  grid-column: 1 / -1;
+}
+
+/* Panel de documentos: organizar sus items en 2 columnas */
+.solicitud-section .documentos-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* Quitar el margin-top extra del panel (ya hay gap entre columnas) */
+.solicitud-section .documentos-section {
+  margin-top: 0;
+}
+
+/* Responsive: en pantallas pequeñas volver a apilar verticalmente */
+@media (max-width: 900px) {
+  .solicitud-section {
+    grid-template-columns: 1fr; /* apilar: primero formulario, luego documentos */
+  }
+
+  .solicitud-section .form-grid,
+  .solicitud-section .documentos-grid {
+    grid-template-columns: 1fr; /* columnas únicas en móvil */
+  }
+}
