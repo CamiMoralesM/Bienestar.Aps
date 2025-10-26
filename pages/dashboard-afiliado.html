@@ -36,7 +36,7 @@
                 <li class="nav-tab" data-tab="compra-cine">🎬 Compra de Cine</li>
                 <li class="nav-tab" data-tab="compra-jumper">🤸 Compra Jumper Park</li>
                 <li class="nav-tab" data-tab="compra-gimnasio">💪 Compra Gimnasio</li>
-                <li class="nav-tab" data-tab="prestamos">💰 Préstamos y Fondo Solidario</li>
+                <li class="nav-tab" data-tab="prestamos">💰 Préstamos</li>
                 <li class="nav-tab" data-tab="solicitudes">📝 Solicitudes</li>
                 <li class="nav-tab" data-tab="perfil">⚙️ Mi Perfil</li>
             </ul>
@@ -470,7 +470,7 @@
             <!-- NUEVA PESTAÑA: Préstamos / Fondo Solidario -->
             <div class="tab-content" id="tab-prestamos">
                 <div class="container">
-                    <h2>💰 Préstamos y Fondo Solidario</h2>
+                    <h2>💰 Préstamos</h2>
 
                    <!-- Información General -->
                 <div class="info-box" style="background: #e0b0f5; padding: 20px; border-radius: 12px; margin-bottom: 30px; border-left: 4px">
@@ -548,29 +548,6 @@
                             </button>
                         </div>
 
-                        <!-- Fondo Solidario -->
-                        <div class="prestamo-card" style="background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%); color: white; padding: 25px; border-radius: 15px; box-shadow: 0 6px 20px rgba(86, 171, 47, 0.3);">
-                            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
-                                <span style="font-size: 2.5em;">🤝</span>
-                                <h3 style="margin: 0; font-size: 1.4em;">Fondo Solidario</h3>
-                            </div>
-                            <div style="background: rgba(255, 255, 255, 0.2); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                                <p style="margin: 0 0 10px 0; font-weight: 500;">Características:</p>
-                                <ul style="margin: 0; padding-left: 15px; list-style: none;">
-                                    <li style="margin-bottom: 5px;">🎁 Ayudas sin retorno</li>
-                                    <li style="margin-bottom: 5px;">🏥 Emergencias de salud</li>
-                                    <li style="margin-bottom: 5px;">👨‍👩‍👧‍👦 Situaciones familiares complejas</li>
-                                    <li style="margin-bottom: 5px;">📋 Evaluación previa por Trabajador/a Social</li>
-                                    <li style="margin-bottom: 5px;">🤝 En conjunto con Comité del Servicio de Bienestar APS</li>
-                                </ul>
-                            </div>
-                            <button class="btn btn-primary btn-download" data-img="../assets/formulario-prestamos.png" data-name="formulario-fondo-solidario.pdf" style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.2); border: 2px solid white; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; transition: all 0.3s;">
-                                📄 Descargar Formulario
-                            </button>
-                        </div>
-                    </div>
-                </div>
-               
                 <!-- Formulario de Solicitud -->
                 <div class="solicitud-section" style="background: #f8f9fa; padding: 30px; border-radius: 15px; margin-top: 30px;">
                     <h3 style="color: #495057; margin-bottom: 20px; text-align: center;">📋 Solicitar Préstamo o Fondo Solidario</h3>
@@ -607,15 +584,9 @@
                                     <option value="prestamo-medico">Préstamo Médico</option>
                                     <option value="prestamo-emergencia">Préstamo de Emergencia</option>
                                     <option value="prestamo-libre-disposicion">Préstamo de Libre Disposición</option>
-                                    <option value="fondo-solidario">Fondo Solidario</option>
                                 </select>
                             </div>
-                            
-                            <div class="form-group">
-                                <label for="montoSolicitado">Monto Solicitado *</label>
-                                <input type="number" id="montoSolicitado" name="montoSolicitado" required min="1" placeholder="Ejemplo: 250000" style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
-                            </div>
-                            
+
                             <!-- Descripción de la solicitud -->
                             <div class="form-group" style="grid-column: 1 / -1;">
                                 <label for="descripcionSolicitud">Descripción de la Solicitud *</label>
