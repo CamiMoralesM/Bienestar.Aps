@@ -2993,3 +2993,104 @@ body.modal-open {
             .form-grid {
                 grid-template-columns: 1fr !important;
             }
+/* ===== CSS PARA HACER HORIZONTAL SOLO LA SECCIÓN DE PRÉSTAMO ===== */
+
+/* Modificar el grid del formulario de préstamo para hacerlo más horizontal */
+#formSolicitudPrestamo .form-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr) !important; /* 4 columnas en lugar de auto-fit */
+    gap: 15px !important;
+    margin-bottom: 20px;
+}
+
+/* Hacer que la descripción ocupe 2 columnas en lugar de toda la fila */
+#formSolicitudPrestamo .form-group[style*="grid-column: 1 / -1"] {
+    grid-column: 1 / 3 !important; /* Solo 2 columnas para descripción */
+}
+
+/* Agregar un campo adicional al lado de la descripción */
+#formSolicitudPrestamo .form-grid::after {
+    content: '';
+    grid-column: 3 / 5;
+}
+
+/* Grid de documentos más compacto horizontalmente */
+.documentos-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important; /* 4 columnas para documentos */
+    gap: 15px !important;
+}
+
+/* El campo de documentos adicionales que puede estar oculto */
+#documentosAdicionales {
+    display: block !important; /* Mostrar siempre para mantener el grid */
+    grid-column: 4 / 5 !important; /* Última columna */
+}
+
+/* Estilos para campos de formulario más compactos */
+#formSolicitudPrestamo input,
+#formSolicitudPrestamo select,
+#formSolicitudPrestamo textarea {
+    padding: 10px !important;
+    font-size: 0.9rem !important;
+}
+
+#formSolicitudPrestamo label {
+    font-size: 0.9rem !important;
+    margin-bottom: 5px !important;
+}
+
+/* Hacer el textarea de descripción más pequeño */
+#descripcionSolicitud {
+    rows: 3 !important;
+    min-height: 80px !important;
+}
+
+/* Responsive: En tablets mantener 2 columnas */
+@media (max-width: 1024px) {
+    #formSolicitudPrestamo .form-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    
+    .documentos-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    
+    #formSolicitudPrestamo .form-group[style*="grid-column: 1 / -1"] {
+        grid-column: 1 / -1 !important; /* Descripción ocupa toda la fila en tablets */
+    }
+    
+    #documentosAdicionales {
+        grid-column: 1 / -1 !important;
+    }
+}
+
+/* Responsive: En móviles volver a 1 columna */
+@media (max-width: 768px) {
+    #formSolicitudPrestamo .form-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .documentos-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    #formSolicitudPrestamo .form-group[style*="grid-column: 1 / -1"] {
+        grid-column: 1 / -1 !important;
+    }
+    
+    #documentosAdicionales {
+        grid-column: 1 / -1 !important;
+    }
+}
+
+/* Ajustar el espaciado de la sección de solicitud */
+.solicitud-section {
+    padding: 25px !important;
+}
+
+/* Hacer los small texts más pequeños para que quepan mejor */
+#formSolicitudPrestamo small {
+    font-size: 0.75rem !important;
+    line-height: 1.2 !important;
+}
