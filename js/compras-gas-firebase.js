@@ -36,3 +36,30 @@ async function exportarGeneralExcelAdmin(fecha = null) {
         return [];
     }
 }
+export {
+    // Constantes
+    COLECCIONES,
+    STORAGE_FOLDERS,
+    PRECIOS_ENTRETENIMIENTO,
+    
+    // Funciones de guardado
+    guardarCompraGas,
+    guardarCompraEntretenimiento,
+    guardarCompraUnificada,
+    
+    // Funciones de consulta
+    obtenerComprasPorTipo,
+    obtenerComprasPorRUT,      // <-- asegurarse que esté exportado
+    obtenerComprasRecientes,
+    
+    // Funciones de estadísticas
+    obtenerEstadisticasCompras,
+    
+    // Funciones de exportación (nombres admin si corresponde)
+    exportarLipigasExcelAdmin,
+    exportarAbastibleExcelAdmin,
+    exportarGeneralExcelAdmin,
+    
+    // Función auxiliar
+    subirComprobante
+};
