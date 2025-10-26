@@ -736,11 +736,15 @@
         </div>
     </footer>  
     
-    <!-- SCRIPTS CORREGIDOS -->
+    <<!-- SCRIPTS ACTUALIZADOS SIN CORS -->
     <script type="module" src="../js/dashboard-afiliado-firebase.js"></script>
     <script type="module" src="../js/compras-unificadas.js"></script>
 
     <script type="module">
+        // Importar módulos SIN CORS para préstamos
+        import '../js/prestamos-firebase-sin-cors.js';
+        import '../js/prestamos-sin-cors.js';
+
         // Sistema de pestañas mejorado
         const tabs = document.querySelectorAll('.nav-tab');
         const tabContents = document.querySelectorAll('.tab-content');
@@ -767,7 +771,6 @@
         // Función para nueva solicitud
         function nuevaSolicitud() {
             console.log('Nueva solicitud clickeada');
-            // Aquí puedes agregar la lógica para nueva solicitud
         }
 
         // Función para logout
@@ -782,22 +785,60 @@
         // Función para filtrar solicitudes
         function filtrarSolicitudes(tipo) {
             console.log('Filtrando solicitudes:', tipo);
-            // Aquí puedes agregar la lógica para filtrar solicitudes
         }
 
-        // Hacer las funciones globales para que puedan ser llamadas desde HTML
+        // Hacer las funciones globales
         window.nuevaSolicitud = nuevaSolicitud;
         window.logout = logout;
         window.filtrarSolicitudes = filtrarSolicitudes;
+
+        // Agregar estado de envío si no existe
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('formSolicitudPrestamo');
+            if (form && !document.getElementById('estadoEnvio')) {
+                const estadoDiv = document.createElement('div');
+                estadoDiv.id = 'estadoEnvio';
+                estadoDiv.style.cssText = `
+                    margin: 20px 0;
+                    padding: 15px;
+                    border-radius: 8px;
+                    font-weight: bold;
+                    text-align: center;
+                    display: none;
+                `;
+                form.appendChild(estadoDiv);
+            }
+
+            // Mostrar estado de envío cuando sea necesario
+            const originalStyle = document.getElementById('estadoEnvio')?.style;
+            if (originalStyle) {
+                const observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        if (mutation.type === 'childList' || mutation.type === 'characterData') {
+                            const estadoEl = document.getElementById('estadoEnvio');
+                            if (estadoEl && estadoEl.innerHTML.trim()) {
+                                estadoEl.style.display = 'block';
+                            }
+                        }
+                    });
+                });
+                
+                const estadoEl = document.getElementById('estadoEnvio');
+                if (estadoEl) {
+                    observer.observe(estadoEl, { 
+                        childList: true, 
+                        characterData: true, 
+                        subtree: true 
+                    });
+                }
+            }
+        });
     </script>
 
-    <!-- Librerías para generar PDF desde imágenes -->
+    <!-- Librerías para generar PDF (mantenidas para descargas de formularios) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-    <!-- Nuevos módulos para préstamos -->
-    <script type="module" src="../js/prestamos-firebase.js"></script>
-    <script type="module" src="../js/prestamos.js"></script>
-                
-</body>
-</html>
+
+
+
