@@ -120,9 +120,9 @@ function formatearNotificacionGas(compra, id) {
     let estadoTexto = 'En procesamiento';
     let estadoClase = 'warning';
     
-    if (compra.estado === 'pendiente_comprobante') {
+    if (compra.estado === 'pendiente') {
         estado = 'pendiente';
-        estadoTexto = 'Pendiente de comprobante';
+        estadoTexto = 'Pendiente';
         estadoClase = 'warning';
     } else if (compra.estado === 'aprobado') {
         estado = 'aprobado';
