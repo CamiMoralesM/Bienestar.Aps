@@ -1,5 +1,5 @@
 // UI simplificada para préstamos (SIN subida de archivos para evitar CORS)
-import { guardarSolicitudPrestamo, validarDatosSolicitud, generarInstruccionesEmail } from './prestamos-firebase-sin-cors.js';
+import { guardarSolicitudPrestamo, validarDatosSolicitud, generarInstruccionesEmail } from './prestamos-firebase.js';
 import { auth } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
