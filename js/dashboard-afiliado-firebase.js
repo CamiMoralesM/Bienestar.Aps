@@ -300,6 +300,29 @@ function renderMisSolicitudes(container, items) {
             meta.innerHTML += ` &nbsp; | &nbsp; Fecha aprobación: <strong>${fechaAprob}</strong>`;
         }
 
+        // botón ver detalles (por ahora muestra console.log)
+        const actions = document.createElement('div');
+        actions.style.marginTop = '10px';
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-small';
+        btn.textContent = 'Ver detalles';
+        btn.onclick = () => {
+            // por ahora mostramos el object raw en consola; se puede abrir modal con más info
+            console.log('Detalle item:', item);
+            alert(`Detalle: ${item.titulo}\nEstado: ${item.estado}\nFecha solicitud: ${fechaReq}${fechaAprob ? '\nFecha aprobación: ' + fechaAprob : ''}`);
+        };
+        actions.appendChild(btn);
+
+        content.appendChild(header);
+        content.appendChild(meta);
+        content.appendChild(actions);
+
+        card.appendChild(iconDiv);
+        card.appendChild(content);
+
+        container.appendChild(card);
+    });
+}
 
 // Utils
 function formatDate(d) {
