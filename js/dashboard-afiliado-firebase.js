@@ -337,7 +337,7 @@ function estadoToClass(estado) {
     if (!estado) return 'badge-secondary';
     switch (estado.toLowerCase()) {
         case 'pendiente':
-        case 'pendiente_comprobante':
+        case 'pendiente':
         case 'en_revision':
             return 'badge-warning';
         case 'aprobada':
