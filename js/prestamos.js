@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Abrir modal de subida
+    // Abrir modal de subida (si usas botones que abren modal)
     document.querySelectorAll('.btn-open-upload').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const tipo = btn.dataset.tipo || '';
@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Manejo del formulario de solicitud
+    // Manejo del formulario de solicitud (si existe en la página)
     const form = document.getElementById('formSolicitudPrestamo');
     if (form) {
         form.addEventListener('submit', async (ev) => {
@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Si está logueado, precargar datos del usuario
     onAuthStateChanged(auth, user => {
         if (user) {
-            // precarga básica será hecha al abrir el modal
+            // precarga básica será hecha al abrir el modal o al rellenar el formulario
         }
     });
 });
@@ -55,46 +55,106 @@ document.addEventListener('DOMContentLoaded', () => {
  * Abre el modal y setea el tipo de préstamo
  */
 function abrirModalSolicitud(tipo) {
-    document.getElementById('tipoPrestamo').value = tipo || '';
+    const tipoEl = document.getElementById('tipoPrestamo') || document.getElementById('tipoSolicitud');
+    if (tipoEl) tipoEl.value = tipo || '';
     const titulo = {
         medico: 'Solicitud - Préstamo Médico',
         emergencia: 'Solicitud - Préstamo de Emergencia',
         libre_disposicion: 'Solicitud - Préstamo Libre Disposición',
         fondo_solidario: 'Solicitud - Fondo Solidario'
     }[tipo] || 'Solicitud - Préstamo / Fondo Solidario';
-    document.getElementById('modalTitulo').textContent = titulo;
+    const modalTitulo = document.getElementById('modalTitulo');
+    if (modalTitulo) modalTitulo.textContent = titulo;
 
     // Si hay usuario autenticado, intentar rellenar nombre/email/rut desde sessionStorage o Firebase
     const userData = JSON.parse(sessionStorage.getItem('userData') || '{}');
     if (userData && Object.keys(userData).length) {
-        document.getElementById('nombreSolicitante').value = userData.nombre || '';
-        document.getElementById('rutSolicitante').value = userData.rut || '';
-        document.getElementById('emailSolicitante').value = userData.email || '';
+        const nombreEl = document.getElementById('nombreSolicitante') || document.getElementById('nombrePrestamo');
+        const rutEl = document.getElementById('rutSolicitante') || document.getElementById('rutPrestamo');
+        const emailEl = document.getElementById('emailSolicitante') || document.getElementById('emailPrestamo');
+        if (nombreEl) nombreEl.value = userData.nombre || '';
+        if (rutEl) rutEl.value = userData.rut || '';
+        if (emailEl) emailEl.value = userData.email || '';
     }
 
-    document.getElementById('estadoEnvio').innerHTML = '';
-    document.getElementById('modalSolicitudPrestamo').style.display = 'block';
+    const estadoEl = document.getElementById('estadoEnvio');
+    if (estadoEl) estadoEl.innerHTML = '';
+    const modal = document.getElementById('modalSolicitudPrestamo');
+    if (modal) modal.style.display = 'block';
 }
 
 /**
  * Envia la solicitud: valida campos, sube archivos y crea documento en Firestore
+ * Adaptado para funcionar tanto con el modal original como con el formulario en dashboard-prestamos.html
  */
 async function enviarSolicitudPrestamo() {
-    const tipo = document.getElementById('tipoPrestamo').value;
-    const nombre = document.getElementById('nombreSolicitante').value.trim();
-    const rut = document.getElementById('rutSolicitante').value.trim();
-    const email = document.getElementById('emailSolicitante').value.trim();
-    const comentario = document.getElementById('comentarioPrestamo').value.trim();
-    const archivosInput = document.getElementById('archivosPrestamo');
-    const files = archivosInput.files;
+    // Buscar valores con varios IDs posibles (compatibilidad)
+    const tipoEl = document.getElementById('tipoPrestamo') || document.getElementById('tipoSolicitud');
+    const nombreEl = document.getElementById('nombreSolicitante') || document.getElementById('nombrePrestamo');
+    const rutEl = document.getElementById('rutSolicitante') || document.getElementById('rutPrestamo');
+    const emailEl = document.getElementById('emailSolicitante') || document.getElementById('emailPrestamo');
+    const comentarioEl = document.getElementById('comentarioPrestamo') || document.getElementById('descripcionSolicitud');
 
-    if (!tipo) { alert('Tipo de solicitud no definido.'); return; }
-    if (!nombre || !rut || !email) { alert('Complete nombre, RUT y correo.'); return; }
-    if (!files || files.length === 0) { alert('Adjunte al menos un archivo (formulario completado y/o documentos).'); return; }
-
-    // Mostrar estado de subida
+    // Elemento de estado opcional
     const estadoEl = document.getElementById('estadoEnvio');
-    estadoEl.innerHTML = '⏳ Subiendo archivos y guardando solicitud...';
+
+    // Recoger tipo, nombre, rut, email, comentario
+    const tipoRaw = tipoEl ? (tipoEl.value || '').trim() : '';
+    const nombre = nombreEl ? (nombreEl.value || '').trim() : '';
+    const rut = rutEl ? (rutEl.value || '').trim() : '';
+    const email = emailEl ? (emailEl.value || '').trim() : '';
+    const comentario = comentarioEl ? (comentarioEl.value || '').trim() : '';
+
+    // Mapear tipos del dashboard a los que espera la función de Firebase (si aplica)
+    // Ajusta el mapeo según lo que uses en prestamos-firebase.js
+    const tipoMap = {
+        'prestamo-medico': 'medico',
+        'prestamo-emergencia': 'emergencia',
+        'prestamo-libre-disposicion': 'libre_disposicion',
+        'fondo_solidario': 'fondo_solidario',
+        'medico': 'medico',
+        'emergencia': 'emergencia',
+        'libre_disposicion': 'libre_disposicion'
+    };
+    const tipo = tipoMap[tipoRaw] || tipoRaw;
+
+    // Recolectar archivos desde varios inputs posibles
+    const fileInputIds = [
+        'archivosPrestamo',        // antiguo
+        'formularioCompleto',
+        'cedulaIdentidad',
+        'liquidacionesSueldo',
+        'documentosExtras',
+        'comprobantePrestamo'      // por si existe otro id
+    ];
+    const archivosArray = [];
+    for (const id of fileInputIds) {
+        const inp = document.getElementById(id);
+        if (inp && inp.files && inp.files.length) {
+            for (const f of Array.from(inp.files)) archivosArray.push(f);
+        }
+    }
+
+    // Validaciones básicas
+    if (!tipo) {
+        alert('Tipo de solicitud no definido.');
+        return;
+    }
+    if (!nombre || !rut || !email) {
+        alert('Complete nombre, RUT y correo.');
+        return;
+    }
+    if (!archivosArray || archivosArray.length === 0) {
+        alert('Adjunte al menos un archivo (formulario completado y/o documentos).');
+        return;
+    }
+
+    // Mostrar estado de subida si existe, sino console.log
+    if (estadoEl) {
+        estadoEl.innerHTML = '⏳ Subiendo archivos y guardando solicitud...';
+    } else {
+        console.log('Subiendo archivos y guardando solicitud...');
+    }
 
     // Preparar datos
     const datos = {
@@ -105,27 +165,39 @@ async function enviarSolicitudPrestamo() {
     };
 
     try {
-        // Convert FileList a Array
-        const archivosArray = Array.from(files);
-
         const resultado = await guardarSolicitudPrestamo(tipo, datos, archivosArray);
 
         if (resultado.success) {
-            estadoEl.innerHTML = `✅ Solicitud enviada correctamente. ID: ${resultado.id}`;
-            // Limpiar formulario
-            document.getElementById('formSolicitudPrestamo').reset();
-            // Cerrar modal tras 2s y actualizar lista de solicitudes si implementada
+            if (estadoEl) {
+                estadoEl.innerHTML = `✅ Solicitud enviada correctamente. ID: ${resultado.id}`;
+            } else {
+                alert(`Solicitud enviada correctamente. ID: ${resultado.id}`);
+                console.log('Solicitud enviada:', resultado.id);
+            }
+            // Limpiar formulario (si existe)
+            const form = document.getElementById('formSolicitudPrestamo');
+            if (form) form.reset();
+
+            // Cerrar modal tras 2s si existe
             setTimeout(() => {
-                cerrarModalSolicitud();
-                // opcional: recargar las solicitudes del usuario
+                const modal = document.getElementById('modalSolicitudPrestamo');
+                if (modal) modal.style.display = 'none';
             }, 2000);
         } else {
-            estadoEl.innerHTML = `❌ Error guardando solicitud: ${resultado.error}`;
-            console.error(resultado.error);
+            if (estadoEl) {
+                estadoEl.innerHTML = `❌ Error guardando solicitud: ${resultado.error}`;
+            } else {
+                alert('Error guardando solicitud: ' + resultado.error);
+                console.error(resultado.error);
+            }
         }
     } catch (error) {
         console.error('Error al enviar solicitud:', error);
-        estadoEl.innerHTML = `❌ Error al enviar solicitud: ${error.message || error}`;
+        if (estadoEl) {
+            estadoEl.innerHTML = `❌ Error al enviar solicitud: ${error.message || error}`;
+        } else {
+            alert('Error al enviar solicitud: ' + (error.message || error));
+        }
     }
 }
 
