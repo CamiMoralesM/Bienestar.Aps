@@ -1,4 +1,5 @@
 // Dashboard del Afiliado - Versión Corregida Sin Notificaciones
+// Modificado para mostrar todas las compras y préstamos en la pestaña "Mis Solicitudes"
 
 import { auth } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -7,6 +8,10 @@ import {
     obtenerSolicitudesFuncionario
 } from './firestore-operations.js';
 import { cerrarSesion } from './auth.js';
+
+// Nuevas importaciones para obtener compras y préstamos
+import { obtenerComprasPorRUT } from './compras-gas-firebase.js';
+import { obtenerSolicitudesPrestamosPorUID } from './prestamos-firebase.js';
 
 // Verificar autenticación al cargar
 onAuthStateChanged(auth, async (user) => {
@@ -50,8 +55,8 @@ async function cargarDatosUsuario(uid) {
         // Cargar estadísticas
         await cargarEstadisticas(uid, funcionario.fechaAfiliacion);
         
-        // Cargar solicitudes
-        await cargarSolicitudes(uid);
+        // Cargar solicitudes (ahora incluye compras y préstamos). Pasamos el RUT.
+        await cargarSolicitudes(uid, funcionario.rut);
         
         // Cargar perfil
         await cargarPerfil(funcionario);
@@ -93,59 +98,273 @@ async function cargarEstadisticas(uid, fechaAfiliacion) {
     }
 }
 
-// Cargar solicitudes
-async function cargarSolicitudes(uid) {
+// Cargar solicitudes (ahora combina: solicitudes, compras y préstamos)
+async function cargarSolicitudes(uid, rut) {
     try {
-        const solicitudes = await obtenerSolicitudesFuncionario(uid);
-        const container = document.querySelector('.solicitudes-list');
-        
+        // Contenedores
+        const container = document.getElementById('listaSolicitudes');
         if (!container) return;
-        
-        container.innerHTML = '';
-        
-        if (solicitudes.length === 0) {
-            container.innerHTML = '<p>No tienes solicitudes registradas.</p>';
-            return;
+        container.innerHTML = '<p>Cargando solicitudes y compras...</p>';
+
+        // 1) Solicitudes tradicionales (beneficios)
+        const solicitudes = await obtenerSolicitudesFuncionario(uid);
+
+        // 2) Compras (gas + entretenimiento) por RUT
+        let comprasPorRUT = { success: false, comprasPorTipo: {} };
+        try {
+            comprasPorRUT = await obtenerComprasPorRUT(rut);
+        } catch (err) {
+            console.error('Error al obtener compras por RUT:', err);
         }
-        
-        solicitudes.forEach(solicitud => {
-            const fecha = solicitud.createdAt?.toDate().toLocaleDateString('es-CL') || 'N/A';
-            
-            let estadoBadge = '';
-            if (solicitud.estado === 'pendiente') {
-                estadoBadge = '<span class="badge warning">Pendiente</span>';
-            } else if (solicitud.estado === 'en_revision') {
-                estadoBadge = '<span class="badge info">En Revisión</span>';
-            } else if (solicitud.estado === 'aprobada') {
-                estadoBadge = '<span class="badge success">Aprobada</span>';
-            } else {
-                estadoBadge = '<span class="badge">Rechazada</span>';
+
+        // 3) Solicitudes de préstamos por UID
+        let prestamos = [];
+        try {
+            prestamos = await obtenerSolicitudesPrestamosPorUID(uid);
+        } catch (err) {
+            console.error('Error al obtener solicitudes de préstamos:', err);
+        }
+
+        // Normalizar y combinar todos los ítems en una sola lista
+        const items = [];
+
+        // Mapear solicitudes (beneficios)
+        if (Array.isArray(solicitudes)) {
+            solicitudes.forEach(s => {
+                const fecha = s.createdAt?.toDate?.() || new Date();
+                const fechaAprob = s.fechaRespuesta?.toDate?.() || s.updatedAt?.toDate?.();
+                items.push({
+                    id: s.id,
+                    fuente: 'solicitud_beneficio',
+                    titulo: s.tipoBeneficio ? s.tipoBeneficio.replace(/_/g, ' ') : 'Solicitud de Beneficio',
+                    descripcion: s.motivo || s.descripcion || '',
+                    fechaSolicitud: fecha,
+                    estado: s.estado || 'pendiente',
+                    fechaAprobacion: (s.estado === 'aprobada' ? fechaAprob : null),
+                    raw: s
+                });
+            });
+        }
+
+        // Mapear compras (comprasPorTipo: {gas: [...], cine: [...], ...})
+        if (comprasPorRUT && comprasPorRUT.success && comprasPorRUT.comprasPorTipo) {
+            const comprasObj = comprasPorRUT.comprasPorTipo;
+            for (const [tipo, compras] of Object.entries(comprasObj)) {
+                if (!Array.isArray(compras)) continue;
+                compras.forEach(c => {
+                    const fecha = c.createdAt?.toDate?.() || new Date();
+                    // tratar fecha de aprobación si existe (fechaRespuesta o updatedAt)
+                    const fechaAprob = c.fechaRespuesta?.toDate?.() || c.updatedAt?.toDate?.();
+                    let titulo = '';
+                    let descripcion = '';
+
+                    if (tipo === 'gas') {
+                        // calcular total de cargas si no está
+                        const total = c.totalCargas ?? (
+                            (c.cargas_lipigas ? Object.values(c.cargas_lipigas).reduce((a,b)=>a+(b||0),0):0) +
+                            (c.cargas_abastible ? Object.values(c.cargas_abastible).reduce((a,b)=>a+(b||0),0):0)
+                        );
+                        titulo = `Compra de Gas (${total} carga${total !== 1 ? 's' : ''})`;
+                        descripcion = `Lipigas: ${c.compraLipigas ? 'Sí' : 'No'} • Abastible: ${c.compraAbastible ? 'Sí' : 'No'}`;
+                    } else {
+                        // entretenimiento: cine, jumper, gimnasio
+                        const nombreTipo = tipo.charAt(0).toUpperCase() + tipo.slice(1);
+                        const cantidad = c.cantidad || c.cantidadEntradas || 0;
+                        titulo = `${nombreTipo} - ${cantidad} ${cantidad === 1 ? 'entrada' : 'entradas'}`;
+                        descripcion = `Precio total: ${c.montoTotal ? '$' + c.montoTotal.toLocaleString('es-CL') : 'N/A'}`;
+                    }
+
+                    items.push({
+                        id: c.id,
+                        fuente: `compra_${tipo}`,
+                        tipoCompra: tipo,
+                        titulo,
+                        descripcion,
+                        fechaSolicitud: fecha,
+                        estado: c.estado || 'pendiente',
+                        fechaAprobacion: (c.estado === 'aprobado' ? fechaAprob : null),
+                        raw: c
+                    });
+                });
             }
-            
-            const solicitudHTML = `
-                <div class="solicitud-item">
-                    <div class="solicitud-header">
-                        <h3>${solicitud.tipoBeneficio.replace(/_/g, ' ')}</h3>
-                        ${estadoBadge}
-                    </div>
-                    <div class="solicitud-body">
-                        <p><strong>Fecha de solicitud:</strong> ${fecha}</p>
-                        <p><strong>Monto:</strong> $${solicitud.monto.toLocaleString('es-CL')}</p>
-                        <p><strong>Estado:</strong> ${solicitud.estado}</p>
-                        ${solicitud.motivoRechazo ? `<p><strong>Motivo:</strong> ${solicitud.motivoRechazo}</p>` : ''}
-                    </div>
-                    <div class="solicitud-footer">
-                        <button class="btn-small" onclick="verDetalleSolicitud('${solicitud.id}')">Ver Detalles</button>
-                    </div>
-                </div>
-            `;
-            
-            container.innerHTML += solicitudHTML;
-        });
-        
+        } else {
+            // Si no devolvió success puede que la función devuelva directamente arrays (compatibilidad)
+            if (comprasPorRUT && comprasPorRUT.comprasPorTipo) {
+                // ya cubierto arriba; si estructura distinta, ignoramos silenciosamente
+            }
+        }
+
+        // Mapear préstamos
+        if (Array.isArray(prestamos)) {
+            prestamos.forEach(p => {
+                const fecha = p.createdAt?.toDate?.() || new Date();
+                const fechaAprob = p.updatedAt?.toDate?.(); // en prestamos-firebase usamos updatedAt
+                items.push({
+                    id: p.id,
+                    fuente: 'prestamo',
+                    titulo: `Préstamo - ${p.tipoPrestamo || p.tipo || ''}`,
+                    descripcion: p.comentario || '',
+                    fechaSolicitud: fecha,
+                    estado: p.estado || 'pendiente',
+                    fechaAprobacion: (p.estado !== 'pendiente' ? fechaAprob : null),
+                    raw: p
+                });
+            });
+        }
+
+        // Ordenar items por fechaSolicitud descendente
+        items.sort((a, b) => b.fechaSolicitud - a.fechaSolicitud);
+
+        // Renderizar
+        renderMisSolicitudes(container, items);
+
     } catch (error) {
         console.error('Error al cargar solicitudes:', error);
     }
+}
+
+// Renderiza la lista unificada de solicitudes/compras/prestamos
+function renderMisSolicitudes(container, items) {
+    if (!container) return;
+
+    if (!items || items.length === 0) {
+        container.innerHTML = '<p>No tienes solicitudes ni compras registradas.</p>';
+        return;
+    }
+
+    container.innerHTML = '';
+
+    items.forEach(item => {
+        const fechaReq = formatDate(item.fechaSolicitud);
+        const fechaAprob = item.fechaAprobacion ? formatDate(item.fechaAprobacion) : null;
+
+        const estadoClass = estadoToClass(item.estado);
+
+        const card = document.createElement('div');
+        card.className = 'solicitud-item';
+        card.style.cssText = `
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            background: #fff;
+            padding: 14px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.03);
+        `;
+
+        const iconDiv = document.createElement('div');
+        iconDiv.style.cssText = 'font-size: 26px; width:48px; text-align:center;';
+
+        // icono según fuente
+        switch (true) {
+            case item.fuente.startsWith('compra_gas'):
+                iconDiv.textContent = '🛒';
+                break;
+            case item.fuente.startsWith('compra_cine'):
+            case item.fuente.startsWith('compra_jumper'):
+            case item.fuente.startsWith('compra_gimnasio'):
+                iconDiv.textContent = '🎟️';
+                break;
+            case item.fuente === 'prestamo':
+                iconDiv.textContent = '💰';
+                break;
+            default:
+                iconDiv.textContent = '📄';
+        }
+
+        const content = document.createElement('div');
+        content.style.flex = '1';
+
+        const header = document.createElement('div');
+        header.style.display = 'flex';
+        header.style.justifyContent = 'space-between';
+        header.style.alignItems = 'center';
+        header.style.marginBottom = '6px';
+
+        const title = document.createElement('div');
+        title.innerHTML = `<strong style="color:#2c5aa0;">${escapeHtml(item.titulo)}</strong><div style="font-size:13px;color:#6c757d;">${escapeHtml(item.descripcion || '')}</div>`;
+
+        const badge = document.createElement('div');
+        badge.innerHTML = `<span class="badge ${estadoClass}" style="padding:6px 10px; border-radius:999px; font-weight:600;">${capitalize(item.estado)}</span>`;
+
+        header.appendChild(title);
+        header.appendChild(badge);
+
+        const meta = document.createElement('div');
+        meta.style.fontSize = '13px';
+        meta.style.color = '#6c757d';
+        meta.style.marginTop = '8px';
+        meta.innerHTML = `Fecha solicitud: <strong>${fechaReq}</strong>`;
+        if (fechaAprob) {
+            meta.innerHTML += ` &nbsp; | &nbsp; Fecha aprobación: <strong>${fechaAprob}</strong>`;
+        }
+
+        // botón ver detalles (por ahora muestra console.log)
+        const actions = document.createElement('div');
+        actions.style.marginTop = '10px';
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-small';
+        btn.textContent = 'Ver detalles';
+        btn.onclick = () => {
+            // por ahora mostramos el object raw en consola; se puede abrir modal con más info
+            console.log('Detalle item:', item);
+            alert(`Detalle: ${item.titulo}\nEstado: ${item.estado}\nFecha solicitud: ${fechaReq}${fechaAprob ? '\nFecha aprobación: ' + fechaAprob : ''}`);
+        };
+        actions.appendChild(btn);
+
+        content.appendChild(header);
+        content.appendChild(meta);
+        content.appendChild(actions);
+
+        card.appendChild(iconDiv);
+        card.appendChild(content);
+
+        container.appendChild(card);
+    });
+}
+
+// Utils
+function formatDate(d) {
+    if (!d) return 'N/A';
+    const date = (d instanceof Date) ? d : (d.toDate ? d.toDate() : new Date(d));
+    return date.toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric' }) +
+           ' ' +
+           date.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+}
+
+function estadoToClass(estado) {
+    if (!estado) return 'badge-secondary';
+    switch (estado.toLowerCase()) {
+        case 'pendiente':
+        case 'pendiente_comprobante':
+        case 'en_revision':
+            return 'badge-warning';
+        case 'aprobada':
+        case 'aprobado':
+        case 'aprobado':
+            return 'badge-success';
+        case 'rechazada':
+        case 'rechazado':
+            return 'badge-danger';
+        default:
+            return 'badge-secondary';
+    }
+}
+
+function capitalize(s) {
+    if (!s) return s;
+    return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
 }
 
 // Cargar datos del perfil
@@ -180,7 +399,7 @@ async function cargarPerfil(funcionario) {
     }
 }
 
-// Manejo de tabs
+// Manejo de tabs (el resto del archivo se mantiene)
 document.addEventListener('DOMContentLoaded', function() {
     const navTabs = document.querySelectorAll('.nav-tab');
     const tabContents = document.querySelectorAll('.tab-content');
