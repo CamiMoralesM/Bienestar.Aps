@@ -1,5 +1,5 @@
-// Lógica de subida y guardado en Firebase para solicitudes de préstamos/fondo solidario
-import { db, storage, auth } from './firebase-config.js';
+ // Lógica simplificada para solicitudes de préstamos (SIN Firebase Storage para evitar CORS)
+import { db, auth } from './firebase-config.js';
 import {
   collection,
   addDoc,
@@ -8,20 +8,16 @@ import {
   where,
   Timestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 /**
- * Guarda una solicitud de préstamo en Firestore y sube los archivos a Storage.
- * - tipo: 'medico' | 'emergencia' | 'libre_disposicion' | 'fondo_solidario'
- * - datos: { nombre, rut, email, comentario, uid? }
- * - files: Array<File>
+ * Guarda una solicitud de préstamo en Firestore SIN subir archivos (evita CORS)
+ * Los archivos se enviarán por email separadamente
  */
 export async function guardarSolicitudPrestamo(tipo, datos, files = []) {
   try {
-    console.log('🔄 Iniciando guardado de solicitud de préstamo...');
+    console.log('🔄 Guardando solicitud de préstamo (sin archivos)...');
     console.log('Tipo:', tipo);
     console.log('Datos:', datos);
-    console.log('Archivos:', files?.length || 0);
 
     // Verificar autenticación
     if (!auth.currentUser) {
@@ -34,39 +30,19 @@ export async function guardarSolicitudPrestamo(tipo, datos, files = []) {
     console.log('UID del usuario:', uid);
     console.log('RUT limpio:', rutLimpio);
 
-    // Subir archivos a Storage y obtener URLs
-    const archivosSubidos = [];
-
-    console.log('📤 Subiendo archivos a Storage...');
+    // Crear lista de archivos SIN subirlos (solo metadatos)
+    const archivosInfo = [];
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      console.log(`Subiendo archivo ${i + 1}/${files.length}: ${file.name}`);
-      
-      const timestamp = Date.now();
-      const safeName = (file.name || 'archivo').replace(/\s+/g, '_').replace(/[^a-zA-Z0-9._-]/g, '');
-      const storagePath = `prestamos/${tipo}/${uid}/${timestamp}_${safeName}`;
-      const storageRef = ref(storage, storagePath);
-
-      try {
-        await uploadBytes(storageRef, file);
-        const url = await getDownloadURL(storageRef);
-
-        archivosSubidos.push({
-          nombre: file.name,
-          ruta: storagePath,
-          url: url,
-          tamaño: file.size,
-          tipoMime: file.type
-        });
-
-        console.log(`✅ Archivo subido: ${file.name}`);
-      } catch (uploadError) {
-        console.error(`❌ Error subiendo archivo ${file.name}:`, uploadError);
-        throw new Error(`Error al subir archivo: ${file.name}`);
-      }
+      archivosInfo.push({
+        nombre: file.name,
+        tamaño: file.size,
+        tipoMime: file.type,
+        estado: 'pendiente_email', // Indica que debe enviarse por email
+        url: null, // No hay URL porque no se sube
+        ruta: null
+      });
     }
-
-    console.log('📁 Archivos subidos exitosamente:', archivosSubidos.length);
 
     // Preparar datos del documento para Firestore
     const docData = {
@@ -76,38 +52,40 @@ export async function guardarSolicitudPrestamo(tipo, datos, files = []) {
       email: datos.email || '',
       tipoPrestamo: tipo,
       comentario: datos.comentario || '',
-      archivos: archivosSubidos,
+      archivos: archivosInfo, // Solo metadatos de archivos
       estado: 'pendiente',
+      requiereArchivos: files.length > 0,
+      totalArchivos: files.length,
+      instrucciones: 'Enviar documentos por email a bienestar@aps.cl mencionando el ID de esta solicitud',
       creadoPor: uid,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now()
     };
 
     console.log('💾 Guardando documento en Firestore...');
-    console.log('Estructura del documento:', docData);
 
     // Guardar documento en Firestore
     const docRef = await addDoc(collection(db, 'solicitudesPrestamos'), docData);
 
-    console.log('✅ Documento guardado con ID:', docRef.id);
+    console.log('✅ Solicitud guardada con ID:', docRef.id);
 
     return {
       success: true,
       id: docRef.id,
       doc: docData,
-      archivosSubidos: archivosSubidos.length
+      totalArchivos: files.length,
+      mensaje: `Solicitud creada exitosamente. ID: ${docRef.id}. Envíe los documentos por email a bienestar@aps.cl mencionando este ID.`
     };
     
   } catch (error) {
-    console.error('❌ Error guardando solicitud de prestamo:', error);
+    console.error('❌ Error guardando solicitud:', error);
     
-    // Proporcionar más detalles del error
     let errorMessage = error.message || String(error);
     
     if (error.code) {
       switch (error.code) {
         case 'permission-denied':
-          errorMessage = 'No tiene permisos para crear esta solicitud. Verifique que esté autenticado correctamente.';
+          errorMessage = 'No tiene permisos para crear esta solicitud. Verifique que esté autenticado.';
           break;
         case 'unauthenticated':
           errorMessage = 'Debe iniciar sesión para crear una solicitud.';
@@ -116,15 +94,14 @@ export async function guardarSolicitudPrestamo(tipo, datos, files = []) {
           errorMessage = 'Los datos de la solicitud no son válidos.';
           break;
         default:
-          errorMessage = `Error de Firebase: ${error.code} - ${error.message}`;
+          errorMessage = `Error: ${error.code} - ${error.message}`;
       }
     }
     
     return {
       success: false,
       error: errorMessage,
-      code: error.code || 'unknown',
-      details: error
+      code: error.code || 'unknown'
     };
   }
 }
@@ -146,34 +123,31 @@ export async function obtenerSolicitudesPrestamosPorUID(uid) {
     
     return resultados;
   } catch (error) {
-    console.error('❌ Error al obtener solicitudesPrestamos:', error);
+    console.error('❌ Error al obtener solicitudes:', error);
     return [];
   }
 }
 
 /**
- * Función auxiliar para validar archivos antes de subirlos
+ * Función auxiliar para validar datos (sin archivos)
  */
-export function validarArchivos(files) {
+export function validarDatosSolicitud(datos) {
   const errores = [];
-  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
   
-  if (!files || files.length === 0) {
-    errores.push('Debe adjuntar al menos un archivo');
-    return { valido: false, errores };
+  if (!datos.nombre || datos.nombre.trim().length < 3) {
+    errores.push('El nombre debe tener al menos 3 caracteres');
   }
   
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i];
-    
-    if (file.size > MAX_FILE_SIZE) {
-      errores.push(`El archivo "${file.name}" es muy grande (máximo 10MB)`);
-    }
-    
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      errores.push(`El archivo "${file.name}" no es un tipo válido (solo JPG, PNG, PDF)`);
-    }
+  if (!datos.rut || datos.rut.trim().length < 8) {
+    errores.push('El RUT es requerido y debe ser válido');
+  }
+  
+  if (!datos.email || !datos.email.includes('@')) {
+    errores.push('El email es requerido y debe ser válido');
+  }
+  
+  if (!datos.comentario || datos.comentario.trim().length < 10) {
+    errores.push('La descripción debe tener al menos 10 caracteres');
   }
   
   return {
@@ -182,8 +156,48 @@ export function validarArchivos(files) {
   };
 }
 
+/**
+ * Función para generar instrucciones de envío de documentos
+ */
+export function generarInstruccionesEmail(solicitudId, tipoSolicitud, nombreSolicitante) {
+  const tiposMap = {
+    'medico': 'Préstamo Médico',
+    'emergencia': 'Préstamo de Emergencia', 
+    'libre_disposicion': 'Préstamo de Libre Disposición',
+    'fondo_solidario': 'Fondo Solidario'
+  };
+  
+  const tipoNombre = tiposMap[tipoSolicitud] || tipoSolicitud;
+  
+  return {
+    para: 'bienestar@aps.cl',
+    asunto: `Documentos ${tipoNombre} - ID: ${solicitudId} - ${nombreSolicitante}`,
+    cuerpo: `Estimados,
+
+Adjunto los documentos requeridos para mi solicitud de ${tipoNombre}.
+
+Datos de la solicitud:
+- ID de Solicitud: ${solicitudId}
+- Nombre: ${nombreSolicitante}
+- Tipo: ${tipoNombre}
+- Fecha: ${new Date().toLocaleDateString('es-CL')}
+
+Documentos adjuntos:
+- Formulario completo y firmado
+- Fotocopia de cédula de identidad
+- Últimas 3 liquidaciones de sueldo
+- Otros documentos según corresponda
+
+Quedo atento a cualquier consulta.
+
+Saludos cordiales,
+${nombreSolicitante}`
+  };
+}
+
 export default {
   guardarSolicitudPrestamo,
   obtenerSolicitudesPrestamosPorUID,
-  validarArchivos
+  validarDatosSolicitud,
+  generarInstruccionesEmail
 };
