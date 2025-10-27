@@ -1,5 +1,6 @@
 // Dashboard del Afiliado - Versión Corregida Sin Notificaciones
 // Modificado para mostrar todas las compras y préstamos en la pestaña "Mis Solicitudes"
+// CON SISTEMA DE FILTROS PARA SOLICITUDES
 
 import { auth } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -12,6 +13,9 @@ import { cerrarSesion } from './auth.js';
 // Nuevas importaciones para obtener compras y préstamos
 import { obtenerComprasPorRUT } from './compras-gas-firebase.js';
 import { obtenerSolicitudesPrestamosPorUID } from './prestamos-firebase.js';
+
+// Variable global para almacenar todas las solicitudes (para filtrado)
+let todasLasSolicitudes = [];
 
 // Verificar autenticación al cargar
 onAuthStateChanged(auth, async (user) => {
@@ -97,6 +101,203 @@ async function cargarEstadisticas(uid, fechaAfiliacion) {
         console.error('Error al cargar estadísticas:', error);
     }
 }
+
+// ========================================
+// SISTEMA DE FILTROS PARA SOLICITUDES
+// ========================================
+
+/**
+ * Crea los filtros para las solicitudes si no existen
+ */
+function crearFiltrosSolicitudes() {
+    const container = document.getElementById('listaSolicitudes');
+    if (!container) return;
+    
+    // Verificar si ya existe el contenedor de filtros
+    let filtrosContainer = document.getElementById('filtros-solicitudes');
+    if (filtrosContainer) return; // Ya existe
+    
+    // Crear contenedor de filtros
+    filtrosContainer = document.createElement('div');
+    filtrosContainer.id = 'filtros-solicitudes';
+    filtrosContainer.className = 'filtros-container';
+    filtrosContainer.style.cssText = `
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        border: 1px solid #e9ecef;
+    `;
+    
+    // HTML de los filtros
+    filtrosContainer.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
+            <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <label for="filtro-estado" style="font-weight: 600; color: #495057;">Filtrar por estado:</label>
+                    <select id="filtro-estado" style="
+                        padding: 6px 12px;
+                        border: 1px solid #ced4da;
+                        border-radius: 4px;
+                        background: white;
+                        min-width: 120px;
+                    ">
+                        <option value="todas">Todas</option>
+                        <option value="pendiente">Pendientes</option>
+                        <option value="aprobada">Aprobadas</option>
+                        <option value="aprobado">Aprobadas</option>
+                        <option value="rechazada">Rechazadas</option>
+                        <option value="rechazado">Rechazadas</option>
+                    </select>
+                </div>
+                
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <label for="filtro-tipo" style="font-weight: 600; color: #495057;">Filtrar por tipo:</label>
+                    <select id="filtro-tipo" style="
+                        padding: 6px 12px;
+                        border: 1px solid #ced4da;
+                        border-radius: 4px;
+                        background: white;
+                        min-width: 140px;
+                    ">
+                        <option value="todos">Todos los tipos</option>
+                        <option value="solicitud_beneficio">Beneficios</option>
+                        <option value="compra_gas">Compras Gas</option>
+                        <option value="compra_cine">Cine</option>
+                        <option value="compra_jumper">Jumper</option>
+                        <option value="compra_gimnasio">Gimnasio</option>
+                        <option value="prestamo">Préstamos</option>
+                    </select>
+                </div>
+                
+                <button id="limpiar-filtros" style="
+                    padding: 6px 12px;
+                    background: #6c757d;
+                    color: white;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 14px;
+                ">
+                    🔄 Limpiar filtros
+                </button>
+            </div>
+            
+            <div id="contador-solicitudes" style="
+                font-weight: 600;
+                color: #495057;
+                background: white;
+                padding: 8px 12px;
+                border-radius: 4px;
+                border: 1px solid #dee2e6;
+            ">
+                Mostrando 0 de 0 solicitudes
+            </div>
+        </div>
+    `;
+    
+    // Insertar antes del contenedor de solicitudes
+    container.parentNode.insertBefore(filtrosContainer, container);
+    
+    // Agregar event listeners
+    document.getElementById('filtro-estado').addEventListener('change', aplicarFiltros);
+    document.getElementById('filtro-tipo').addEventListener('change', aplicarFiltros);
+    document.getElementById('limpiar-filtros').addEventListener('click', limpiarFiltros);
+}
+
+/**
+ * Aplica los filtros seleccionados a las solicitudes
+ */
+function aplicarFiltros() {
+    const filtroEstado = document.getElementById('filtro-estado')?.value || 'todas';
+    const filtroTipo = document.getElementById('filtro-tipo')?.value || 'todos';
+    
+    console.log('🔍 Aplicando filtros:', { estado: filtroEstado, tipo: filtroTipo });
+    
+    let solicitudesFiltradas = [...todasLasSolicitudes];
+    
+    // Filtrar por estado
+    if (filtroEstado !== 'todas') {
+        solicitudesFiltradas = solicitudesFiltradas.filter(solicitud => {
+            const estado = (solicitud.estado || '').toLowerCase();
+            const filtro = filtroEstado.toLowerCase();
+            
+            // Manejar sinónimos de estados
+            if (filtro === 'aprobada' || filtro === 'aprobado') {
+                return estado === 'aprobada' || estado === 'aprobado';
+            }
+            if (filtro === 'rechazada' || filtro === 'rechazado') {
+                return estado === 'rechazada' || estado === 'rechazado';
+            }
+            
+            return estado === filtro;
+        });
+    }
+    
+    // Filtrar por tipo
+    if (filtroTipo !== 'todos') {
+        solicitudesFiltradas = solicitudesFiltradas.filter(solicitud => {
+            if (filtroTipo === 'solicitud_beneficio') {
+                return solicitud.fuente === 'solicitud_beneficio';
+            }
+            if (filtroTipo === 'prestamo') {
+                return solicitud.fuente === 'prestamo';
+            }
+            if (filtroTipo.startsWith('compra_')) {
+                return solicitud.fuente === filtroTipo;
+            }
+            return true;
+        });
+    }
+    
+    console.log(`📊 Filtros aplicados: ${solicitudesFiltradas.length} de ${todasLasSolicitudes.length} solicitudes`);
+    
+    // Renderizar solicitudes filtradas
+    const container = document.getElementById('listaSolicitudes');
+    renderMisSolicitudes(container, solicitudesFiltradas);
+    
+    // Actualizar contador
+    actualizarContadorSolicitudes(solicitudesFiltradas.length, todasLasSolicitudes.length);
+}
+
+/**
+ * Limpia todos los filtros y muestra todas las solicitudes
+ */
+function limpiarFiltros() {
+    document.getElementById('filtro-estado').value = 'todas';
+    document.getElementById('filtro-tipo').value = 'todos';
+    
+    const container = document.getElementById('listaSolicitudes');
+    renderMisSolicitudes(container, todasLasSolicitudes);
+    
+    actualizarContadorSolicitudes(todasLasSolicitudes.length, todasLasSolicitudes.length);
+    
+    console.log('🔄 Filtros limpiados, mostrando todas las solicitudes');
+}
+
+/**
+ * Actualiza el contador de solicitudes mostradas
+ */
+function actualizarContadorSolicitudes(mostradas, total) {
+    const contador = document.getElementById('contador-solicitudes');
+    if (contador) {
+        contador.textContent = `Mostrando ${mostradas} de ${total} solicitudes`;
+        
+        // Cambiar color según si hay filtros activos
+        if (mostradas === total) {
+            contador.style.backgroundColor = 'white';
+            contador.style.color = '#495057';
+        } else {
+            contador.style.backgroundColor = '#e3f2fd';
+            contador.style.color = '#1976d2';
+            contador.style.fontWeight = 'bold';
+        }
+    }
+}
+
+// ========================================
+// CARGAR SOLICITUDES (MODIFICADO)
+// ========================================
 
 // Cargar solicitudes (ahora combina: solicitudes, compras y préstamos)
 async function cargarSolicitudes(uid, rut) {
@@ -215,8 +416,17 @@ async function cargarSolicitudes(uid, rut) {
         // Ordenar items por fechaSolicitud descendente
         items.sort((a, b) => b.fechaSolicitud - a.fechaSolicitud);
 
-        // Renderizar
+        // Guardar todas las solicitudes para filtrado
+        todasLasSolicitudes = items;
+
+        // Crear filtros si no existen
+        crearFiltrosSolicitudes();
+
+        // Renderizar todas las solicitudes inicialmente
         renderMisSolicitudes(container, items);
+
+        // Actualizar contador
+        actualizarContadorSolicitudes(items.length, items.length);
 
     } catch (error) {
         console.error('Error al cargar solicitudes:', error);
@@ -228,7 +438,13 @@ function renderMisSolicitudes(container, items) {
     if (!container) return;
 
     if (!items || items.length === 0) {
-        container.innerHTML = '<p>No tienes solicitudes ni compras registradas.</p>';
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: #6c757d;">
+                <div style="font-size: 48px; margin-bottom: 16px;">📭</div>
+                <h3 style="margin-bottom: 8px;">No hay solicitudes que mostrar</h3>
+                <p>No se encontraron solicitudes con los filtros aplicados.</p>
+            </div>
+        `;
         return;
     }
 
@@ -247,14 +463,27 @@ function renderMisSolicitudes(container, items) {
             gap: 12px;
             align-items: flex-start;
             background: #fff;
-            padding: 14px;
+            padding: 16px;
             border-radius: 8px;
             margin-bottom: 12px;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.03);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border: 1px solid #e9ecef;
+            transition: all 0.2s ease;
         `;
 
+        // Efecto hover
+        card.addEventListener('mouseenter', () => {
+            card.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+            card.style.transform = 'translateY(-1px)';
+        });
+        
+        card.addEventListener('mouseleave', () => {
+            card.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
+            card.style.transform = 'translateY(0)';
+        });
+
         const iconDiv = document.createElement('div');
-        iconDiv.style.cssText = 'font-size: 26px; width:48px; text-align:center;';
+        iconDiv.style.cssText = 'font-size: 28px; width:50px; text-align:center; margin-top: 4px;';
 
         // icono según fuente
         switch (true) {
@@ -262,9 +491,13 @@ function renderMisSolicitudes(container, items) {
                 iconDiv.textContent = '🛒';
                 break;
             case item.fuente.startsWith('compra_cine'):
+                iconDiv.textContent = '🎬';
+                break;
             case item.fuente.startsWith('compra_jumper'):
+                iconDiv.textContent = '🤸';
+                break;
             case item.fuente.startsWith('compra_gimnasio'):
-                iconDiv.textContent = '🎟️';
+                iconDiv.textContent = '💪';
                 break;
             case item.fuente === 'prestamo':
                 iconDiv.textContent = '💰';
@@ -279,26 +512,57 @@ function renderMisSolicitudes(container, items) {
         const header = document.createElement('div');
         header.style.display = 'flex';
         header.style.justifyContent = 'space-between';
-        header.style.alignItems = 'center';
-        header.style.marginBottom = '6px';
+        header.style.alignItems = 'flex-start';
+        header.style.marginBottom = '8px';
+        header.style.gap = '12px';
 
-        const title = document.createElement('div');
-        title.innerHTML = `<strong style="color:#2c5aa0;">${escapeHtml(item.titulo)}</strong><div style="font-size:13px;color:#6c757d;">${escapeHtml(item.descripcion || '')}</div>`;
+        const titleDiv = document.createElement('div');
+        titleDiv.style.flex = '1';
+
+        const title = document.createElement('h4');
+        title.style.cssText = 'margin: 0 0 4px 0; color: #2c5aa0; font-size: 16px; font-weight: 600;';
+        title.textContent = escapeHtml(item.titulo);
+
+        const description = document.createElement('p');
+        description.style.cssText = 'margin: 0; font-size: 14px; color: #6c757d; line-height: 1.4;';
+        description.textContent = escapeHtml(item.descripcion || '');
+
+        titleDiv.appendChild(title);
+        if (item.descripcion) {
+            titleDiv.appendChild(description);
+        }
 
         const badge = document.createElement('div');
-        badge.innerHTML = `<span class="badge ${estadoClass}" style="padding:6px 10px; border-radius:999px; font-weight:600;">${capitalize(item.estado)}</span>`;
+        badge.innerHTML = `<span class="badge ${estadoClass}" style="
+            padding: 6px 12px; 
+            border-radius: 20px; 
+            font-weight: 600; 
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        ">${capitalize(item.estado)}</span>`;
 
-        header.appendChild(title);
+        header.appendChild(titleDiv);
         header.appendChild(badge);
 
         const meta = document.createElement('div');
         meta.style.fontSize = '13px';
         meta.style.color = '#6c757d';
-        meta.style.marginTop = '8px';
-        meta.innerHTML = `Fecha solicitud: <strong>${fechaReq}</strong>`;
+        meta.style.marginTop = '12px';
+        meta.style.paddingTop = '8px';
+        meta.style.borderTop = '1px solid #f1f3f4';
+        
+        let metaHTML = `📅 Fecha solicitud: <strong>${fechaReq}</strong>`;
         if (fechaAprob) {
-            meta.innerHTML += ` &nbsp; | &nbsp; Fecha aprobación: <strong>${fechaAprob}</strong>`;
+            metaHTML += ` &nbsp;•&nbsp; ✅ Fecha respuesta: <strong>${fechaAprob}</strong>`;
         }
+        
+        // Agregar tipo de fuente
+        const tipoFuente = getTipoFuenteLabel(item.fuente);
+        metaHTML += ` &nbsp;•&nbsp; 🏷️ Tipo: <strong>${tipoFuente}</strong>`;
+        
+        meta.innerHTML = metaHTML;
 
         content.appendChild(header);
         content.appendChild(meta);
@@ -308,6 +572,25 @@ function renderMisSolicitudes(container, items) {
 
         container.appendChild(card);
     });
+}
+
+// ========================================
+// FUNCIONES AUXILIARES
+// ========================================
+
+/**
+ * Obtiene la etiqueta legible del tipo de fuente
+ */
+function getTipoFuenteLabel(fuente) {
+    const labels = {
+        'solicitud_beneficio': 'Beneficio',
+        'compra_gas': 'Gas',
+        'compra_cine': 'Cine',
+        'compra_jumper': 'Jumper',
+        'compra_gimnasio': 'Gimnasio',
+        'prestamo': 'Préstamo'
+    };
+    return labels[fuente] || fuente;
 }
 
 // Utils
@@ -327,7 +610,6 @@ function estadoToClass(estado) {
         case 'en_revision':
             return 'badge-warning';
         case 'aprobada':
-        case 'aprobado':
         case 'aprobado':
             return 'badge-success';
         case 'rechazada':
@@ -445,3 +727,64 @@ function animateStats() {
 }
 
 window.addEventListener('load', animateStats);
+
+// ========================================
+// ESTILOS CSS PARA LOS BADGES
+// ========================================
+
+// Agregar estilos CSS dinámicamente
+const style = document.createElement('style');
+style.textContent = `
+    .badge {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 600;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: baseline;
+        border-radius: 20px;
+        padding: 6px 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .badge-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+    
+    .badge-warning {
+        background-color: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeaa7;
+    }
+    
+    .badge-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+    
+    .badge-secondary {
+        background-color: #e2e3e5;
+        color: #383d41;
+        border: 1px solid #d6d8db;
+    }
+    
+    .filtros-container select:hover {
+        border-color: #80bdff;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+    }
+    
+    .filtros-container button:hover {
+        background-color: #5a6268 !important;
+        transform: translateY(-1px);
+    }
+    
+    .solicitud-item:hover {
+        border-color: #80bdff;
+    }
+`;
+
+document.head.appendChild(style);
