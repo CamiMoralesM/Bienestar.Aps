@@ -144,9 +144,7 @@ function crearFiltrosSolicitudes() {
                     ">
                         <option value="todas">Todas</option>
                         <option value="pendiente">Pendientes</option>
-                        <option value="aprobada">Aprobadas</option>
                         <option value="aprobado">Aprobadas</option>
-                        <option value="rechazada">Rechazadas</option>
                         <option value="rechazado">Rechazadas</option>
                     </select>
                 </div>
@@ -161,7 +159,6 @@ function crearFiltrosSolicitudes() {
                         min-width: 140px;
                     ">
                         <option value="todos">Todos los tipos</option>
-                        <option value="solicitud_beneficio">Beneficios</option>
                         <option value="compra_gas">Compras Gas</option>
                         <option value="compra_cine">Cine</option>
                         <option value="compra_jumper">Jumper</option>
