@@ -362,7 +362,12 @@ async function cargarSolicitudes(uid, rut) {
                             (c.cargas_lipigas ? Object.values(c.cargas_lipigas).reduce((a,b)=>a+(b||0),0):0) +
                             (c.cargas_abastible ? Object.values(c.cargas_abastible).reduce((a,b)=>a+(b||0),0):0)
                         );
-                        titulo = `Compra de Gas (${total} carga${total !== 1 ? 's' : ''})`;
+                        
+                        // Obtener precio total
+                        const precioTotal = c.preciototal || c.precioTotal || c.montoTotal;
+                        const precioTexto = precioTotal ? ` - $${precioTotal.toLocaleString('es-CL')}` : '';
+                        
+                        titulo = `Compra de Gas (${total} carga${total !== 1 ? 's' : ''})${precioTexto}`;
                         
                         // ========================================
                         // MEJORA: CREAR DESCRIPCIÓN DETALLADA CON KILOS Y CANTIDADES
@@ -389,6 +394,12 @@ async function cargarSolicitudes(uid, rut) {
                             if (abastibleDetails.length > 0) {
                                 descripcionParts.push(`⛽ Abastible: ${abastibleDetails.join(', ')}`);
                             }
+                        }
+                        
+                        // Agregar precio total si está disponible
+                        if (c.preciototal || c.precioTotal || c.montoTotal) {
+                            const precio = c.preciototal || c.precioTotal || c.montoTotal;
+                            descripcionParts.push(`💵 Total: $${precio.toLocaleString('es-CL')}`);
                         }
                         
                         if (c.saldoFavor) {
@@ -668,6 +679,17 @@ function formatearDescripcionGas(descripcion) {
                 font-weight: 600;
                 white-space: nowrap;
             ">${escapeHtml(parte)}</div>`;
+        } else if (parte.includes('Total:')) {
+            html += `<div style="
+                background: linear-gradient(135deg, #fd7e14 0%, #e55353 100%);
+                color: white;
+                padding: 4px 8px;
+                border-radius: 6px;
+                font-size: 12px;
+                font-weight: 700;
+                white-space: nowrap;
+                box-shadow: 0 2px 4px rgba(253, 126, 20, 0.3);
+            ">${escapeHtml(parte)}</div>`;
         } else if (parte.includes('Saldo a favor:')) {
             html += `<div style="
                 background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
@@ -937,6 +959,13 @@ style.textContent = `
     .solicitud-item .gas-detail-tag.saldo {
         background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
         color: white;
+    }
+    
+    .solicitud-item .gas-detail-tag.total {
+        background: linear-gradient(135deg, #fd7e14 0%, #e55353 100%);
+        color: white;
+        font-weight: 700;
+        box-shadow: 0 2px 4px rgba(253, 126, 20, 0.3);
     }
     
     .solicitud-item .gas-detail-tag.fecha {
