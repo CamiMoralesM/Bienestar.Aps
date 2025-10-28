@@ -1,6 +1,6 @@
-// Dashboard del Afiliado - Versión Mejorada con Detalles Completos de Gas
+// Dashboard del Afiliado - Versión Corregida Sin Notificaciones
 // Modificado para mostrar todas las compras y préstamos en la pestaña "Mis Solicitudes"
-// CON SISTEMA DE FILTROS PARA SOLICITUDES Y DETALLES COMPLETOS DE GAS
+// CON SISTEMA DE FILTROS PARA SOLICITUDES
 
 import { auth } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -357,51 +357,13 @@ async function cargarSolicitudes(uid, rut) {
                     let descripcion = '';
 
                     if (tipo === 'gas') {
-                        // Calcular total de cargas si no está
+                        // calcular total de cargas si no está
                         const total = c.totalCargas ?? (
                             (c.cargas_lipigas ? Object.values(c.cargas_lipigas).reduce((a,b)=>a+(b||0),0):0) +
                             (c.cargas_abastible ? Object.values(c.cargas_abastible).reduce((a,b)=>a+(b||0),0):0)
                         );
                         titulo = `Compra de Gas (${total} carga${total !== 1 ? 's' : ''})`;
-                        
-                        // ========================================
-                        // MEJORA: CREAR DESCRIPCIÓN DETALLADA CON KILOS Y CANTIDADES
-                        // ========================================
-                        let descripcionParts = [];
-                        
-                        if (c.compraLipigas && c.cargas_lipigas) {
-                            const lipigasDetails = [];
-                            if (c.cargas_lipigas.kg5 > 0) lipigasDetails.push(`${c.cargas_lipigas.kg5}x 5kg`);
-                            if (c.cargas_lipigas.kg11 > 0) lipigasDetails.push(`${c.cargas_lipigas.kg11}x 11kg`);
-                            if (c.cargas_lipigas.kg15 > 0) lipigasDetails.push(`${c.cargas_lipigas.kg15}x 15kg`);
-                            if (c.cargas_lipigas.kg45 > 0) lipigasDetails.push(`${c.cargas_lipigas.kg45}x 45kg`);
-                            if (lipigasDetails.length > 0) {
-                                descripcionParts.push(`🔥 Lipigas: ${lipigasDetails.join(', ')}`);
-                            }
-                        }
-                        
-                        if (c.compraAbastible && c.cargas_abastible) {
-                            const abastibleDetails = [];
-                            if (c.cargas_abastible.kg5 > 0) abastibleDetails.push(`${c.cargas_abastible.kg5}x 5kg`);
-                            if (c.cargas_abastible.kg11 > 0) abastibleDetails.push(`${c.cargas_abastible.kg11}x 11kg`);
-                            if (c.cargas_abastible.kg15 > 0) abastibleDetails.push(`${c.cargas_abastible.kg15}x 15kg`);
-                            if (c.cargas_abastible.kg45 > 0) abastibleDetails.push(`${c.cargas_abastible.kg45}x 45kg`);
-                            if (abastibleDetails.length > 0) {
-                                descripcionParts.push(`⛽ Abastible: ${abastibleDetails.join(', ')}`);
-                            }
-                        }
-                        
-                        if (c.saldoFavor) {
-                            descripcionParts.push(`💰 Saldo a favor: ${c.saldoFavor}`);
-                        }
-                        
-                        // Agregar información de fecha de compra si está disponible
-                        if (c.fechaCompra) {
-                            descripcionParts.push(`📅 Fecha compra: ${c.fechaCompra}`);
-                        }
-                        
-                        descripcion = descripcionParts.length > 0 ? descripcionParts.join(' • ') : 'Sin detalles específicos';
-                        
+                        descripcion = `Lipigas: ${c.compraLipigas ? 'Sí' : 'No'} • Abastible: ${c.compraAbastible ? 'Sí' : 'No'}`;
                     } else {
                         // entretenimiento: cine, jumper, gimnasio
                         const nombreTipo = tipo.charAt(0).toUpperCase() + tipo.slice(1);
@@ -468,11 +430,7 @@ async function cargarSolicitudes(uid, rut) {
     }
 }
 
-// ========================================
-// RENDERIZAR SOLICITUDES CON DETALLES MEJORADOS
-// ========================================
-
-// Renderiza la lista unificada de solicitudes/compras/prestamos con detalles mejorados
+// Renderiza la lista unificada de solicitudes/compras/prestamos
 function renderMisSolicitudes(container, items) {
     if (!container) return;
 
@@ -502,13 +460,12 @@ function renderMisSolicitudes(container, items) {
             gap: 12px;
             align-items: flex-start;
             background: #fff;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 16px;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06);
             border: 1px solid #e9ecef;
             transition: all 0.2s ease;
-            position: relative;
         `;
 
         // Efecto hover
@@ -523,7 +480,7 @@ function renderMisSolicitudes(container, items) {
         });
 
         const iconDiv = document.createElement('div');
-        iconDiv.style.cssText = 'font-size: 32px; width:60px; text-align:center; margin-top: 4px; flex-shrink: 0;';
+        iconDiv.style.cssText = 'font-size: 28px; width:50px; text-align:center; margin-top: 4px;';
 
         // icono según fuente
         switch (true) {
@@ -553,29 +510,19 @@ function renderMisSolicitudes(container, items) {
         header.style.display = 'flex';
         header.style.justifyContent = 'space-between';
         header.style.alignItems = 'flex-start';
-        header.style.marginBottom = '12px';
+        header.style.marginBottom = '8px';
         header.style.gap = '12px';
 
         const titleDiv = document.createElement('div');
         titleDiv.style.flex = '1';
 
         const title = document.createElement('h4');
-        title.style.cssText = 'margin: 0 0 8px 0; color: #2c5aa0; font-size: 18px; font-weight: 600; line-height: 1.3;';
+        title.style.cssText = 'margin: 0 0 4px 0; color: #2c5aa0; font-size: 16px; font-weight: 600;';
         title.textContent = escapeHtml(item.titulo);
 
-        const description = document.createElement('div');
-        description.style.cssText = 'margin: 0; font-size: 14px; color: #495057; line-height: 1.5;';
-        
-        // ========================================
-        // MEJORA: RENDERIZADO ESPECIAL PARA COMPRAS DE GAS
-        // ========================================
-        if (item.fuente === 'compra_gas') {
-            // Para gas, mostrar la descripción con formato especial
-            const descripcionFormatted = formatearDescripcionGas(item.descripcion);
-            description.innerHTML = descripcionFormatted;
-        } else {
-            description.textContent = escapeHtml(item.descripcion || '');
-        }
+        const description = document.createElement('p');
+        description.style.cssText = 'margin: 0; font-size: 14px; color: #6c757d; line-height: 1.4;';
+        description.textContent = escapeHtml(item.descripcion || '');
 
         titleDiv.appendChild(title);
         if (item.descripcion) {
@@ -584,7 +531,7 @@ function renderMisSolicitudes(container, items) {
 
         const badge = document.createElement('div');
         badge.innerHTML = `<span class="badge ${estadoClass}" style="
-            padding: 8px 16px; 
+            padding: 6px 12px; 
             border-radius: 20px; 
             font-weight: 600; 
             font-size: 12px;
@@ -599,27 +546,18 @@ function renderMisSolicitudes(container, items) {
         const meta = document.createElement('div');
         meta.style.fontSize = '13px';
         meta.style.color = '#6c757d';
-        meta.style.marginTop = '16px';
-        meta.style.paddingTop = '12px';
+        meta.style.marginTop = '12px';
+        meta.style.paddingTop = '8px';
         meta.style.borderTop = '1px solid #f1f3f4';
-        meta.style.display = 'grid';
-        meta.style.gridTemplateColumns = 'auto auto auto';
-        meta.style.gap = '12px';
-        meta.style.alignItems = 'center';
         
-        let metaHTML = `
-            <div>📅 <strong>Solicitud:</strong> ${fechaReq}</div>
-        `;
-        
+        let metaHTML = `📅 Fecha solicitud: <strong>${fechaReq}</strong>`;
         if (fechaAprob) {
-            metaHTML += `<div>✅ <strong>Respuesta:</strong> ${fechaAprob}</div>`;
-        } else {
-            metaHTML += `<div>⏳ <strong>Estado:</strong> En proceso</div>`;
+            metaHTML += ` &nbsp;•&nbsp; ✅ Fecha respuesta: <strong>${fechaAprob}</strong>`;
         }
         
         // Agregar tipo de fuente
         const tipoFuente = getTipoFuenteLabel(item.fuente);
-        metaHTML += `<div>🏷️ <strong>Tipo:</strong> ${tipoFuente}</div>`;
+        metaHTML += ` &nbsp;•&nbsp; 🏷️ Tipo: <strong>${tipoFuente}</strong>`;
         
         meta.innerHTML = metaHTML;
 
@@ -634,66 +572,8 @@ function renderMisSolicitudes(container, items) {
 }
 
 // ========================================
-// FUNCIONES AUXILIARES MEJORADAS
+// FUNCIONES AUXILIARES
 // ========================================
-
-/**
- * Formatea la descripción de las compras de gas con un diseño más visual
- */
-function formatearDescripcionGas(descripcion) {
-    if (!descripcion) return 'Sin detalles específicos';
-    
-    // Dividir por separador •
-    const partes = descripcion.split(' • ');
-    let html = '<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">';
-    
-    partes.forEach(parte => {
-        if (parte.includes('Lipigas:')) {
-            html += `<div style="
-                background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
-                color: white;
-                padding: 4px 8px;
-                border-radius: 6px;
-                font-size: 12px;
-                font-weight: 600;
-                white-space: nowrap;
-            ">${escapeHtml(parte)}</div>`;
-        } else if (parte.includes('Abastible:')) {
-            html += `<div style="
-                background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-                color: white;
-                padding: 4px 8px;
-                border-radius: 6px;
-                font-size: 12px;
-                font-weight: 600;
-                white-space: nowrap;
-            ">${escapeHtml(parte)}</div>`;
-        } else if (parte.includes('Saldo a favor:')) {
-            html += `<div style="
-                background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-                color: white;
-                padding: 4px 8px;
-                border-radius: 6px;
-                font-size: 12px;
-                font-weight: 600;
-                white-space: nowrap;
-            ">${escapeHtml(parte)}</div>`;
-        } else {
-            html += `<div style="
-                background: #f8f9fa;
-                color: #495057;
-                padding: 4px 8px;
-                border-radius: 6px;
-                font-size: 12px;
-                border: 1px solid #dee2e6;
-                white-space: nowrap;
-            ">${escapeHtml(parte)}</div>`;
-        }
-    });
-    
-    html += '</div>';
-    return html;
-}
 
 /**
  * Obtiene la etiqueta legible del tipo de fuente
@@ -714,14 +594,9 @@ function getTipoFuenteLabel(fuente) {
 function formatDate(d) {
     if (!d) return 'N/A';
     const date = (d instanceof Date) ? d : (d.toDate ? d.toDate() : new Date(d));
-    return date.toLocaleDateString('es-CL', { 
-        day: '2-digit', 
-        month: '2-digit', 
-        year: 'numeric' 
-    }) + ' ' + date.toLocaleTimeString('es-CL', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
-    });
+    return date.toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric' }) +
+           ' ' +
+           date.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
 }
 
 function estadoToClass(estado) {
@@ -851,7 +726,7 @@ function animateStats() {
 window.addEventListener('load', animateStats);
 
 // ========================================
-// ESTILOS CSS MEJORADOS PARA LOS BADGES Y DETALLES
+// ESTILOS CSS PARA LOS BADGES
 // ========================================
 
 // Agregar estilos CSS dinámicamente
@@ -865,7 +740,7 @@ style.textContent = `
         white-space: nowrap;
         vertical-align: baseline;
         border-radius: 20px;
-        padding: 8px 16px;
+        padding: 6px 12px;
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
@@ -906,43 +781,6 @@ style.textContent = `
     
     .solicitud-item:hover {
         border-color: #80bdff;
-    }
-    
-    /* Estilos para mejorar la legibilidad de los detalles de gas */
-    .solicitud-item .gas-details {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-top: 8px;
-    }
-    
-    .solicitud-item .gas-detail-tag {
-        padding: 4px 8px;
-        border-radius: 6px;
-        font-size: 11px;
-        font-weight: 600;
-        white-space: nowrap;
-    }
-    
-    .solicitud-item .gas-detail-tag.lipigas {
-        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
-        color: white;
-    }
-    
-    .solicitud-item .gas-detail-tag.abastible {
-        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        color: white;
-    }
-    
-    .solicitud-item .gas-detail-tag.saldo {
-        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-        color: white;
-    }
-    
-    .solicitud-item .gas-detail-tag.fecha {
-        background: #f8f9fa;
-        color: #495057;
-        border: 1px solid #dee2e6;
     }
 `;
 
