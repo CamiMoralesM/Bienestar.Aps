@@ -1,6 +1,6 @@
-// Dashboard del Afiliado - Versión Mejorada con Detalle Específico de Gas
-// Modificado para mostrar detalle específico de qué gas se compró (Lipigas/Abastible) y cantidades por tamaño
-// CON SISTEMA DE FILTROS PARA SOLICITUDES Y DETALLE COMPLETO DE CUPONES DE GAS
+// Dashboard del Afiliado - Versión Corregida Sin Notificaciones
+// Modificado para mostrar todas las compras y préstamos en la pestaña "Mis Solicitudes"
+// CON SISTEMA DE FILTROS PARA SOLICITUDES Y DETALLE DE CUPONES DE GAS
 
 import { auth } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -110,159 +110,6 @@ async function cargarEstadisticas(uid, fechaAfiliacion) {
     } catch (error) {
         console.error('Error al cargar estadísticas:', error);
     }
-}
-
-// ========================================
-// FUNCIÓN NUEVA: GENERAR DESCRIPCIÓN DETALLADA DE GAS
-// ========================================
-
-/**
- * Genera una descripción detallada de la compra de gas mostrando qué se compró específicamente
- * @param {Object} compraGas - Objeto con los datos de la compra de gas
- * @returns {string} - Descripción detallada formateada
- */
-function generarDescripcionDetalladaGas(compraGas) {
-    const detalles = [];
-    
-    // Verificar compras de Lipigas
-    if (compraGas.compraLipigas === 'si' || compraGas.compraLipigas === true) {
-        const lipigasDetalles = [];
-        const cargas = compraGas.cargas_lipigas || {};
-        
-        // Revisar cada tamaño de Lipigas
-        if (cargas.lipigas5 && cargas.lipigas5 > 0) {
-            lipigasDetalles.push(`${cargas.lipigas5}x 5kg`);
-        }
-        if (cargas.lipigas11 && cargas.lipigas11 > 0) {
-            lipigasDetalles.push(`${cargas.lipigas11}x 11kg`);
-        }
-        if (cargas.lipigas15 && cargas.lipigas15 > 0) {
-            lipigasDetalles.push(`${cargas.lipigas15}x 15kg`);
-        }
-        if (cargas.lipigas45 && cargas.lipigas45 > 0) {
-            lipigasDetalles.push(`${cargas.lipigas45}x 45kg`);
-        }
-        
-        if (lipigasDetalles.length > 0) {
-            detalles.push(`🔥 Lipigas: ${lipigasDetalles.join(', ')}`);
-        } else {
-            detalles.push(`🔥 Lipigas: Seleccionado`);
-        }
-    }
-    
-    // Verificar compras de Abastible
-    if (compraGas.compraAbastible === 'si' || compraGas.compraAbastible === true) {
-        const abastibleDetalles = [];
-        const cargas = compraGas.cargas_abastible || {};
-        
-        // Revisar cada tamaño de Abastible
-        if (cargas.abastible5 && cargas.abastible5 > 0) {
-            abastibleDetalles.push(`${cargas.abastible5}x 5kg`);
-        }
-        if (cargas.abastible11 && cargas.abastible11 > 0) {
-            abastibleDetalles.push(`${cargas.abastible11}x 11kg`);
-        }
-        if (cargas.abastible15 && cargas.abastible15 > 0) {
-            abastibleDetalles.push(`${cargas.abastible15}x 15kg`);
-        }
-        if (cargas.abastible45 && cargas.abastible45 > 0) {
-            abastibleDetalles.push(`${cargas.abastible45}x 45kg`);
-        }
-        
-        if (abastibleDetalles.length > 0) {
-            detalles.push(`⛽ Abastible: ${abastibleDetalles.join(', ')}`);
-        } else {
-            detalles.push(`⛽ Abastible: Seleccionado`);
-        }
-    }
-    
-    // Agregar monto total si está disponible
-    if (compraGas.montoTotal && compraGas.montoTotal > 0) {
-        detalles.push(`💰 Total: $${compraGas.montoTotal.toLocaleString('es-CL')}`);
-    }
-    
-    // Agregar saldo a favor si existe
-    if (compraGas.saldoFavor && compraGas.saldoFavor.trim()) {
-        detalles.push(`💳 Saldo favor: ${compraGas.saldoFavor}`);
-    }
-    
-    // Si no hay detalles específicos, mostrar información básica
-    if (detalles.length === 0) {
-        const empresas = [];
-        if (compraGas.compraLipigas === 'si' || compraGas.compraLipigas === true) empresas.push('Lipigas');
-        if (compraGas.compraAbastible === 'si' || compraGas.compraAbastible === true) empresas.push('Abastible');
-        
-        if (empresas.length > 0) {
-            return `Empresas: ${empresas.join(' y ')}`;
-        } else {
-            return 'Compra de gas registrada';
-        }
-    }
-    
-    return detalles.join(' • ');
-}
-
-// ========================================
-// FUNCIÓN AUXILIAR: CALCULAR RESUMEN DE COMPRA DE GAS
-// ========================================
-
-/**
- * Calcula un resumen de la compra de gas para mostrar en el título
- * @param {Object} compraGas - Objeto con los datos de la compra de gas
- * @returns {Object} - Objeto con resumen de la compra
- */
-function calcularResumenCompraGas(compraGas) {
-    let totalCargas = 0;
-    let empresasUsadas = [];
-    let montoPorEmpresa = {};
-    
-    // Precios por empresa y tamaño (pueden venir del backend en el futuro)
-    const precios = {
-        lipigas: { 5: 7000, 11: 12000, 15: 16000, 45: 54000 },
-        abastible: { 5: 8000, 11: 15000, 15: 18000, 45: 52000 }
-    };
-    
-    // Procesar Lipigas
-    if (compraGas.compraLipigas === 'si' || compraGas.compraLipigas === true) {
-        empresasUsadas.push('Lipigas');
-        montoPorEmpresa.lipigas = 0;
-        
-        const cargas = compraGas.cargas_lipigas || {};
-        Object.entries(cargas).forEach(([key, cantidad]) => {
-            if (cantidad && cantidad > 0) {
-                const kg = parseInt(key.replace('lipigas', ''));
-                totalCargas += cantidad;
-                montoPorEmpresa.lipigas += (precios.lipigas[kg] || 0) * cantidad;
-            }
-        });
-    }
-    
-    // Procesar Abastible
-    if (compraGas.compraAbastible === 'si' || compraGas.compraAbastible === true) {
-        empresasUsadas.push('Abastible');
-        montoPorEmpresa.abastible = 0;
-        
-        const cargas = compraGas.cargas_abastible || {};
-        Object.entries(cargas).forEach(([key, cantidad]) => {
-            if (cantidad && cantidad > 0) {
-                const kg = parseInt(key.replace('abastible', ''));
-                totalCargas += cantidad;
-                montoPorEmpresa.abastible += (precios.abastible[kg] || 0) * cantidad;
-            }
-        });
-    }
-    
-    // Usar el total calculado del objeto si está disponible
-    if (compraGas.totalCargas) {
-        totalCargas = compraGas.totalCargas;
-    }
-    
-    return {
-        totalCargas,
-        empresasUsadas,
-        montoPorEmpresa,
-        montoTotal: Object.values(montoPorEmpresa).reduce((a, b) => a + b, 0) || compraGas.montoTotal || 0
-    };
 }
 
 // ========================================
@@ -459,7 +306,7 @@ function actualizarContadorSolicitudes(mostradas, total) {
 }
 
 // ========================================
-// CARGAR SOLICITUDES (MODIFICADO CON DETALLE DE GAS)
+// CARGAR SOLICITUDES (MODIFICADO)
 // ========================================
 
 // Cargar solicitudes (ahora combina: solicitudes, compras y préstamos)
@@ -510,7 +357,7 @@ async function cargarSolicitudes(uid, rut) {
             });
         }
 
-        // Mapear compras (comprasPorTipo: {gas: [...], cine: [...], ...}) - MEJORADO PARA GAS
+        // Mapear compras (comprasPorTipo: {gas: [...], cine: [...], ...})
         if (comprasPorRUT && comprasPorRUT.success && comprasPorRUT.comprasPorTipo) {
             const comprasObj = comprasPorRUT.comprasPorTipo;
             for (const [tipo, compras] of Object.entries(comprasObj)) {
@@ -523,14 +370,13 @@ async function cargarSolicitudes(uid, rut) {
                     let descripcion = '';
 
                     if (tipo === 'gas') {
-                        // MEJORADO: Usar nueva función para calcular resumen
-                        const resumen = calcularResumenCompraGas(c);
-                        const empresasTexto = resumen.empresasUsadas.join(' + ');
-                        
-                        titulo = `Compra de Gas (${resumen.totalCargas} carga${resumen.totalCargas !== 1 ? 's' : ''}) - ${empresasTexto}`;
-                        
-                        // MEJORADO: Generar descripción detallada del gas comprado
-                        descripcion = generarDescripcionDetalladaGas(c);
+                        // calcular total de cargas si no está
+                        const total = c.totalCargas ?? (
+                            (c.cargas_lipigas ? Object.values(c.cargas_lipigas).reduce((a,b)=>a+(b||0),0):0) +
+                            (c.cargas_abastible ? Object.values(c.cargas_abastible).reduce((a,b)=>a+(b||0),0):0)
+                        );
+                        titulo = `Compra de Gas (${total} carga${total !== 1 ? 's' : ''})`;
+                        descripcion = `Lipigas: ${c.compraLipigas ? 'Sí' : 'No'} • Abastible: ${c.compraAbastible ? 'Sí' : 'No'}`;
                     } else {
                         // entretenimiento: cine, jumper, gimnasio
                         const nombreTipo = tipo.charAt(0).toUpperCase() + tipo.slice(1);
@@ -548,12 +394,7 @@ async function cargarSolicitudes(uid, rut) {
                         fechaSolicitud: fecha,
                         estado: c.estado || 'pendiente',
                         fechaAprobacion: (c.estado === 'aprobado' ? fechaAprob : null),
-                        raw: c,
-                        // NUEVO: Agregar datos específicos para gas
-                        ...(tipo === 'gas' ? { 
-                            resumenGas: calcularResumenCompraGas(c),
-                            detalleGas: generarDescripcionDetalladaGas(c)
-                        } : {})
+                        raw: c
                     });
                 });
             }
@@ -602,10 +443,6 @@ async function cargarSolicitudes(uid, rut) {
     }
 }
 
-// ========================================
-// RENDERIZADO MEJORADO CON DETALLE EXPANDIBLE PARA GAS
-// ========================================
-
 // Renderiza la lista unificada de solicitudes/compras/prestamos
 function renderMisSolicitudes(container, items) {
     if (!container) return;
@@ -623,7 +460,7 @@ function renderMisSolicitudes(container, items) {
 
     container.innerHTML = '';
 
-    items.forEach((item, index) => {
+    items.forEach(item => {
         const fechaReq = formatDate(item.fechaSolicitud);
         const fechaAprob = item.fechaAprobacion ? formatDate(item.fechaAprobacion) : null;
 
@@ -633,7 +470,8 @@ function renderMisSolicitudes(container, items) {
         card.className = 'solicitud-item';
         card.style.cssText = `
             display: flex;
-            flex-direction: column;
+            gap: 12px;
+            align-items: flex-start;
             background: #fff;
             padding: 16px;
             border-radius: 8px;
@@ -641,7 +479,6 @@ function renderMisSolicitudes(container, items) {
             box-shadow: 0 2px 8px rgba(0,0,0,0.06);
             border: 1px solid #e9ecef;
             transition: all 0.2s ease;
-            position: relative;
         `;
 
         // Efecto hover
@@ -654,10 +491,6 @@ function renderMisSolicitudes(container, items) {
             card.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
             card.style.transform = 'translateY(0)';
         });
-
-        // Contenedor principal
-        const mainContent = document.createElement('div');
-        mainContent.style.cssText = 'display: flex; gap: 12px; align-items: flex-start;';
 
         const iconDiv = document.createElement('div');
         iconDiv.style.cssText = 'font-size: 28px; width:50px; text-align:center; margin-top: 4px;';
@@ -709,9 +542,6 @@ function renderMisSolicitudes(container, items) {
             titleDiv.appendChild(description);
         }
 
-        const rightColumn = document.createElement('div');
-        rightColumn.style.cssText = 'display: flex; flex-direction: column; align-items: flex-end; gap: 8px;';
-
         const badge = document.createElement('div');
         badge.innerHTML = `<span class="badge ${estadoClass}" style="
             padding: 6px 12px; 
@@ -723,34 +553,8 @@ function renderMisSolicitudes(container, items) {
             white-space: nowrap;
         ">${capitalize(item.estado)}</span>`;
 
-        rightColumn.appendChild(badge);
-
-        // NUEVO: Botón expandir para gas
-        if (item.fuente === 'compra_gas' && item.raw) {
-            const expandBtn = document.createElement('button');
-            expandBtn.className = 'btn-expandir-gas';
-            expandBtn.innerHTML = '📋 Ver detalle';
-            expandBtn.style.cssText = `
-                background: #e3f2fd;
-                color: #1976d2;
-                border: 1px solid #bbdefb;
-                border-radius: 4px;
-                padding: 4px 8px;
-                font-size: 11px;
-                cursor: pointer;
-                transition: all 0.2s;
-            `;
-            
-            expandBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                toggleDetalleGas(card, item, expandBtn);
-            });
-            
-            rightColumn.appendChild(expandBtn);
-        }
-
         header.appendChild(titleDiv);
-        header.appendChild(rightColumn);
+        header.appendChild(badge);
 
         const meta = document.createElement('div');
         meta.style.fontSize = '13px';
@@ -773,190 +577,11 @@ function renderMisSolicitudes(container, items) {
         content.appendChild(header);
         content.appendChild(meta);
 
-        mainContent.appendChild(iconDiv);
-        mainContent.appendChild(content);
-        
-        card.appendChild(mainContent);
+        card.appendChild(iconDiv);
+        card.appendChild(content);
 
-        // Contenedor para detalle expandible (inicialmente oculto)
-        const detalleContainer = document.createElement('div');
-        detalleContainer.className = 'detalle-expandible';
-        detalleContainer.style.cssText = `
-            display: none;
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 2px dashed #e9ecef;
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 6px;
-        `;
-        
-        card.appendChild(detalleContainer);
         container.appendChild(card);
     });
-}
-
-// ========================================
-// FUNCIÓN PARA EXPANDIR/CONTRAER DETALLE DE GAS
-// ========================================
-
-/**
- * Alterna la visualización del detalle expandido de una compra de gas
- */
-function toggleDetalleGas(card, item, btn) {
-    const detalleContainer = card.querySelector('.detalle-expandible');
-    if (!detalleContainer) return;
-
-    const isExpanded = detalleContainer.style.display !== 'none';
-    
-    if (isExpanded) {
-        // Contraer
-        detalleContainer.style.display = 'none';
-        btn.innerHTML = '📋 Ver detalle';
-        btn.style.background = '#e3f2fd';
-        btn.style.color = '#1976d2';
-    } else {
-        // Expandir
-        detalleContainer.innerHTML = generarDetalleExpandidoGas(item.raw);
-        detalleContainer.style.display = 'block';
-        btn.innerHTML = '➖ Ocultar detalle';
-        btn.style.background = '#ffecb3';
-        btn.style.color = '#f57f17';
-        
-        // Scroll suave hacia el detalle
-        setTimeout(() => {
-            detalleContainer.scrollIntoView({ 
-                behavior: 'smooth', 
-                block: 'center' 
-            });
-        }, 100);
-    }
-}
-
-/**
- * Genera el HTML del detalle expandido de una compra de gas
- */
-function generarDetalleExpandidoGas(compraGas) {
-    const resumen = calcularResumenCompraGas(compraGas);
-    
-    let html = `
-        <div class="detalle-gas-expandido">
-            <h5 style="margin: 0 0 15px 0; color: #2c5aa0; font-size: 16px;">
-                🔍 Detalle Completo de Compra de Gas
-            </h5>
-            
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 15px;">
-    `;
-    
-    // Sección Lipigas
-    if (compraGas.compraLipigas === 'si' || compraGas.compraLipigas === true) {
-        html += generarSeccionEmpresaGas('Lipigas', '🔥', compraGas.cargas_lipigas || {}, {
-            5: 7000, 11: 12000, 15: 16000, 45: 54000
-        });
-    }
-    
-    // Sección Abastible
-    if (compraGas.compraAbastible === 'si' || compraGas.compraAbastible === true) {
-        html += generarSeccionEmpresaGas('Abastible', '⛽', compraGas.cargas_abastible || {}, {
-            5: 8000, 11: 15000, 15: 18000, 45: 52000
-        });
-    }
-    
-    html += `</div>`;
-    
-    // Resumen total
-    html += `
-        <div style="background: #e8f5e8; padding: 12px; border-radius: 6px; border-left: 4px solid #4caf50;">
-            <div style="display: flex; justify-content: space-between; align-items: center; font-weight: 600;">
-                <span>📊 Total de la compra:</span>
-                <span style="font-size: 18px; color: #2e7d32;">
-                    ${resumen.totalCargas} carga${resumen.totalCargas !== 1 ? 's' : ''} 
-                    ${resumen.montoTotal > 0 ? ` • $${resumen.montoTotal.toLocaleString('es-CL')}` : ''}
-                </span>
-            </div>
-        </div>
-    `;
-    
-    // Información adicional
-    if (compraGas.saldoFavor && compraGas.saldoFavor.trim()) {
-        html += `
-            <div style="background: #fff3e0; padding: 10px; border-radius: 6px; margin-top: 10px; border-left: 4px solid #ff9800;">
-                <strong>💳 Saldo a favor:</strong> ${escapeHtml(compraGas.saldoFavor)}
-            </div>
-        `;
-    }
-    
-    // Fecha y hora de compra
-    if (compraGas.fechaCompraGas) {
-        html += `
-            <div style="background: #f3e5f5; padding: 10px; border-radius: 6px; margin-top: 10px; border-left: 4px solid #9c27b0;">
-                <strong>📅 Fecha de compra reportada:</strong> ${escapeHtml(compraGas.fechaCompraGas)}
-            </div>
-        `;
-    }
-    
-    html += `</div>`;
-    
-    return html;
-}
-
-/**
- * Genera la sección HTML para una empresa específica (Lipigas o Abastible)
- */
-function generarSeccionEmpresaGas(empresa, icono, cargas, precios) {
-    let html = `
-        <div style="background: white; padding: 15px; border-radius: 8px; border: 2px solid #e0e0e0;">
-            <h6 style="margin: 0 0 12px 0; color: #424242; font-size: 14px; font-weight: 600;">
-                ${icono} ${empresa}
-            </h6>
-            <div style="display: grid; gap: 8px;">
-    `;
-    
-    let totalEmpresa = 0;
-    let totalCargasEmpresa = 0;
-    
-    // Procesar cada tamaño
-    [5, 11, 15, 45].forEach(kg => {
-        const key = `${empresa.toLowerCase()}${kg}`;
-        const cantidad = cargas[key] || 0;
-        
-        if (cantidad > 0) {
-            const precio = precios[kg] || 0;
-            const subtotal = cantidad * precio;
-            totalEmpresa += subtotal;
-            totalCargasEmpresa += cantidad;
-            
-            html += `
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; background: #f8f9fa; border-radius: 4px;">
-                    <span style="font-weight: 500;">${kg}kg:</span>
-                    <span style="color: #1976d2; font-weight: 600;">
-                        ${cantidad} × $${precio.toLocaleString('es-CL')} = $${subtotal.toLocaleString('es-CL')}
-                    </span>
-                </div>
-            `;
-        }
-    });
-    
-    if (totalCargasEmpresa === 0) {
-        html += `
-            <div style="color: #757575; font-style: italic; text-align: center; padding: 10px;">
-                No se especificaron cantidades detalladas
-            </div>
-        `;
-    } else {
-        html += `
-            <div style="border-top: 1px solid #e0e0e0; margin-top: 8px; padding-top: 8px; font-weight: 600; color: #2e7d32;">
-                Total: ${totalCargasEmpresa} carga${totalCargasEmpresa !== 1 ? 's' : ''} • $${totalEmpresa.toLocaleString('es-CL')}
-            </div>
-        `;
-    }
-    
-    html += `
-            </div>
-        </div>
-    `;
-    
-    return html;
 }
 
 // ========================================
@@ -1321,7 +946,6 @@ window.descargarReporteGas = function() {
     // Implementar descarga de reporte en futuras versiones
     alert('📊 La funcionalidad de descarga de reportes estará disponible próximamente');
 };
-
 async function cargarPerfil(funcionario) {
     try {
         // Llenar formulario de información personal
@@ -1415,7 +1039,7 @@ function animateStats() {
 window.addEventListener('load', animateStats);
 
 // ========================================
-// ESTILOS CSS PARA LOS BADGES Y NUEVOS ELEMENTOS
+// ESTILOS CSS PARA LOS BADGES
 // ========================================
 
 // Agregar estilos CSS dinámicamente
@@ -1470,34 +1094,6 @@ style.textContent = `
     
     .solicitud-item:hover {
         border-color: #80bdff;
-    }
-    
-    .btn-expandir-gas:hover {
-        background-color: #bbdefb !important;
-        border-color: #90caf9 !important;
-        transform: translateY(-1px);
-    }
-    
-    .detalle-gas-expandido {
-        animation: slideIn 0.3s ease-out;
-    }
-    
-    @keyframes slideIn {
-        from {
-            opacity: 0;
-            transform: translateY(-10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-    
-    .loading-indicator {
-        text-align: center;
-        padding: 20px;
-        color: #6c757d;
-        font-style: italic;
     }
 `;
 
