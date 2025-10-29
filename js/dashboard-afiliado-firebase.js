@@ -1,3 +1,5 @@
+// Copia y pega TODO el archivo, reemplazando el tuyo
+
 import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { 
@@ -10,6 +12,16 @@ import { obtenerComprasPorRUT } from './compras-gas-firebase.js';
 import { obtenerSolicitudesPrestamosPorUID } from './prestamos-firebase.js';
 import { updateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// ========== FORMATEAR RUT ==============
+function formatearRUT(rut) {
+    if (!rut) return '';
+    rut = rut.replace(/[^0-9kK]/g, '').toUpperCase();
+    let cuerpo = rut.slice(0, -1);
+    let dv = rut.slice(-1);
+    cuerpo = cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return cuerpo + '-' + dv;
+}
 
 // Variable global para almacenar todas las solicitudes (para filtrado)
 let todasLasSolicitudes = [];
@@ -65,7 +77,7 @@ async function cargarDatosUsuario(uid) {
         const userRutEl = document.querySelector('.user-rut');
         const bienvenidaEl = document.getElementById('bienvenida-usuario');
         if (userNameEl) userNameEl.textContent = `👤 ${funcionario.nombre}`;
-        if (userRutEl) userRutEl.textContent = `RUT: ${funcionario.rut}`;
+        if (userRutEl) userRutEl.textContent = `RUT: ${formatearRUT(funcionario.rut)}`;
         if (bienvenidaEl) {
             const primerNombre = funcionario.nombre.split(" ")[0];
             bienvenidaEl.textContent = funcionario.genero === 'F' ? `¡Bienvenida, ${primerNombre}!` : `¡Bienvenido, ${primerNombre}!`;
@@ -548,7 +560,7 @@ async function cargarPerfil(funcionario) {
         if (formPerfil) {
             const inputs = formPerfil.querySelectorAll('input');
             if (inputs[0]) inputs[0].value = funcionario.nombre || '';
-            if (inputs[1]) inputs[1].value = funcionario.rut || '';
+            if (inputs[1]) inputs[1].value = formatearRUT(funcionario.rut) || '';
             if (inputs[2]) inputs[2].value = funcionario.email || '';
             if (inputs[3]) inputs[3].value = funcionario.telefono || '';
         }
@@ -584,7 +596,7 @@ document.addEventListener('DOMContentLoaded', function () {
             statusDiv.style.color = '#333';
 
             const nombre = this.querySelectorAll('input')[0].value.trim();
-            const rut = this.querySelectorAll('input')[1].value.trim();
+            const rut = this.querySelectorAll('input')[1].value.trim().replace(/\./g,'').replace(/-/g,'');
             const email = this.querySelectorAll('input')[2].value.trim();
             const telefono = this.querySelectorAll('input')[3].value.trim();
 
@@ -599,6 +611,7 @@ document.addEventListener('DOMContentLoaded', function () {
             try {
                 await updateDoc(doc(db, 'funcionarios', user.uid), {
                     nombre,
+                    rut,
                     email,
                     telefono,
                     updatedAt: new Date()
@@ -607,6 +620,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     await updateEmail(user, email);
                 }
                 userData.nombre = nombre;
+                userData.rut = rut;
                 userData.email = email;
                 userData.telefono = telefono;
                 sessionStorage.setItem('userData', JSON.stringify(userData));
