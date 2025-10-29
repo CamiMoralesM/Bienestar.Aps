@@ -1,4 +1,4 @@
-import { auth } from './firebase-config.js';
+import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { 
     obtenerFuncionario,
@@ -8,6 +8,8 @@ import {
 import { cerrarSesion } from './auth.js';
 import { obtenerComprasPorRUT } from './compras-gas-firebase.js';
 import { obtenerSolicitudesPrestamosPorUID } from './prestamos-firebase.js';
+import { updateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // Variable global para almacenar todas las solicitudes (para filtrado)
 let todasLasSolicitudes = [];
@@ -503,19 +505,16 @@ function escapeHtml(str) {
 // ================================
 async function cargarPerfil(funcionario) {
     try {
-        const formPerfil = document.getElementById('formPerfil');
+        // Primer formulario: datos personales
+        const formPerfil = document.querySelectorAll('.profile-card form.profile-form')[0];
         if (formPerfil) {
-            document.getElementById('perfil-nombre').value = funcionario.nombre || '';
-            document.getElementById('perfil-email').value = funcionario.email || '';
-            document.getElementById('perfil-telefono').value = funcionario.telefono || '';
+            const inputs = formPerfil.querySelectorAll('input');
+            if (inputs[0]) inputs[0].value = funcionario.nombre || '';
+            if (inputs[1]) inputs[1].value = funcionario.rut || '';
+            if (inputs[2]) inputs[2].value = funcionario.email || '';
+            if (inputs[3]) inputs[3].value = funcionario.telefono || '';
         }
-        const inputs = document.querySelectorAll('#tab-perfil input[type="text"]');
-        if (inputs[0]) inputs[0].value = funcionario.nombre || '';
-        if (inputs[1]) inputs[1].value = funcionario.rut || '';
-        const emailInput = document.querySelector('#tab-perfil input[type="email"]');
-        if (emailInput) emailInput.value = funcionario.email || '';
-        const telInput = document.querySelector('#tab-perfil input[type="tel"]');
-        if (telInput) telInput.value = funcionario.telefono || '';
+        // Información de cuenta
         const infoItems = document.querySelectorAll('.info-item .info-value');
         if (infoItems.length >= 3) {
             const fecha = funcionario.fechaAfiliacion?.toDate().toLocaleDateString('es-CL') || 'N/A';
@@ -530,40 +529,114 @@ async function cargarPerfil(funcionario) {
     }
 }
 
-// GUARDAR CAMBIOS DE PERFIL
+// ========== FORMULARIO DATOS PERSONALES ==========
+
 document.addEventListener('DOMContentLoaded', function () {
-    const formPerfil = document.getElementById('formPerfil');
+    // Datos personales
+    const formPerfil = document.querySelectorAll('.profile-card form.profile-form')[0];
     if (formPerfil) {
         formPerfil.addEventListener('submit', async function (e) {
             e.preventDefault();
-            const estadoGuardado = document.getElementById('perfil-estado-guardado');
-            const btn = formPerfil.querySelector('button[type="submit"]');
-            btn.disabled = true;
-            btn.textContent = 'Guardando...';
+            let statusDiv = formPerfil.querySelector('.status-div');
+            if (!statusDiv) {
+                statusDiv = document.createElement('div');
+                statusDiv.className = 'status-div';
+                statusDiv.style.marginTop = "10px";
+                formPerfil.appendChild(statusDiv);
+            }
+            statusDiv.textContent = '';
+            statusDiv.style.color = '#333';
+
+            const nombre = this.querySelectorAll('input')[0].value.trim();
+            const rut = this.querySelectorAll('input')[1].value.trim();
+            const email = this.querySelectorAll('input')[2].value.trim();
+            const telefono = this.querySelectorAll('input')[3].value.trim();
+
+            const user = auth.currentUser;
+            const userData = JSON.parse(sessionStorage.getItem('userData') || '{}');
+            if (!user || !userData) {
+                statusDiv.textContent = 'No se pudo cargar el usuario.';
+                statusDiv.style.color = 'red';
+                return;
+            }
+
             try {
-                const nombre = document.getElementById('perfil-nombre').value.trim();
-                const email = document.getElementById('perfil-email').value.trim();
-                const telefono = document.getElementById('perfil-telefono').value.trim();
-                const uid = auth.currentUser?.uid || (JSON.parse(sessionStorage.getItem('userData') || '{}').uid);
-                if (!uid) throw new Error('No se pudo determinar el usuario');
-                const resultado = await actualizarFuncionario(uid, { nombre, email, telefono });
-                if (resultado.success) {
-                    estadoGuardado.textContent = '✅ Cambios guardados correctamente.';
-                    estadoGuardado.style.color = '#28a745';
-                    const userData = JSON.parse(sessionStorage.getItem('userData') || '{}');
-                    userData.nombre = nombre;
-                    userData.email = email;
-                    userData.telefono = telefono;
-                    sessionStorage.setItem('userData', JSON.stringify(userData));
-                } else {
-                    throw new Error(resultado.error);
+                // Actualizar Firestore
+                await updateDoc(doc(db, 'funcionarios', user.uid), {
+                    nombre,
+                    email,
+                    telefono,
+                    updatedAt: new Date()
+                });
+                // Cambiar email en Auth si cambió
+                if (email !== user.email) {
+                    await updateEmail(user, email);
                 }
+                userData.nombre = nombre;
+                userData.email = email;
+                userData.telefono = telefono;
+                sessionStorage.setItem('userData', JSON.stringify(userData));
+                statusDiv.textContent = 'Cambios guardados correctamente.';
+                statusDiv.style.color = 'green';
             } catch (error) {
-                estadoGuardado.textContent = '❌ Error al guardar: ' + error.message;
-                estadoGuardado.style.color = '#dc3545';
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Guardar Cambios';
+                statusDiv.textContent = 'Error al guardar cambios: ' + (error.message || error);
+                statusDiv.style.color = 'red';
+            }
+        });
+    }
+
+    // Cambio de contraseña
+    const formPassword = document.querySelectorAll('.profile-card form.profile-form')[1];
+    if (formPassword) {
+        formPassword.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            let statusDiv = formPassword.querySelector('.status-div');
+            if (!statusDiv) {
+                statusDiv = document.createElement('div');
+                statusDiv.className = 'status-div';
+                statusDiv.style.marginTop = "10px";
+                formPassword.appendChild(statusDiv);
+            }
+            statusDiv.textContent = '';
+
+            const currentPass = this.querySelectorAll('input')[0].value;
+            const newPass = this.querySelectorAll('input')[1].value;
+            const confirmPass = this.querySelectorAll('input')[2].value;
+
+            if (newPass.length < 6) {
+                statusDiv.textContent = 'La nueva contraseña debe tener al menos 6 caracteres.';
+                statusDiv.style.color = 'red';
+                return;
+            }
+            if (newPass !== confirmPass) {
+                statusDiv.textContent = 'La nueva contraseña y la confirmación no coinciden.';
+                statusDiv.style.color = 'red';
+                return;
+            }
+            const user = auth.currentUser;
+            const userData = JSON.parse(sessionStorage.getItem('userData') || '{}');
+            if (!user || !userData) {
+                statusDiv.textContent = 'No se pudo cargar el usuario.';
+                statusDiv.style.color = 'red';
+                return;
+            }
+
+            try {
+                const credential = EmailAuthProvider.credential(user.email, currentPass);
+                await reauthenticateWithCredential(user, credential);
+                await updatePassword(user, newPass);
+                statusDiv.textContent = 'Contraseña cambiada correctamente.';
+                statusDiv.style.color = 'green';
+                this.querySelectorAll('input')[0].value = '';
+                this.querySelectorAll('input')[1].value = '';
+                this.querySelectorAll('input')[2].value = '';
+            } catch (error) {
+                if (error.code === 'auth/wrong-password') {
+                    statusDiv.textContent = 'La contraseña actual es incorrecta.';
+                } else {
+                    statusDiv.textContent = 'Error al cambiar contraseña: ' + (error.message || error);
+                }
+                statusDiv.style.color = 'red';
             }
         });
     }
