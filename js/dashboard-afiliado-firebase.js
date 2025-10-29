@@ -1,3 +1,5 @@
+// Copia y pega TODO el archivo, reemplazando el tuyo
+
 import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { 
@@ -11,10 +13,87 @@ import { obtenerSolicitudesPrestamosPorUID } from './prestamos-firebase.js';
 import { updateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+// ========== FORMATEAR RUT ==============
+function formatearRUT(rut) {
+    if (!rut) return '';
+    rut = rut.replace(/[^0-9kK]/g, '').toUpperCase();
+    let cuerpo = rut.slice(0, -1);
+    let dv = rut.slice(-1);
+    cuerpo = cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return cuerpo + '-' + dv;
+}
+
 // Variable global para almacenar todas las solicitudes (para filtrado)
 let todasLasSolicitudes = [];
 
+// ================================
+// FUNCIÓN: CARGAR PENDIENTES EN RESUMEN
+// ================================
+async function cargarPendientesResumen(uid, rut) {
+    let pendientesBeneficio = 0;
+    try {
+        const solicitudes = await obtenerSolicitudesFuncionario(uid);
+        pendientesBeneficio = solicitudes.filter(s =>
+            (s.estado === 'pendiente' || s.estado === 'en_revision')
+        ).length;
+    } catch (e) {}
+
+    let pendientesCompras = 0;
+    try {
+        const comprasPorRUT = await obtenerComprasPorRUT(rut);
+        if (comprasPorRUT && comprasPorRUT.success && comprasPorRUT.comprasPorTipo) {
+            Object.values(comprasPorRUT.comprasPorTipo).forEach(lista => {
+                pendientesCompras += (lista || []).filter(c =>
+                    c.estado === 'pendiente' || c.estado === 'en_revision'
+                ).length;
+            });
+        }
+    } catch (e) {}
+
+    let pendientesPrestamos = 0;
+    try {
+        const prestamos = await obtenerSolicitudesPrestamosPorUID(uid);
+        pendientesPrestamos = (prestamos || []).filter(p =>
+            p.estado === 'pendiente' || p.estado === 'en_revision'
+        ).length;
+    } catch (e) {}
+
+    const totalPendientes = pendientesBeneficio + pendientesCompras + pendientesPrestamos;
+    const solicitudesEl = document.getElementById('solicitudes-pendientes');
+    if (solicitudesEl) solicitudesEl.textContent = totalPendientes;
+}
+
+// ================================
+// Cargar datos del usuario y estadísticas
+// ================================
+async function cargarDatosUsuario(uid) {
+    try {
+        const funcionario = await obtenerFuncionario(uid);
+        if (!funcionario) {
+            alert('Error al cargar datos del usuario');
+            return;
+        }
+        const userNameEl = document.querySelector('.user-name');
+        const userRutEl = document.querySelector('.user-rut');
+        const bienvenidaEl = document.getElementById('bienvenida-usuario');
+        if (userNameEl) userNameEl.textContent = `👤 ${funcionario.nombre}`;
+        if (userRutEl) userRutEl.textContent = `RUT: ${formatearRUT(funcionario.rut)}`;
+        if (bienvenidaEl) {
+            const primerNombre = funcionario.nombre.split(" ")[0];
+            bienvenidaEl.textContent = funcionario.genero === 'F' ? `¡Bienvenida, ${primerNombre}!` : `¡Bienvenido, ${primerNombre}!`;
+        }
+        await cargarPendientesResumen(uid, funcionario.rut);
+        await cargarEstadisticas(uid, funcionario.fechaAfiliacion);
+        await cargarSolicitudes(uid, funcionario.rut);
+        await cargarPerfil(funcionario);
+    } catch (error) {
+        console.error('Error al cargar datos:', error);
+    }
+}
+
+// ================================
 // Autenticación
+// ================================
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         const userType = sessionStorage.getItem('userType');
@@ -28,40 +107,12 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
-async function cargarDatosUsuario(uid) {
-    try {
-        const funcionario = await obtenerFuncionario(uid);
-        if (!funcionario) {
-            alert('Error al cargar datos del usuario');
-            return;
-        }
-        // Mostrar en cabecera
-        const userNameEl = document.querySelector('.user-name');
-        const userRutEl = document.querySelector('.user-rut');
-        const bienvenidaEl = document.getElementById('bienvenida-usuario');
-        if (userNameEl) userNameEl.textContent = `👤 ${funcionario.nombre}`;
-        if (userRutEl) userRutEl.textContent = `RUT: ${funcionario.rut}`;
-        if (bienvenidaEl) {
-            const primerNombre = funcionario.nombre.split(" ")[0];
-            bienvenidaEl.textContent = funcionario.genero === 'F' ? `¡Bienvenida, ${primerNombre}!` : `¡Bienvenido, ${primerNombre}!`;
-        }
-        await cargarEstadisticas(uid, funcionario.fechaAfiliacion);
-        await cargarSolicitudes(uid, funcionario.rut);
-        await cargarPerfil(funcionario);
-    } catch (error) {
-        console.error('Error al cargar datos:', error);
-    }
-}
-
+// ================================
+// Estadísticas adicionales (NO sobreescribe pendientes)
+// ================================
 async function cargarEstadisticas(uid, fechaAfiliacion) {
     try {
-        const solicitudes = await obtenerSolicitudesFuncionario(uid);
-        const solicitudesPendientes = solicitudes.filter(s =>
-            s.estado === 'pendiente' || s.estado === 'en_revision'
-        ).length;
-        const solicitudesEl = document.getElementById('solicitudes-pendientes');
         const tiempoEl = document.getElementById('tiempo-afiliacion');
-        if (solicitudesEl) solicitudesEl.textContent = solicitudesPendientes;
         if (tiempoEl && fechaAfiliacion && fechaAfiliacion.toDate) {
             const fecha = fechaAfiliacion.toDate();
             const hoy = new Date();
@@ -505,16 +556,14 @@ function escapeHtml(str) {
 // ================================
 async function cargarPerfil(funcionario) {
     try {
-        // Primer formulario: datos personales
         const formPerfil = document.querySelectorAll('.profile-card form.profile-form')[0];
         if (formPerfil) {
             const inputs = formPerfil.querySelectorAll('input');
             if (inputs[0]) inputs[0].value = funcionario.nombre || '';
-            if (inputs[1]) inputs[1].value = funcionario.rut || '';
+            if (inputs[1]) inputs[1].value = formatearRUT(funcionario.rut) || '';
             if (inputs[2]) inputs[2].value = funcionario.email || '';
             if (inputs[3]) inputs[3].value = funcionario.telefono || '';
         }
-        // Información de cuenta
         const infoItems = document.querySelectorAll('.info-item .info-value');
         if (infoItems.length >= 3) {
             const fecha = funcionario.fechaAfiliacion?.toDate().toLocaleDateString('es-CL') || 'N/A';
@@ -532,7 +581,6 @@ async function cargarPerfil(funcionario) {
 // ========== FORMULARIO DATOS PERSONALES ==========
 
 document.addEventListener('DOMContentLoaded', function () {
-    // Datos personales
     const formPerfil = document.querySelectorAll('.profile-card form.profile-form')[0];
     if (formPerfil) {
         formPerfil.addEventListener('submit', async function (e) {
@@ -548,7 +596,7 @@ document.addEventListener('DOMContentLoaded', function () {
             statusDiv.style.color = '#333';
 
             const nombre = this.querySelectorAll('input')[0].value.trim();
-            const rut = this.querySelectorAll('input')[1].value.trim();
+            const rut = this.querySelectorAll('input')[1].value.trim().replace(/\./g,'').replace(/-/g,'');
             const email = this.querySelectorAll('input')[2].value.trim();
             const telefono = this.querySelectorAll('input')[3].value.trim();
 
@@ -561,18 +609,18 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             try {
-                // Actualizar Firestore
                 await updateDoc(doc(db, 'funcionarios', user.uid), {
                     nombre,
+                    rut,
                     email,
                     telefono,
                     updatedAt: new Date()
                 });
-                // Cambiar email en Auth si cambió
                 if (email !== user.email) {
                     await updateEmail(user, email);
                 }
                 userData.nombre = nombre;
+                userData.rut = rut;
                 userData.email = email;
                 userData.telefono = telefono;
                 sessionStorage.setItem('userData', JSON.stringify(userData));
@@ -585,7 +633,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Cambio de contraseña
     const formPassword = document.querySelectorAll('.profile-card form.profile-form')[1];
     if (formPassword) {
         formPassword.addEventListener('submit', async function (e) {
