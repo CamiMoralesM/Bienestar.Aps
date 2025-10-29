@@ -1,6 +1,6 @@
-// Dashboard del Afiliado - Versión Mejorada con Detalles Completos de Gas
-// Modificado para mostrar todas las compras y préstamos en la pestaña "Mis Solicitudes"
-// CON SISTEMA DE FILTROS PARA SOLICITUDES Y DETALLES COMPLETOS DE GAS Y PRECIOS
+// Dashboard del Afiliado - Versión con Estilo Simplificado para Compras de Gas
+// Modificado para mostrar las compras de gas con el mismo estilo que entretenimiento
+// CON SISTEMA DE FILTROS PARA SOLICITUDES Y ESTILO CONSISTENTE
 
 import { auth } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -357,6 +357,10 @@ async function cargarSolicitudes(uid, rut) {
                     let descripcion = '';
 
                     if (tipo === 'gas') {
+                        // ========================================
+                        // ESTILO MEJORADO PARA GAS CON EMOTICONOS Y ORDEN
+                        // ========================================
+                        
                         // Calcular total de cargas si no está
                         const total = c.totalCargas ?? (
                             (c.cargas_lipigas ? Object.values(c.cargas_lipigas).reduce((a,b)=>a+(b||0),0):0) +
@@ -365,48 +369,78 @@ async function cargarSolicitudes(uid, rut) {
                         
                         // Obtener precio total desde Firebase (ya calculado en el backend)
                         const precioTotal = c.precioTotal || c.montoTotal || 0;
-                        const precioTexto = precioTotal > 0 ? ` - $${precioTotal.toLocaleString('es-CL')}` : '';
                         
-                        titulo = `Compra de Gas (${total} carga${total !== 1 ? 's' : ''})${precioTexto}`;
+                        // TÍTULO SIMPLIFICADO
+                        titulo = `Compra de Gas - ${total} carga${total !== 1 ? 's' : ''} - $${precioTotal.toLocaleString('es-CL')}`;
                         
-                        // Mostrar detalles de cargas en una sola línea, sin badges
-                        let cargas = [];
+                        // DESCRIPCIÓN ORGANIZADA CON EMOTICONOS
+                        const descripcionParts = [];
+                        
+                        // 1. Precio total (siempre primero)
+                        if (precioTotal > 0) {
+                            descripcionParts.push(`💰 Compra por $${precioTotal.toLocaleString('es-CL')}`);
+                        }
+                        
+                        // 2. Detalles de cargas (si existen)
+                        let detallesCargas = [];
                         if (c.compraLipigas && c.cargas_lipigas) {
-                            if (c.cargas_lipigas.kg5 > 0) cargas.push(`${c.cargas_lipigas.kg5}x5kg Lipigas`);
-                            if (c.cargas_lipigas.kg11 > 0) cargas.push(`${c.cargas_lipigas.kg11}x11kg Lipigas`);
-                            if (c.cargas_lipigas.kg15 > 0) cargas.push(`${c.cargas_lipigas.kg15}x15kg Lipigas`);
-                            if (c.cargas_lipigas.kg45 > 0) cargas.push(`${c.cargas_lipigas.kg45}x45kg Lipigas`);
+                            if (c.cargas_lipigas.kg5 > 0) detallesCargas.push(`${c.cargas_lipigas.kg5}×5kg Lipigas`);
+                            if (c.cargas_lipigas.kg11 > 0) detallesCargas.push(`${c.cargas_lipigas.kg11}×11kg Lipigas`);
+                            if (c.cargas_lipigas.kg15 > 0) detallesCargas.push(`${c.cargas_lipigas.kg15}×15kg Lipigas`);
+                            if (c.cargas_lipigas.kg45 > 0) detallesCargas.push(`${c.cargas_lipigas.kg45}×45kg Lipigas`);
                         }
                         if (c.compraAbastible && c.cargas_abastible) {
-                            if (c.cargas_abastible.kg5 > 0) cargas.push(`${c.cargas_abastible.kg5}x5kg Abastible`);
-                            if (c.cargas_abastible.kg11 > 0) cargas.push(`${c.cargas_abastible.kg11}x11kg Abastible`);
-                            if (c.cargas_abastible.kg15 > 0) cargas.push(`${c.cargas_abastible.kg15}x15kg Abastible`);
-                            if (c.cargas_abastible.kg45 > 0) cargas.push(`${c.cargas_abastible.kg45}x45kg Abastible`);
+                            if (c.cargas_abastible.kg5 > 0) detallesCargas.push(`${c.cargas_abastible.kg5}×5kg Abastible`);
+                            if (c.cargas_abastible.kg11 > 0) detallesCargas.push(`${c.cargas_abastible.kg11}×11kg Abastible`);
+                            if (c.cargas_abastible.kg15 > 0) detallesCargas.push(`${c.cargas_abastible.kg15}×15kg Abastible`);
+                            if (c.cargas_abastible.kg45 > 0) detallesCargas.push(`${c.cargas_abastible.kg45}×45kg Abastible`);
                         }
-                        // Descripción similar a cine/jumper/gimnasio
-                        descripcion = `Compra por $${precioTotal.toLocaleString('es-CL')}`;
-                        if (cargas.length > 0) {
-                            descripcion += `: ${cargas.join(', ')}`;
+                        
+                        if (detallesCargas.length > 0) {
+                            descripcionParts.push(`⛽ Incluye: ${detallesCargas.join(', ')}`);
                         }
+                        
+                        // 3. Fecha de compra
                         if (c.fechaCompra) {
-                            descripcion += ` realizada el ${c.fechaCompra}`;
+                            descripcionParts.push(`📅 Realizada el ${c.fechaCompra}`);
                         }
-
+                        
+                        // 4. Saldo a favor (si existe)
+                        if (c.saldoFavor) {
+                            descripcionParts.push(`💎 Saldo a favor: ${c.saldoFavor}`);
+                        }
+                        
+                        descripcion = descripcionParts.join(' • ');
+                        
                     } else {
-                        // entretenimiento: cine, jumper, gimnasio
+                        // ========================================
+                        // ENTRETENIMIENTO CON FORMATO MEJORADO
+                        // ========================================
                         const nombreTipo = tipo.charAt(0).toUpperCase() + tipo.slice(1);
                         const cantidad = c.cantidad || c.cantidadEntradas || 0;
                         const precioTotal = c.precioTotal || c.montoTotal || 0;
                         
-                        titulo = `${nombreTipo} - ${cantidad} ${cantidad === 1 ? 'entrada' : 'entradas'}`;
+                        titulo = `${nombreTipo} - ${cantidad} ${cantidad === 1 ? 'entrada' : 'entradas'} - $${precioTotal.toLocaleString('es-CL')}`;
+                        
+                        // Descripción mejorada con emoticonos
+                        const descripcionParts = [];
+                        
+                        // 1. Precio total
                         if (precioTotal > 0) {
-                            titulo += ` - $${precioTotal.toLocaleString('es-CL')}`;
+                            descripcionParts.push(`💰 Compra por $${precioTotal.toLocaleString('es-CL')}`);
                         }
                         
-                        descripcion = `Compra por $${precioTotal.toLocaleString('es-CL')}`;
-                        if (c.fechaCompra) {
-                            descripcion += ` realizada el ${c.fechaCompra}`;
+                        // 2. Precio unitario (si existe)
+                        if (c.precioUnitario) {
+                            descripcionParts.push(`🎫 Precio unitario: $${c.precioUnitario.toLocaleString('es-CL')}`);
                         }
+                        
+                        // 3. Fecha de compra
+                        if (c.fechaCompra) {
+                            descripcionParts.push(`📅 Realizada el ${c.fechaCompra}`);
+                        }
+                        
+                        descripcion = descripcionParts.join(' • ');
                     }
 
                     items.push({
@@ -463,10 +497,10 @@ async function cargarSolicitudes(uid, rut) {
 }
 
 // ========================================
-// RENDERIZAR SOLICITUDES CON DETALLES MEJORADOS
+// RENDERIZAR SOLICITUDES CON ESTILO CONSISTENTE
 // ========================================
 
-// Renderiza la lista unificada de solicitudes/compras/prestamos con detalles mejorados
+// Renderiza la lista unificada de solicitudes/compras/prestamos con estilo consistente
 function renderMisSolicitudes(container, items) {
     if (!container) return;
 
@@ -559,6 +593,10 @@ function renderMisSolicitudes(container, items) {
 
         const description = document.createElement('div');
         description.style.cssText = 'margin: 0; font-size: 14px; color: #495057; line-height: 1.5;';
+        
+        // ========================================
+        // CAMBIO: DESCRIPCIÓN SIMPLE PARA TODAS LAS COMPRAS
+        // ========================================
         description.textContent = escapeHtml(item.descripcion || '');
 
         titleDiv.appendChild(title);
@@ -618,7 +656,7 @@ function renderMisSolicitudes(container, items) {
 }
 
 // ========================================
-// FUNCIONES AUXILIARES MEJORADAS
+// FUNCIONES AUXILIARES
 // ========================================
 
 /**
@@ -775,111 +813,3 @@ function animateStats() {
 }
 
 window.addEventListener('load', animateStats);
-
-// ========================================
-// ESTILOS CSS MEJORADOS PARA LOS BADGES Y DETALLES
-// ========================================
-
-// Agregar estilos CSS dinámicamente
-const style = document.createElement('style');
-style.textContent = `
-    .badge {
-        display: inline-block;
-        font-size: 11px;
-        font-weight: 600;
-        text-align: center;
-        white-space: nowrap;
-        vertical-align: baseline;
-        border-radius: 20px;
-        padding: 8px 16px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    .badge-success {
-        background-color: #d4edda;
-        color: #155724;
-        border: 1px solid #c3e6cb;
-    }
-    
-    .badge-warning {
-        background-color: #fff3cd;
-        color: #856404;
-        border: 1px solid #ffeaa7;
-    }
-    
-    .badge-danger {
-        background-color: #f8d7da;
-        color: #721c24;
-        border: 1px solid #f5c6cb;
-    }
-    
-    .badge-secondary {
-        background-color: #e2e3e5;
-        color: #383d41;
-        border: 1px solid #d6d8db;
-    }
-    
-    .filtros-container select:hover {
-        border-color: #80bdff;
-        box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
-    }
-    
-    .filtros-container button:hover {
-        background-color: #5a6268 !important;
-        transform: translateY(-1px);
-    }
-    
-    .solicitud-item:hover {
-        border-color: #80bdff;
-    }
-    
-    /* Estilos para mejorar la legibilidad de los detalles de gas */
-    .solicitud-item .gas-details {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-top: 8px;
-    }
-    
-    .solicitud-item .gas-detail-tag {
-        padding: 4px 8px;
-        border-radius: 6px;
-        font-size: 11px;
-        font-weight: 600;
-        white-space: nowrap;
-    }
-    
-    .solicitud-item .gas-detail-tag.lipigas {
-        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
-        color: white;
-    }
-    
-    .solicitud-item .gas-detail-tag.abastible {
-        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        color: white;
-    }
-    
-    .solicitud-item .gas-detail-tag.saldo {
-        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-        color: white;
-    }
-    
-    .solicitud-item .gas-detail-tag.total {
-        background: linear-gradient(135deg, #fd7e14 0%, #e55353 100%);
-        color: white;
-        font-weight: 700;
-        box-shadow: 0 2px 4px rgba(253, 126, 20, 0.3);
-    }
-    
-    .solicitud-item .gas-detail-tag.fecha {
-        background: #f8f9fa;
-        color: #495057;
-        border: 1px solid #dee2e6;
-    }
-`;
-
-document.head.appendChild(style);
-
-
-document.head.appendChild(style);
