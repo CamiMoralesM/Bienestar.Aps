@@ -36,41 +36,60 @@ const PRECIOS_LOCALES = {
 // FUNCIONES DE CÁLCULO DE PRECIOS
 // ========================================
 
+/**
+ * Calcula el precio total de gas en tiempo real
+ */
 function calcularPrecioGas() {
     let total = 0;
+    
+    // Calcular Lipigas
     if (document.getElementById('compraLipigas')?.value === 'si') {
         total += (parseInt(document.getElementById('lipigas5')?.value) || 0) * PRECIOS_LOCALES.gas.lipigas.kg5;
         total += (parseInt(document.getElementById('lipigas11')?.value) || 0) * PRECIOS_LOCALES.gas.lipigas.kg11;
         total += (parseInt(document.getElementById('lipigas15')?.value) || 0) * PRECIOS_LOCALES.gas.lipigas.kg15;
         total += (parseInt(document.getElementById('lipigas45')?.value) || 0) * PRECIOS_LOCALES.gas.lipigas.kg45;
     }
+    
+    // Calcular Abastible
     if (document.getElementById('compraAbastible')?.value === 'si') {
         total += (parseInt(document.getElementById('abastible5')?.value) || 0) * PRECIOS_LOCALES.gas.abastible.kg5;
         total += (parseInt(document.getElementById('abastible11')?.value) || 0) * PRECIOS_LOCALES.gas.abastible.kg11;
         total += (parseInt(document.getElementById('abastible15')?.value) || 0) * PRECIOS_LOCALES.gas.abastible.kg15;
         total += (parseInt(document.getElementById('abastible45')?.value) || 0) * PRECIOS_LOCALES.gas.abastible.kg45;
     }
+    
     return total;
 }
 
+/**
+ * Calcula el precio total para entretenimiento
+ */
 function calcularPrecioEntretenimiento(tipo) {
     const cantidadElement = document.getElementById(`cantidad${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`);
     const cantidad = parseInt(cantidadElement?.value) || 0;
     const precioUnitario = PRECIOS_LOCALES.entretenimiento[tipo] || 0;
+    
     return cantidad * precioUnitario;
 }
 
+/**
+ * Actualiza el display del precio total en la interfaz
+ */
 function actualizarDisplayPrecio(precio, elementoId = 'precio-total-valor') {
     const precioDisplay = document.getElementById(elementoId);
     if (precioDisplay) {
         const precioFormateado = `$${precio.toLocaleString('es-CL')}`;
         precioDisplay.textContent = precioFormateado;
+        
+        // Animar el cambio
         precioDisplay.style.transform = 'scale(1.1)';
         precioDisplay.style.color = precio > 0 ? '#fff' : '#ccc';
+        
         setTimeout(() => {
             precioDisplay.style.transform = 'scale(1)';
         }, 200);
     }
+    
     return precio;
 }
 
@@ -78,7 +97,11 @@ function actualizarDisplayPrecio(precio, elementoId = 'precio-total-valor') {
 // INICIALIZACIÓN DE EVENT LISTENERS
 // ========================================
 
+/**
+ * Configura los event listeners para el formulario de gas
+ */
 function configurarFormularioGas() {
+    // Event listeners para selectores de Lipigas
     ['lipigas5', 'lipigas11', 'lipigas15', 'lipigas45'].forEach(id => {
         const elemento = document.getElementById(id);
         if (elemento) {
@@ -86,10 +109,13 @@ function configurarFormularioGas() {
                 const precio = calcularPrecioGas();
                 actualizarDisplayPrecio(precio);
                 actualizarContadorCargas('lipigas');
-                validarLimitesGas();
+                actualizarTotalGeneralCargas();
+                validarLimitesGasYMostrar();
             });
         }
     });
+    
+    // Event listeners para selectores de Abastible
     ['abastible5', 'abastible11', 'abastible15', 'abastible45'].forEach(id => {
         const elemento = document.getElementById(id);
         if (elemento) {
@@ -97,10 +123,13 @@ function configurarFormularioGas() {
                 const precio = calcularPrecioGas();
                 actualizarDisplayPrecio(precio);
                 actualizarContadorCargas('abastible');
-                validarLimitesGas();
+                actualizarTotalGeneralCargas();
+                validarLimitesGasYMostrar();
             });
         }
     });
+    
+    // Event listeners para los toggles principales
     const compraLipigas = document.getElementById('compraLipigas');
     if (compraLipigas) {
         compraLipigas.addEventListener('change', function() {
@@ -117,9 +146,11 @@ function configurarFormularioGas() {
             const precio = calcularPrecioGas();
             actualizarDisplayPrecio(precio);
             actualizarContadorCargas('lipigas');
-            validarLimitesGas();
+            actualizarTotalGeneralCargas();
+            validarLimitesGasYMostrar();
         });
     }
+    
     const compraAbastible = document.getElementById('compraAbastible');
     if (compraAbastible) {
         compraAbastible.addEventListener('change', function() {
@@ -136,12 +167,18 @@ function configurarFormularioGas() {
             const precio = calcularPrecioGas();
             actualizarDisplayPrecio(precio);
             actualizarContadorCargas('abastible');
-            validarLimitesGas();
+            actualizarTotalGeneralCargas();
+            validarLimitesGasYMostrar();
         });
     }
+    
+    // Llenar opciones de cantidad dinámicamente
     llenarOpcionesGas();
 }
 
+/**
+ * Configura los event listeners para formularios de entretenimiento
+ */
 function configurarFormulariosEntretenimiento() {
     ['cine', 'jumper', 'gimnasio'].forEach(tipo => {
         const selectElement = document.getElementById(`cantidad${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`);
@@ -159,11 +196,14 @@ function configurarFormulariosEntretenimiento() {
 // FUNCIONES AUXILIARES
 // ========================================
 
+/**
+ * Llena las opciones de cantidad para gas dinámicamente
+ */
 function llenarOpcionesGas() {
     const tiposGas = ['lipigas5', 'lipigas11', 'lipigas15', 'lipigas45', 'abastible5', 'abastible11', 'abastible15', 'abastible45'];
     tiposGas.forEach(id => {
         const select = document.getElementById(id);
-        if (select && select.children.length <= 1) {
+        if (select && select.children.length <= 1) { // Solo si no se han agregado opciones
             for (let i = 1; i <= 6; i++) {
                 const option = document.createElement('option');
                 option.value = i;
@@ -174,9 +214,13 @@ function llenarOpcionesGas() {
     });
 }
 
+/**
+ * Actualiza las opciones de entretenimiento con precios incluidos
+ */
 function actualizarOpcionesEntretenimiento(tipo) {
     const selectElement = document.getElementById(`cantidad${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`);
     const precioUnitario = PRECIOS_LOCALES.entretenimiento[tipo];
+    
     if (selectElement && precioUnitario) {
         while (selectElement.children.length > 1) {
             selectElement.removeChild(selectElement.lastChild);
@@ -193,6 +237,9 @@ function actualizarOpcionesEntretenimiento(tipo) {
     }
 }
 
+/**
+ * Actualiza el contador de cargas para gas
+ */
 function actualizarContadorCargas(marca) {
     const prefijos = marca === 'lipigas' ? ['lipigas5', 'lipigas11', 'lipigas15', 'lipigas45'] : ['abastible5', 'abastible11', 'abastible15', 'abastible45'];
     let totalCargas = 0;
@@ -202,6 +249,7 @@ function actualizarContadorCargas(marca) {
             totalCargas += parseInt(element.value) || 0;
         }
     });
+    // Buscar el contenedor correcto
     const opciones = document.getElementById(marca === 'lipigas' ? 'lipigasOpciones' : 'abastibleOpciones');
     if (opciones) {
         const contador = opciones.querySelector('.total-count');
@@ -214,153 +262,119 @@ function actualizarContadorCargas(marca) {
 }
 
 /**
- * Valida límites por tipo, por total mensual y bloquea selects si corresponde.
+ * Muestra el total general de cargas (todas las marcas)
+ * Puedes agregar este número donde quieras en la UI.
+ */
+function actualizarTotalGeneralCargas() {
+    // Suma todas las cargas de ambas marcas
+    const totalCargas =
+        (parseInt(document.getElementById('lipigas5')?.value) || 0) +
+        (parseInt(document.getElementById('lipigas11')?.value) || 0) +
+        (parseInt(document.getElementById('lipigas15')?.value) || 0) +
+        (parseInt(document.getElementById('lipigas45')?.value) || 0) +
+        (parseInt(document.getElementById('abastible5')?.value) || 0) +
+        (parseInt(document.getElementById('abastible11')?.value) || 0) +
+        (parseInt(document.getElementById('abastible15')?.value) || 0) +
+        (parseInt(document.getElementById('abastible45')?.value) || 0);
+
+    // Si tienes un elemento para mostrar el total general, ejemplo:
+    // <div id="total-general-cargas"></div>
+    const totalGeneralDiv = document.getElementById('total-general-cargas');
+    if (totalGeneralDiv) {
+        totalGeneralDiv.textContent = `Total general seleccionado: ${totalCargas}`;
+    }
+    return totalCargas;
+}
+
+/**
+ * Valida los límites de gas según temporada y muestra errores en la UI si corresponde
  */
 function validarLimitesGas() {
-    const mes = new Date().getMonth() + 1;
-    const esTemporadaAlta = mes >= 6 && mes <= 9;
+    const mes = new Date().getMonth() + 1; // 1-12
+    const esTemporadaAlta = mes >= 6 && mes <= 9; // Jun-Sep
+
     const maxCargas = esTemporadaAlta ? 6 : 4;
     const maxPorTipo = esTemporadaAlta ? 3 : 2;
-    const max45kg = 2;
+    const max45kg = 2; // Siempre 2
 
-    const lipigas5 = parseInt(document.getElementById('lipigas5')?.value) || 0;
-    const lipigas11 = parseInt(document.getElementById('lipigas11')?.value) || 0;
-    const lipigas15 = parseInt(document.getElementById('lipigas15')?.value) || 0;
-    const lipigas45 = parseInt(document.getElementById('lipigas45')?.value) || 0;
-    const abastible5 = parseInt(document.getElementById('abastible5')?.value) || 0;
-    const abastible11 = parseInt(document.getElementById('abastible11')?.value) || 0;
-    const abastible15 = parseInt(document.getElementById('abastible15')?.value) || 0;
-    const abastible45 = parseInt(document.getElementById('abastible45')?.value) || 0;
+    // Cantidades seleccionadas sumando ambas marcas
+    const total5 = (parseInt(document.getElementById('lipigas5')?.value) || 0) + (parseInt(document.getElementById('abastible5')?.value) || 0);
+    const total11 = (parseInt(document.getElementById('lipigas11')?.value) || 0) + (parseInt(document.getElementById('abastible11')?.value) || 0);
+    const total15 = (parseInt(document.getElementById('lipigas15')?.value) || 0) + (parseInt(document.getElementById('abastible15')?.value) || 0);
+    const total45 = (parseInt(document.getElementById('lipigas45')?.value) || 0) + (parseInt(document.getElementById('abastible45')?.value) || 0);
 
-    const sum5 = lipigas5 + abastible5;
-    const sum11 = lipigas11 + abastible11;
-    const sum15 = lipigas15 + abastible15;
-    const sum45 = lipigas45 + abastible45;
-    const totalCargas = sum5 + sum11 + sum15 + sum45;
+    const totalCargas = total5 + total11 + total15 + total45;
 
+    // Validar límites y recolectar errores
     const errores = [];
     if (totalCargas > maxCargas) {
         errores.push(`Máximo ${maxCargas} cargas por mes (temporada ${esTemporadaAlta ? 'alta' : 'normal'})`);
     }
-    if (sum45 > max45kg) {
-        errores.push(`Máximo ${max45kg} cargas de 45kg entre Lipigas y Abastible`);
+    if (total45 > max45kg) {
+        errores.push(`Máximo ${max45kg} cargas de 45kg por mes`);
     }
-    if (sum5 > maxPorTipo) {
-        errores.push(`Máximo ${maxPorTipo} cargas de 5kg entre Lipigas y Abastible`);
-    }
-    if (sum11 > maxPorTipo) {
-        errores.push(`Máximo ${maxPorTipo} cargas de 11kg entre Lipigas y Abastible`);
-    }
-    if (sum15 > maxPorTipo) {
-        errores.push(`Máximo ${maxPorTipo} cargas de 15kg entre Lipigas y Abastible`);
-    }
-
-    [
-        { tipo: '5', lipigas: lipigas5, abastible: abastible5, suma: sum5, max: maxPorTipo },
-        { tipo: '11', lipigas: lipigas11, abastible: abastible11, suma: sum11, max: maxPorTipo },
-        { tipo: '15', lipigas: lipigas15, abastible: abastible15, suma: sum15, max: maxPorTipo },
-        { tipo: '45', lipigas: lipigas45, abastible: abastible45, suma: sum45, max: max45kg }
-    ].forEach(({ tipo, lipigas, abastible, suma, max }) => {
-        const lipigasSelect = document.getElementById('lipigas' + tipo);
-        const abastibleSelect = document.getElementById('abastible' + tipo);
-        if (lipigas >= max) {
-            if (abastibleSelect) {
-                abastibleSelect.value = "0";
-                abastibleSelect.disabled = true;
-            }
-        } else {
-            if (abastibleSelect) abastibleSelect.disabled = false;
-            if (abastibleSelect && abastible > (max - lipigas)) abastibleSelect.value = (max - lipigas);
+    [total5, total11, total15].forEach((valor, idx) => {
+        if (valor > maxPorTipo) {
+            const tipo = [5, 11, 15][idx];
+            errores.push(`Máximo ${maxPorTipo} cargas de ${tipo}kg por mes (sumando Lipigas y Abastible)`);
         }
-        if (abastible >= max) {
-            if (lipigasSelect) {
-                lipigasSelect.value = "0";
-                lipigasSelect.disabled = true;
-            }
-        } else {
-            if (lipigasSelect) lipigasSelect.disabled = false;
-            if (lipigasSelect && lipigas > (max - abastible)) lipigasSelect.value = (max - abastible);
-        }
-        [lipigasSelect, abastibleSelect].forEach(select => {
-            if (select) {
-                Array.from(select.options).forEach(opt => {
-                    if (parseInt(opt.value) > (max - (select === lipigasSelect ? abastible : lipigas))) {
-                        opt.disabled = true;
-                    } else {
-                        opt.disabled = false;
-                    }
-                });
-            }
-        });
     });
-
-    // BLOQUEO POR TOTAL MENSUAL: Si llegaste al límite mensual, todos los selects con valor 0 se bloquean
-    const tiposGas = [
-        'lipigas5', 'lipigas11', 'lipigas15', 'lipigas45',
-        'abastible5', 'abastible11', 'abastible15', 'abastible45'
-    ];
-    if (totalCargas >= maxCargas) {
-        tiposGas.forEach(id => {
-            const select = document.getElementById(id);
-            if (select && parseInt(select.value) === 0) {
-                select.disabled = true;
-            }
-        });
-    } else {
-        tiposGas.forEach(id => {
-            const select = document.getElementById(id);
-            if (select) {
-                // Habilita solo si no está bloqueado por tipo
-                const tipo = id.replace(/^(lipigas|abastible)/, '');
-                const [otroMarca, otroId] = id.startsWith('lipigas') ? ['abastible', 'abastible'+tipo] : ['lipigas', 'lipigas'+tipo];
-                const otroSelect = document.getElementById(otroId);
-                const maxTipo = tipo === "45" ? max45kg : maxPorTipo;
-                const thisVal = parseInt(select.value)||0;
-                const otroVal = parseInt(otroSelect?.value)||0;
-                if ((thisVal + otroVal) < maxTipo) {
-                    select.disabled = false;
-                }
-            }
-        });
-    }
-
-    // Mostrar errores arriba del formulario
-    const form = document.getElementById('formCompraGas');
-    let errorBox = form ? form.querySelector('.limite-error') : null;
-    if (!errorBox && form) {
-        errorBox = document.createElement('div');
-        errorBox.className = 'limite-error';
-        errorBox.style.cssText = "color: #dc3545; margin-bottom: 10px; font-weight: bold;";
-        form.insertBefore(errorBox, form.firstChild);
-    }
-    if (errorBox) {
-        if (errores.length > 0) {
-            errorBox.innerHTML = errores.join('<br>');
-        } else {
-            errorBox.innerHTML = '';
-        }
-    }
 
     return {
         valido: errores.length === 0,
         errores,
-        limites: {
-            maxCargas, maxPorTipo, max45kg, esTemporadaAlta
-        }
+        limites: { maxCargas, maxPorTipo, max45kg, esTemporadaAlta }
     };
+}
+
+/**
+ * Llama a validarLimitesGas y muestra errores en la interfaz.
+ * Además, bloquea el botón de enviar si hay errores.
+ */
+function validarLimitesGasYMostrar() {
+    const validacion = validarLimitesGas();
+    // Mostrar errores en la interfaz
+    let errorDiv = document.getElementById('error-limites-gas');
+    if (!errorDiv) {
+        errorDiv = document.createElement('div');
+        errorDiv.id = 'error-limites-gas';
+        errorDiv.style.color = '#dc3545';
+        errorDiv.style.marginTop = '10px';
+        const form = document.getElementById('formCompraGas');
+        if (form) form.parentNode.insertBefore(errorDiv, form);
+    }
+    if (validacion.errores.length > 0) {
+        errorDiv.innerHTML = validacion.errores.map(e => `<div>❌ ${e}</div>`).join('');
+    } else {
+        errorDiv.innerHTML = '';
+    }
+    // Bloquear botón de enviar si no es válido
+    const btn = document.querySelector('.btn-enviar-gas');
+    if (btn) {
+        btn.disabled = !validacion.valido;
+        btn.style.opacity = validacion.valido ? '1' : '0.6';
+        btn.style.cursor = validacion.valido ? 'pointer' : 'not-allowed';
+    }
+    return validacion;
 }
 
 // ========================================
 // INICIALIZACIÓN PRINCIPAL
 // ========================================
 
+/**
+ * Inicializa todos los sistemas de precios
+ */
 function inicializarSistemaPrecios() {
     console.log('🚀 Inicializando sistema de precios...');
+    // Configurar formularios
     configurarFormularioGas();
     configurarFormulariosEntretenimiento();
+    // Cálculo inicial
     const precioInicial = calcularPrecioGas();
     actualizarDisplayPrecio(precioInicial);
-    validarLimitesGas();
+    actualizarTotalGeneralCargas();
+    validarLimitesGasYMostrar();
     console.log('✅ Sistema de precios inicializado');
 }
 
@@ -368,30 +382,39 @@ function inicializarSistemaPrecios() {
 // MANEJO DE ENVÍO DE FORMULARIOS
 // ========================================
 
+/**
+ * Maneja el envío del formulario de gas
+ */
 async function manejarEnvioGas(event) {
     event.preventDefault();
     const form = event.target;
     const submitBtn = form.querySelector('.btn-enviar-gas');
     try {
+        // Validar límites
         const validacion = validarLimitesGas();
         if (!validacion.valido) {
             alert('Error de validación:\n' + validacion.errores.join('\n'));
             return;
         }
+        // Deshabilitar botón
         submitBtn.disabled = true;
         submitBtn.textContent = 'Enviando...';
+        // Recopilar datos
         const formData = new FormData(form);
         const datosCompra = Object.fromEntries(formData.entries());
         if (window.auth?.currentUser) {
             datosCompra.uid = window.auth.currentUser.uid;
         }
+        // Obtener archivo
         const comprobanteFile = form.querySelector('#comprobanteGas').files[0];
+        // Enviar a Firebase
         const resultado = await guardarCompraUnificada('gas', datosCompra, comprobanteFile);
         if (resultado.success) {
             alert(`✅ Compra de gas registrada exitosamente!\nID: ${resultado.id}\nTotal cargas: ${resultado.totalCargas}\nPrecio total: $${(resultado.precioTotal || 0).toLocaleString('es-CL')}`);
             form.reset();
             actualizarDisplayPrecio(0);
-            validarLimitesGas();
+            actualizarTotalGeneralCargas();
+            validarLimitesGasYMostrar();
         } else {
             throw new Error(resultado.error || 'Error desconocido');
         }
@@ -399,6 +422,7 @@ async function manejarEnvioGas(event) {
         console.error('❌ Error al enviar compra de gas:', error);
         alert('Error al registrar la compra: ' + error.message);
     } finally {
+        // Rehabilitar botón
         submitBtn.disabled = false;
         submitBtn.textContent = 'Enviar Compra Gas';
     }
@@ -414,12 +438,14 @@ window.actualizarDisplayPrecio = actualizarDisplayPrecio;
 window.validarLimitesGas = validarLimitesGas;
 window.inicializarSistemaPrecios = inicializarSistemaPrecios;
 
+// Inicializar cuando el DOM esté listo
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', inicializarSistemaPrecios);
 } else {
     inicializarSistemaPrecios();
 }
 
+// Agregar event listener para el formulario de gas
 document.addEventListener('DOMContentLoaded', function() {
     const formGas = document.getElementById('formCompraGas');
     if (formGas) {
@@ -427,6 +453,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// Exportar para uso en módulos
 export {
     calcularPrecioGas,
     calcularPrecioEntretenimiento,
