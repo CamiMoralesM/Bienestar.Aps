@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Administrativo - Bienestar APS</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+    <!-- Header Administrativo -->
+    <header class="header admin-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <a href="../index.html">
+                        <img src="../assets/images/logo-bienestar.png" alt="Logo Bienestar APS" style="height:120px; width:auto;">
+                    </a>
+                    <span class="admin-badge">ADMINISTRATIVO</span>
+                </div>
+                <nav class="user-nav">
+                    <div class="user-info">
+                        <span class="user-name">🔐 Administrativo</span>
+                        <span class="user-rut">Panel Operador</span>
+                    </div>
+                    <button class="btn btn-logout" onclick="logout()">Cerrar Sesión</button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navegación -->
+    <nav class="dashboard-nav admin-nav">
+        <div class="container">
+            <ul class="nav-tabs">
+                <li class="nav-tab active" data-tab="afiliados">👥 Afiliados</li>
+                <li class="nav-tab" data-tab="solicitudes">📝 Solicitudes</li>
+                <li class="nav-tab" data-tab="compras-gas">🛒 Compras Gas</li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Contenido Principal -->
+    <section class="dashboard-content admin-content">
+        <div class="container">
+            <!-- Tab: Afiliados -->
+            <div class="tab-content active" id="tab-afiliados">
+                <div class="section-header">
+                    <h2>👥 Gestión de Afiliados</h2>
+                </div>
+                <div class="admin-filters">
+                    <input type="text" class="search-input" placeholder="🔍 Buscar por nombre, RUT o centro de salud...">
+                    <select class="filter-select" id="filtroEstado">
+                        <option value="todos">Todos los estados</option>
+                        <option value="activo">Activos</option>
+                        <option value="inactivo">Inactivos</option>
+                        <option value="pendiente">Pendientes</option>
+                    </select>
+                    <select class="filter-select" id="filtroCentro">
+                        <option value="todos">Todos los centros</option>
+                        <option value="CESFAM Karol Wojtyla">CESFAM Karol Wojtyla</option>
+                        <option value="CESFAM Padre Manuel Villaseca">CESFAM Padre Manuel Villaseca</option>
+                        <option value="CESFAM Alejandro del Rio">CESFAM Alejandro del Rio</option>
+                        <option value="CESFAM Bernardo Leighton">CESFAM Bernardo Leighton</option>
+                        <option value="CESFAM Cardenal Raúl Silva Henríquez">CESFAM Cardenal Raúl Silva Henríquez</option>
+                        <option value="CESFAM Vista Hermosa">CESFAM Vista Hermosa</option>
+                        <option value="CESFAM Laurita Vicuña">CESFAM Laurita Vicuña</option>
+                        <option value="Centro de Imágenes">Centro de Imágenes</option>
+                        <option value="Central de Ambulancia">Central de Ambulancia</option>
+                        <option value="Administración Salud">Administración Salud</option>
+                        <option value="San Lázaro">San Lázaro</option>
+                        <option value="CEIF">CEIF</option>
+                        <option value="Laboratorio Salud">Laboratorio Salud</option>
+                    </select>
+                    <button class="btn btn-secondary" onclick="exportarAfiliados()">📊 Exportar Excel</button>
+                </div>
+                <div class="results-info">
+                    <span class="afiliados-counter">Cargando afiliados...</span>
+                </div>
+                <div class="admin-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>RUT</th>
+                                <th>Nombre</th>
+                                <th>Centro de Salud</th>
+                                <th>Fecha Afiliación</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Los datos se cargan dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab: Solicitudes -->
+            <div class="tab-content" id="tab-solicitudes">
+                <div class="section-header">
+                    <h2>📝 Gestión de Solicitudes</h2>
+                </div>
+                <div class="admin-solicitudes">
+                    <!-- Las solicitudes se cargan dinámicamente -->
+                </div>
+            </div>
+
+            <!-- Tab: Compra Gas -->
+            <div class="tab-content" id="tab-compras-gas">
+                <h2>🛒 Compras de Gas</h2>
+                <div class="compras-gas-admin-actions">
+                    <button class="btn btn-success" onclick="exportarLipigasExcel()">Descargar Lipigas Excel</button>
+                    <button class="btn btn-warning" onclick="exportarAbastibleExcel()">Descargar Abastible Excel</button>
+                    <button class="btn btn-info" onclick="exportarGeneralExcel()">Descargar General Excel</button>
+                </div>
+                <div id="listadoComprasGas">
+                    <!-- Aquí se despliega el listado de compras del día -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 Servicio Bienestar APS - Panel Administrativo</p>
+        </div>
+    </footer>
+
+    <script type="module" src="../js/dashboard-administrativo.js"></script>
+</body>
+</html>
