@@ -14,58 +14,46 @@ import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/fireba
 // Variable global para almacenar todas las solicitudes (para filtrado)
 let todasLasSolicitudes = [];
 
-// Autenticación
-onAuthStateChanged(auth, async (user) => {
-    if (user) {
-        const userType = sessionStorage.getItem('userType');
-        if (userType !== 'funcionario') {
-            window.location.href = 'login.html';
-            return;
-        }
-        await cargarDatosUsuario(user.uid);
-    } else {
-        window.location.href = 'login.html';
-    }
-});
-
 // ================================
-// NUEVA FUNCIÓN: CARGAR PENDIENTES EN RESUMEN
+// FUNCIÓN: CARGAR PENDIENTES EN RESUMEN
 // ================================
 async function cargarPendientesResumen(uid, rut) {
-    // 1. Solicitudes de beneficios
-    const solicitudes = await obtenerSolicitudesFuncionario(uid);
-    const pendientesBeneficio = solicitudes.filter(s =>
-        s.estado === 'pendiente' || s.estado === 'en_revision'
-    ).length;
+    let pendientesBeneficio = 0;
+    try {
+        const solicitudes = await obtenerSolicitudesFuncionario(uid);
+        pendientesBeneficio = solicitudes.filter(s =>
+            (s.estado === 'pendiente' || s.estado === 'en_revision')
+        ).length;
+    } catch (e) {}
 
-    // 2. Compras (gas, cine, jumper, gimnasio)
-    let comprasPorRUT = { success: false, comprasPorTipo: {} };
-    try { comprasPorRUT = await obtenerComprasPorRUT(rut); } catch (err) {}
     let pendientesCompras = 0;
-    if (comprasPorRUT && comprasPorRUT.success && comprasPorRUT.comprasPorTipo) {
-        Object.values(comprasPorRUT.comprasPorTipo).forEach(lista => {
-            pendientesCompras += (lista || []).filter(c =>
-                c.estado === 'pendiente' || c.estado === 'en_revision'
-            ).length;
-        });
-    }
+    try {
+        const comprasPorRUT = await obtenerComprasPorRUT(rut);
+        if (comprasPorRUT && comprasPorRUT.success && comprasPorRUT.comprasPorTipo) {
+            Object.values(comprasPorRUT.comprasPorTipo).forEach(lista => {
+                pendientesCompras += (lista || []).filter(c =>
+                    c.estado === 'pendiente' || c.estado === 'en_revision'
+                ).length;
+            });
+        }
+    } catch (e) {}
 
-    // 3. Préstamos
-    let prestamos = [];
-    try { prestamos = await obtenerSolicitudesPrestamosPorUID(uid); } catch (err) {}
-    const pendientesPrestamos = (prestamos || []).filter(p =>
-        p.estado === 'pendiente' || p.estado === 'en_revision'
-    ).length;
+    let pendientesPrestamos = 0;
+    try {
+        const prestamos = await obtenerSolicitudesPrestamosPorUID(uid);
+        pendientesPrestamos = (prestamos || []).filter(p =>
+            p.estado === 'pendiente' || p.estado === 'en_revision'
+        ).length;
+    } catch (e) {}
 
-    // Suma total
     const totalPendientes = pendientesBeneficio + pendientesCompras + pendientesPrestamos;
-
-    // Mostrar en el resumen
     const solicitudesEl = document.getElementById('solicitudes-pendientes');
     if (solicitudesEl) solicitudesEl.textContent = totalPendientes;
 }
 
+// ================================
 // Cargar datos del usuario y estadísticas
+// ================================
 async function cargarDatosUsuario(uid) {
     try {
         const funcionario = await obtenerFuncionario(uid);
@@ -73,7 +61,6 @@ async function cargarDatosUsuario(uid) {
             alert('Error al cargar datos del usuario');
             return;
         }
-        // Mostrar en cabecera
         const userNameEl = document.querySelector('.user-name');
         const userRutEl = document.querySelector('.user-rut');
         const bienvenidaEl = document.getElementById('bienvenida-usuario');
@@ -92,15 +79,28 @@ async function cargarDatosUsuario(uid) {
     }
 }
 
+// ================================
+// Autenticación
+// ================================
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        const userType = sessionStorage.getItem('userType');
+        if (userType !== 'funcionario') {
+            window.location.href = 'login.html';
+            return;
+        }
+        await cargarDatosUsuario(user.uid);
+    } else {
+        window.location.href = 'login.html';
+    }
+});
+
+// ================================
+// Estadísticas adicionales (NO sobreescribe pendientes)
+// ================================
 async function cargarEstadisticas(uid, fechaAfiliacion) {
     try {
-        const solicitudes = await obtenerSolicitudesFuncionario(uid);
-        const solicitudesPendientes = solicitudes.filter(s =>
-            s.estado === 'pendiente' || s.estado === 'en_revision'
-        ).length;
-        const solicitudesEl = document.getElementById('solicitudes-pendientes');
         const tiempoEl = document.getElementById('tiempo-afiliacion');
-        if (solicitudesEl) solicitudesEl.textContent = solicitudesPendientes;
         if (tiempoEl && fechaAfiliacion && fechaAfiliacion.toDate) {
             const fecha = fechaAfiliacion.toDate();
             const hoy = new Date();
@@ -544,7 +544,6 @@ function escapeHtml(str) {
 // ================================
 async function cargarPerfil(funcionario) {
     try {
-        // Primer formulario: datos personales
         const formPerfil = document.querySelectorAll('.profile-card form.profile-form')[0];
         if (formPerfil) {
             const inputs = formPerfil.querySelectorAll('input');
@@ -553,7 +552,6 @@ async function cargarPerfil(funcionario) {
             if (inputs[2]) inputs[2].value = funcionario.email || '';
             if (inputs[3]) inputs[3].value = funcionario.telefono || '';
         }
-        // Información de cuenta
         const infoItems = document.querySelectorAll('.info-item .info-value');
         if (infoItems.length >= 3) {
             const fecha = funcionario.fechaAfiliacion?.toDate().toLocaleDateString('es-CL') || 'N/A';
@@ -571,7 +569,6 @@ async function cargarPerfil(funcionario) {
 // ========== FORMULARIO DATOS PERSONALES ==========
 
 document.addEventListener('DOMContentLoaded', function () {
-    // Datos personales
     const formPerfil = document.querySelectorAll('.profile-card form.profile-form')[0];
     if (formPerfil) {
         formPerfil.addEventListener('submit', async function (e) {
@@ -600,14 +597,12 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             try {
-                // Actualizar Firestore
                 await updateDoc(doc(db, 'funcionarios', user.uid), {
                     nombre,
                     email,
                     telefono,
                     updatedAt: new Date()
                 });
-                // Cambiar email en Auth si cambió
                 if (email !== user.email) {
                     await updateEmail(user, email);
                 }
@@ -624,7 +619,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Cambio de contraseña
     const formPassword = document.querySelectorAll('.profile-card form.profile-form')[1];
     if (formPassword) {
         formPassword.addEventListener('submit', async function (e) {
@@ -727,4 +721,3 @@ function animateStats() {
     });
 }
 window.addEventListener('load', animateStats);
-
