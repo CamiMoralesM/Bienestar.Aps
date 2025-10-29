@@ -3,95 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bienestar APS - Salud Puente Alto</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <title>Acceso - Bienestar APS</title>
+    <link rel="stylesheet" href="../css/styles.css">
 </head>
 <body>
-    <!-- Header con navegación -->
+    <!-- Header Simple -->
     <header class="header">
         <div class="container">
             <div class="header-content">
                 <div class="logo">
-                    <img src="assets/images/logo-bienestar.png" alt="Logo Bienestar APS" style="height:120px; width:auto;">
+                    <a href="../index.html">
+                        <img src="../assets/images/logo-bienestar.png" alt="Logo Bienestar APS" style="height:120px; width:auto;">
+                    </a>
                 </div>
-                <nav class="nav-buttons">
-                    <button class="btn btn-afiliado" onclick="location.href='pages/login.html?tipo=afiliado'">
-                        Acceso Afiliados
-                    </button>
-                    <button class="btn btn-admin" onclick="location.href='pages/login.html?tipo=admin'">
-                        Acceso Administrativo
-                        <button class="btn btn-superadmin" onclick="location.href='pages/login.html?tipo=admin'">
-                        Acceso Administrador
-                    </button>
-                    </button>
-                </nav>
             </div>
         </div>
     </header>
 
-    <!-- Hero Section -->
-    <section class="hero">
+    <!-- Login Section -->
+    <section class="login-section">
         <div class="container">
-            <div class="hero-content">
-                <h1 class="hero-title">BIENESTAR APS</h1>
-                <p class="hero-subtitle">Funcionarios de Salud Puente Alto</p>
-                <p class="hero-description">
-                    Promovemos el mejoramiento de la calidad de vida de nuestros afiliados 
-                    y sus cargas familiares, a través de beneficios y prestaciones en salud, 
-                    educación, asistencia social, económica, cultural y recreacional.
-                </p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Sección Principal - Cards -->
-    <section class="main-cards">
-        <div class="container">
-            <div class="cards-grid">
-                <!-- Card Beneficios -->
-                <div class="card card-beneficios">
-                    <div class="card-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
+            <div class="login-container">
+                <div class="login-box">
+                    <div class="login-header">
+                        <h2 id="login-title">Acceso Afiliados</h2>
+                        <p id="login-subtitle">Ingresa tus credenciales para acceder</p>
                     </div>
-                    <h2 class="card-title">BENEFICIOS</h2>
-                    <p class="card-description">
-                        Accede a diversos beneficios económicos y asignaciones para ti y tu familia
-                    </p>
-                    <ul class="card-list">
-                        <li>✓ Asignaciones por Natalidad y Matrimonio</li>
-                        <li>✓ Bonos Trimestrales</li>
-                        <li>✓ Préstamos Médicos y de Emergencia</li>
-                        <li>✓ Beneficios Educacionales</li>
-                        <li>✓ Seguros Complementarios</li>
-                    </ul>
-                    <button class="btn btn-primary" onclick="location.href='pages/beneficios.html'">
-                        Ver Beneficios
+
+                    <form id="loginForm" class="login-form">
+                        <div class="form-group">
+                            <label for="rut">RUT</label>
+                            <input 
+                                type="text" 
+                                id="rut" 
+                                name="rut" 
+                                placeholder="12.345.678-9"
+                                required
+                                maxlength="12"
+                            >
+                            <span class="error-message" id="rut-error"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="password">Contraseña</label>
+                            <input 
+                                type="password" 
+                                id="password" 
+                                name="password" 
+                                placeholder="••••••••"
+                                required
+                            >
+                            <span class="error-message" id="password-error"></span>
+                        </div>
+
+                        <div class="form-options">
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="remember">
+                                <span>Recordar sesión</span>
+                            </label>
+                            <a href="#" class="forgot-password" id="forgot-link">¿Olvidaste tu contraseña?</a>
+                        </div>
+
+                        <button type="submit" class="btn btn-login" id="btn-submit">
+                            Iniciar Sesión
+                        </button>
+
+                        <div class="login-footer" id="register-section">
+                            <p>¿No tienes cuenta? <a href="registro.html">Regístrate aquí</a></p>
+                            <p>¿Eres administrativo? <a href="registro-administrativo.html">Solicita acceso aquí</a></p>
+                        </div>
+                    </form>
+
+                    <div class="login-divider">
+                        <span>O</span>
+                    </div>
+
+                    <button class="btn btn-secondary btn-back" onclick="location.href='../index.html'">
+                        Volver al Inicio
                     </button>
                 </div>
 
-                <!-- Card Convenios -->
-                <div class="card card-convenios">
-                    <div class="card-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                        </svg>
+                <!-- Información adicional - Solo para afiliados -->
+                <div class="login-info" id="info-section">
+                    <div class="info-card afiliado-only">
+                        <h3>🔐 Acceso Seguro</h3>
+                        <p>Tu información está protegida con los más altos estándares de seguridad.</p>
                     </div>
-                    <h2 class="card-title">CONVENIOS</h2>
-                    <p class="card-description">
-                        Descuentos exclusivos en servicios de salud, educación y bienestar, entre otros.
-                    </p>
-                    <ul class="card-list">
-                        <li>✓ Clínicas Dentales y Ópticas</li>
-                        <li>✓ Farmacias y Medicamentos</li>
-                        <li>✓ Gimnasios y Deportes</li>
-                        <li>✓ Centros de Salud Mental</li>
-                        <li>✓ Servicios Veterinarios</li>
-                    </ul>
-                    <button class="btn btn-primary" onclick="location.href='pages/convenios.html'">
-                        Ver Convenios
-                    </button>
+                    <div class="info-card afiliado-only">
+                        <h3>📱 Contacto</h3>
+                        <p>¿Problemas para acceder?</p>
+                        <p><strong>Email:</strong> Bienestar.aps@cmpuentealto.cl</p>
+                        <p><strong>Teléfono:</strong> 22 XXX XXXX</p>
+                    </div>
+                    <div class="info-card afiliado-only">
+                        <h3>⏰ Horario de Atención</h3>
+                        <p>Lunes a Jueves 8:30 - 14:00 y 15:00 - 17:30 hrs</p>
+                        <p>Viernes 8:30 - 14:00 y 15:00 - 16:30 hrs.</p>
+                    </div>
+                    <div class="info-card admin-only" style="display:none;">
+                        <h3>🔐 Acceso Administrador</h3>
+                        <p>Solo personal autorizado. Panel de control avanzado.</p>
+                    </div>
+                    <div class="info-card administrativo-only" style="display:none;">
+                        <h3>🔐 Acceso Administrativo</h3>
+                        <p>Solo personal autorizado. Gestión de solicitudes y afiliados.</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -104,6 +120,65 @@
         </div>
     </footer>
 
-    <script type="module" src="js/main.js"></script>
+    <script type="module" src="../js/auth.js"></script>
+    <script>
+        // Script para manejar la interfaz según el tipo de acceso
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tipo = urlParams.get('tipo');
+
+            const loginTitle = document.getElementById('login-title');
+            const loginSubtitle = document.getElementById('login-subtitle');
+            const btnSubmit = document.getElementById('btn-submit');
+            const registerSection = document.getElementById('register-section');
+            const infoSection = document.getElementById('info-section');
+            const forgotLink = document.getElementById('forgot-link');
+
+            // Info cards según tipo
+            const infoCards = {
+                afiliado: document.querySelectorAll('.afiliado-only'),
+                admin: document.querySelector('.admin-only'),
+                administrativo: document.querySelector('.administrativo-only')
+            };
+
+            if (tipo === 'admin') {
+                // Acceso Administrador
+                if (loginTitle) loginTitle.textContent = 'Acceso Administrador';
+                if (loginSubtitle) loginSubtitle.textContent = 'Panel de control de superadministrador';
+                if (btnSubmit) btnSubmit.style.background = 'linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)';
+                if (registerSection) registerSection.style.display = 'none';
+                if (infoSection) {
+                    infoCards.afiliado.forEach(e => e.style.display = 'none');
+                    if (infoCards.admin) infoCards.admin.style.display = 'block';
+                    if (infoCards.administrativo) infoCards.administrativo.style.display = 'none';
+                }
+                if (forgotLink) forgotLink.style.display = 'none';
+            } else if (tipo === 'administrativo') {
+                // Acceso Administrativo
+                if (loginTitle) loginTitle.textContent = 'Acceso Administrativo';
+                if (loginSubtitle) loginSubtitle.textContent = 'Panel de gestión administrativa';
+                if (btnSubmit) btnSubmit.style.background = 'linear-gradient(135deg, #36d1c4 0%, #5b86e5 100%)';
+                if (registerSection) registerSection.style.display = 'none';
+                if (infoSection) {
+                    infoCards.afiliado.forEach(e => e.style.display = 'none');
+                    if (infoCards.admin) infoCards.admin.style.display = 'none';
+                    if (infoCards.administrativo) infoCards.administrativo.style.display = 'block';
+                }
+                if (forgotLink) forgotLink.style.display = 'none';
+            } else {
+                // Acceso Afiliados (por defecto)
+                if (loginTitle) loginTitle.textContent = 'Acceso Afiliados';
+                if (loginSubtitle) loginSubtitle.textContent = 'Ingresa tus credenciales para acceder';
+                if (btnSubmit) btnSubmit.style.background = '';
+                if (registerSection) registerSection.style.display = 'block';
+                if (infoSection) {
+                    infoCards.afiliado.forEach(e => e.style.display = 'block');
+                    if (infoCards.admin) infoCards.admin.style.display = 'none';
+                    if (infoCards.administrativo) infoCards.administrativo.style.display = 'none';
+                }
+                if (forgotLink) forgotLink.style.display = 'inline';
+            }
+        });
+    </script>
 </body>
 </html>
