@@ -109,6 +109,7 @@ function configurarFormularioGas() {
                 const precio = calcularPrecioGas();
                 actualizarDisplayPrecio(precio);
                 actualizarContadorCargas('lipigas');
+                validarLimitesGas();
             });
         }
     });
@@ -121,6 +122,7 @@ function configurarFormularioGas() {
                 const precio = calcularPrecioGas();
                 actualizarDisplayPrecio(precio);
                 actualizarContadorCargas('abastible');
+                validarLimitesGas();
             });
         }
     });
@@ -146,6 +148,7 @@ function configurarFormularioGas() {
             const precio = calcularPrecioGas();
             actualizarDisplayPrecio(precio);
             actualizarContadorCargas('lipigas');
+            validarLimitesGas();
         });
     }
     
@@ -169,6 +172,7 @@ function configurarFormularioGas() {
             const precio = calcularPrecioGas();
             actualizarDisplayPrecio(precio);
             actualizarContadorCargas('abastible');
+            validarLimitesGas();
         });
     }
     
@@ -275,48 +279,123 @@ function actualizarContadorCargas(marca) {
 }
 
 /**
- * Valida los límites de gas según temporada
+ * Valida los límites de gas según temporada y por tipo, bloqueando selects según reglas.
+ * Aplica las siguientes reglas:
+ * - Temporada normal (Oct-May): Máximo 4 cargas mensuales, máximo 2 por tipo (sumando Lipigas y Abastible).
+ * - Temporada alta (Jun-Sep): Máximo 6 cargas mensuales, máximo 3 por tipo, máximo 2 de 45kg.
+ * Si eliges 2 de un tipo en una marca, bloquea el otro. Si eliges 1 y 1, permite.
  */
 function validarLimitesGas() {
     const mes = new Date().getMonth() + 1; // 1-12
     const esTemporadaAlta = mes >= 6 && mes <= 9; // Jun-Sep
-    
+
     const maxCargas = esTemporadaAlta ? 6 : 4;
     const maxPorTipo = esTemporadaAlta ? 3 : 2;
-    const max45kg = esTemporadaAlta ? 2 : 2;
-    
-    let totalCargas = 0;
-    let cargas45kg = 0;
-    
-    // Contar cargas
-    ['lipigas5', 'lipigas11', 'lipigas15', 'lipigas45', 'abastible5', 'abastible11', 'abastible15', 'abastible45'].forEach(id => {
-        const valor = parseInt(document.getElementById(id)?.value) || 0;
-        totalCargas += valor;
-        
-        if (id.includes('45')) {
-            cargas45kg += valor;
-        }
-    });
-    
-    // Validar límites
+    const max45kg = 2; // Siempre 2
+
+    // Obtener cantidades seleccionadas
+    const lipigas5 = parseInt(document.getElementById('lipigas5')?.value) || 0;
+    const lipigas11 = parseInt(document.getElementById('lipigas11')?.value) || 0;
+    const lipigas15 = parseInt(document.getElementById('lipigas15')?.value) || 0;
+    const lipigas45 = parseInt(document.getElementById('lipigas45')?.value) || 0;
+    const abastible5 = parseInt(document.getElementById('abastible5')?.value) || 0;
+    const abastible11 = parseInt(document.getElementById('abastible11')?.value) || 0;
+    const abastible15 = parseInt(document.getElementById('abastible15')?.value) || 0;
+    const abastible45 = parseInt(document.getElementById('abastible45')?.value) || 0;
+
+    // Suma por tipo (ambas marcas)
+    const sum5 = lipigas5 + abastible5;
+    const sum11 = lipigas11 + abastible11;
+    const sum15 = lipigas15 + abastible15;
+    const sum45 = lipigas45 + abastible45;
+
+    // Total cargas
+    const totalCargas = sum5 + sum11 + sum15 + sum45;
+
+    // Validación de errores
     const errores = [];
-    
     if (totalCargas > maxCargas) {
         errores.push(`Máximo ${maxCargas} cargas por mes (temporada ${esTemporadaAlta ? 'alta' : 'normal'})`);
     }
-    
-    if (cargas45kg > max45kg) {
-        errores.push(`Máximo ${max45kg} cargas de 45kg por mes`);
+    if (sum45 > max45kg) {
+        errores.push(`Máximo ${max45kg} cargas de 45kg entre Lipigas y Abastible`);
     }
-    
+    if (sum5 > maxPorTipo) {
+        errores.push(`Máximo ${maxPorTipo} cargas de 5kg entre Lipigas y Abastible`);
+    }
+    if (sum11 > maxPorTipo) {
+        errores.push(`Máximo ${maxPorTipo} cargas de 11kg entre Lipigas y Abastible`);
+    }
+    if (sum15 > maxPorTipo) {
+        errores.push(`Máximo ${maxPorTipo} cargas de 15kg entre Lipigas y Abastible`);
+    }
+
+    // Bloqueo dinámico de selects según límites por tipo
+    [
+        { tipo: '5', lipigas: lipigas5, abastible: abastible5, suma: sum5, max: maxPorTipo },
+        { tipo: '11', lipigas: lipigas11, abastible: abastible11, suma: sum11, max: maxPorTipo },
+        { tipo: '15', lipigas: lipigas15, abastible: abastible15, suma: sum15, max: maxPorTipo },
+        { tipo: '45', lipigas: lipigas45, abastible: abastible45, suma: sum45, max: max45kg }
+    ].forEach(({ tipo, lipigas, abastible, suma, max }) => {
+        const lipigasSelect = document.getElementById('lipigas' + tipo);
+        const abastibleSelect = document.getElementById('abastible' + tipo);
+
+        // Si ya se seleccionó el máximo en una marca, la otra debe ser 0 y deshabilitada
+        if (lipigas >= max) {
+            if (abastibleSelect) {
+                abastibleSelect.value = "0";
+                abastibleSelect.disabled = true;
+            }
+        } else {
+            if (abastibleSelect) abastibleSelect.disabled = false;
+            if (abastibleSelect && abastible > (max - lipigas)) abastibleSelect.value = (max - lipigas);
+        }
+        if (abastible >= max) {
+            if (lipigasSelect) {
+                lipigasSelect.value = "0";
+                lipigasSelect.disabled = true;
+            }
+        } else {
+            if (lipigasSelect) lipigasSelect.disabled = false;
+            if (lipigasSelect && lipigas > (max - abastible)) lipigasSelect.value = (max - abastible);
+        }
+
+        // Además, limitar las opciones visuales para no permitir más de lo permitido
+        [lipigasSelect, abastibleSelect].forEach(select => {
+            if (select) {
+                Array.from(select.options).forEach(opt => {
+                    if (parseInt(opt.value) > (max - (select === lipigasSelect ? abastible : lipigas))) {
+                        opt.disabled = true;
+                    } else {
+                        opt.disabled = false;
+                    }
+                });
+            }
+        });
+    });
+
+    // Mostrar errores si es necesario
+    const form = document.getElementById('formCompraGas');
+    let errorBox = form ? form.querySelector('.limite-error') : null;
+    if (!errorBox && form) {
+        errorBox = document.createElement('div');
+        errorBox.className = 'limite-error';
+        errorBox.style.cssText = "color: #dc3545; margin-bottom: 10px; font-weight: bold;";
+        form.insertBefore(errorBox, form.firstChild);
+    }
+    if (errorBox) {
+        if (errores.length > 0) {
+            errorBox.innerHTML = errores.join('<br>');
+        } else {
+            errorBox.innerHTML = '';
+        }
+    }
+
     return {
         valido: errores.length === 0,
-        errores: errores,
+        errores,
         limites: {
-            maxCargas,
-            maxPorTipo,
-            max45kg,
-            esTemporadaAlta
+            maxCargas, maxPorTipo, max45kg, esTemporadaAlta
         }
     };
 }
@@ -338,6 +417,9 @@ function inicializarSistemaPrecios() {
     // Cálculo inicial
     const precioInicial = calcularPrecioGas();
     actualizarDisplayPrecio(precioInicial);
+
+    // Validación inicial de límites
+    validarLimitesGas();
     
     console.log('✅ Sistema de precios inicializado');
 }
@@ -386,6 +468,7 @@ async function manejarEnvioGas(event) {
             alert(`✅ Compra de gas registrada exitosamente!\nID: ${resultado.id}\nTotal cargas: ${resultado.totalCargas}\nPrecio total: $${(resultado.precioTotal || 0).toLocaleString('es-CL')}`);
             form.reset();
             actualizarDisplayPrecio(0);
+            validarLimitesGas();
         } else {
             throw new Error(resultado.error || 'Error desconocido');
         }
