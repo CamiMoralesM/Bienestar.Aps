@@ -28,6 +28,44 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
+// ================================
+// NUEVA FUNCIÓN: CARGAR PENDIENTES EN RESUMEN
+// ================================
+async function cargarPendientesResumen(uid, rut) {
+    // 1. Solicitudes de beneficios
+    const solicitudes = await obtenerSolicitudesFuncionario(uid);
+    const pendientesBeneficio = solicitudes.filter(s =>
+        s.estado === 'pendiente' || s.estado === 'en_revision'
+    ).length;
+
+    // 2. Compras (gas, cine, jumper, gimnasio)
+    let comprasPorRUT = { success: false, comprasPorTipo: {} };
+    try { comprasPorRUT = await obtenerComprasPorRUT(rut); } catch (err) {}
+    let pendientesCompras = 0;
+    if (comprasPorRUT && comprasPorRUT.success && comprasPorRUT.comprasPorTipo) {
+        Object.values(comprasPorRUT.comprasPorTipo).forEach(lista => {
+            pendientesCompras += (lista || []).filter(c =>
+                c.estado === 'pendiente' || c.estado === 'en_revision'
+            ).length;
+        });
+    }
+
+    // 3. Préstamos
+    let prestamos = [];
+    try { prestamos = await obtenerSolicitudesPrestamosPorUID(uid); } catch (err) {}
+    const pendientesPrestamos = (prestamos || []).filter(p =>
+        p.estado === 'pendiente' || p.estado === 'en_revision'
+    ).length;
+
+    // Suma total
+    const totalPendientes = pendientesBeneficio + pendientesCompras + pendientesPrestamos;
+
+    // Mostrar en el resumen
+    const solicitudesEl = document.getElementById('solicitudes-pendientes');
+    if (solicitudesEl) solicitudesEl.textContent = totalPendientes;
+}
+
+// Cargar datos del usuario y estadísticas
 async function cargarDatosUsuario(uid) {
     try {
         const funcionario = await obtenerFuncionario(uid);
@@ -45,6 +83,7 @@ async function cargarDatosUsuario(uid) {
             const primerNombre = funcionario.nombre.split(" ")[0];
             bienvenidaEl.textContent = funcionario.genero === 'F' ? `¡Bienvenida, ${primerNombre}!` : `¡Bienvenido, ${primerNombre}!`;
         }
+        await cargarPendientesResumen(uid, funcionario.rut);
         await cargarEstadisticas(uid, funcionario.fechaAfiliacion);
         await cargarSolicitudes(uid, funcionario.rut);
         await cargarPerfil(funcionario);
@@ -688,3 +727,4 @@ function animateStats() {
     });
 }
 window.addEventListener('load', animateStats);
+
