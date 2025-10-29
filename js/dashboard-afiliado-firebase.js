@@ -1,6 +1,6 @@
 // Dashboard del Afiliado - Versión Mejorada con Detalles Completos de Gas
 // Modificado para mostrar todas las compras y préstamos en la pestaña "Mis Solicitudes"
-// CON SISTEMA DE FILTROS PARA SOLICITUDES Y DETALLES COMPLETOS DE GAS
+// CON SISTEMA DE FILTROS PARA SOLICITUDES Y DETALLES COMPLETOS DE GAS Y PRECIOS
 
 import { auth } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -363,14 +363,14 @@ async function cargarSolicitudes(uid, rut) {
                             (c.cargas_abastible ? Object.values(c.cargas_abastible).reduce((a,b)=>a+(b||0),0):0)
                         );
                         
-                        // Obtener precio total
-                        const precioTotal = c.preciototal || c.precioTotal || c.montoTotal;
-                        const precioTexto = precioTotal ? ` - $${precioTotal.toLocaleString('es-CL')}` : '';
+                        // Obtener precio total desde Firebase (ya calculado en el backend)
+                        const precioTotal = c.precioTotal || c.montoTotal || 0;
+                        const precioTexto = precioTotal > 0 ? ` - $${precioTotal.toLocaleString('es-CL')}` : '';
                         
                         titulo = `Compra de Gas (${total} carga${total !== 1 ? 's' : ''})${precioTexto}`;
                         
                         // ========================================
-                        // MEJORA: CREAR DESCRIPCIÓN DETALLADA CON KILOS Y CANTIDADES
+                        // MEJORA: CREAR DESCRIPCIÓN DETALLADA CON KILOS, CANTIDADES Y PRECIOS
                         // ========================================
                         let descripcionParts = [];
                         
@@ -396,10 +396,9 @@ async function cargarSolicitudes(uid, rut) {
                             }
                         }
                         
-                        // Agregar precio total si está disponible
-                        if (c.preciototal || c.precioTotal || c.montoTotal) {
-                            const precio = c.preciototal || c.precioTotal || c.montoTotal;
-                            descripcionParts.push(`💵 Total: $${precio.toLocaleString('es-CL')}`);
+                        // Agregar precio total calculado desde Firebase
+                        if (precioTotal > 0) {
+                            descripcionParts.push(`💵 Total: $${precioTotal.toLocaleString('es-CL')}`);
                         }
                         
                         if (c.saldoFavor) {
@@ -417,8 +416,20 @@ async function cargarSolicitudes(uid, rut) {
                         // entretenimiento: cine, jumper, gimnasio
                         const nombreTipo = tipo.charAt(0).toUpperCase() + tipo.slice(1);
                         const cantidad = c.cantidad || c.cantidadEntradas || 0;
+                        const precioTotal = c.precioTotal || c.montoTotal || 0;
+                        
                         titulo = `${nombreTipo} - ${cantidad} ${cantidad === 1 ? 'entrada' : 'entradas'}`;
-                        descripcion = `Precio total: ${c.montoTotal ? '$' + c.montoTotal.toLocaleString('es-CL') : 'N/A'}`;
+                        if (precioTotal > 0) {
+                            titulo += ` - $${precioTotal.toLocaleString('es-CL')}`;
+                        }
+                        
+                        descripcion = `💵 Precio total: $${precioTotal.toLocaleString('es-CL')}`;
+                        if (c.precioUnitario) {
+                            descripcion += ` • 🎫 Precio unitario: $${c.precioUnitario.toLocaleString('es-CL')}`;
+                        }
+                        if (c.fechaCompra) {
+                            descripcion += ` • 📅 Fecha compra: ${c.fechaCompra}`;
+                        }
                     }
 
                     items.push({
@@ -578,7 +589,7 @@ function renderMisSolicitudes(container, items) {
         description.style.cssText = 'margin: 0; font-size: 14px; color: #495057; line-height: 1.5;';
         
         // ========================================
-        // MEJORA: RENDERIZADO ESPECIAL PARA COMPRAS DE GAS
+        // MEJORA: RENDERIZADO ESPECIAL PARA COMPRAS DE GAS CON PRECIOS
         // ========================================
         if (item.fuente === 'compra_gas') {
             // Para gas, mostrar la descripción con formato especial
@@ -649,7 +660,7 @@ function renderMisSolicitudes(container, items) {
 // ========================================
 
 /**
- * Formatea la descripción de las compras de gas con un diseño más visual
+ * Formatea la descripción de las compras de gas con un diseño más visual incluyendo precios
  */
 function formatearDescripcionGas(descripcion) {
     if (!descripcion) return 'Sin detalles específicos';
