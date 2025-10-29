@@ -1,6 +1,6 @@
-// Dashboard del Afiliado - Versión Mejorada con Detalles Completos de Gas
-// Modificado para mostrar todas las compras y préstamos en la pestaña "Mis Solicitudes"
-// CON SISTEMA DE FILTROS PARA SOLICITUDES Y DETALLES COMPLETOS DE GAS Y PRECIOS
+// Dashboard del Afiliado - Versión con Estilo Simplificado para Compras de Gas
+// Modificado para mostrar las compras de gas con el mismo estilo que entretenimiento
+// CON SISTEMA DE FILTROS PARA SOLICITUDES Y ESTILO CONSISTENTE
 
 import { auth } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -357,6 +357,10 @@ async function cargarSolicitudes(uid, rut) {
                     let descripcion = '';
 
                     if (tipo === 'gas') {
+                        // ========================================
+                        // CAMBIO PRINCIPAL: ESTILO SIMPLIFICADO PARA GAS
+                        // ========================================
+                        
                         // Calcular total de cargas si no está
                         const total = c.totalCargas ?? (
                             (c.cargas_lipigas ? Object.values(c.cargas_lipigas).reduce((a,b)=>a+(b||0),0):0) +
@@ -365,52 +369,29 @@ async function cargarSolicitudes(uid, rut) {
                         
                         // Obtener precio total desde Firebase (ya calculado en el backend)
                         const precioTotal = c.precioTotal || c.montoTotal || 0;
-                        const precioTexto = precioTotal > 0 ? ` - $${precioTotal.toLocaleString('es-CL')}` : '';
                         
-                        titulo = `Compra de Gas (${total} carga${total !== 1 ? 's' : ''})${precioTexto}`;
+                        // FORMATO SIMPLIFICADO: igual que entretenimiento
+                        titulo = `Compra de Gas - ${total} carga${total !== 1 ? 's' : ''} - $${precioTotal.toLocaleString('es-CL')}`;
                         
-                        // ========================================
-                        // MEJORA: CREAR DESCRIPCIÓN DETALLADA CON KILOS, CANTIDADES Y PRECIOS
-                        // ========================================
-                        let descripcionParts = [];
+                        // Descripción simple y limpia
+                        const descripcionParts = [];
                         
-                        if (c.compraLipigas && c.cargas_lipigas) {
-                            const lipigasDetails = [];
-                            if (c.cargas_lipigas.kg5 > 0) lipigasDetails.push(`${c.cargas_lipigas.kg5}x 5kg`);
-                            if (c.cargas_lipigas.kg11 > 0) lipigasDetails.push(`${c.cargas_lipigas.kg11}x 11kg`);
-                            if (c.cargas_lipigas.kg15 > 0) lipigasDetails.push(`${c.cargas_lipigas.kg15}x 15kg`);
-                            if (c.cargas_lipigas.kg45 > 0) lipigasDetails.push(`${c.cargas_lipigas.kg45}x 45kg`);
-                            if (lipigasDetails.length > 0) {
-                                descripcionParts.push(`🔥 Lipigas: ${lipigasDetails.join(', ')}`);
-                            }
-                        }
-                        
-                        if (c.compraAbastible && c.cargas_abastible) {
-                            const abastibleDetails = [];
-                            if (c.cargas_abastible.kg5 > 0) abastibleDetails.push(`${c.cargas_abastible.kg5}x 5kg`);
-                            if (c.cargas_abastible.kg11 > 0) abastibleDetails.push(`${c.cargas_abastible.kg11}x 11kg`);
-                            if (c.cargas_abastible.kg15 > 0) abastibleDetails.push(`${c.cargas_abastible.kg15}x 15kg`);
-                            if (c.cargas_abastible.kg45 > 0) abastibleDetails.push(`${c.cargas_abastible.kg45}x 45kg`);
-                            if (abastibleDetails.length > 0) {
-                                descripcionParts.push(`⛽ Abastible: ${abastibleDetails.join(', ')}`);
-                            }
-                        }
-                        
-                        // Agregar precio total calculado desde Firebase
-                        if (precioTotal > 0) {
-                            descripcionParts.push(`💵 Total: $${precioTotal.toLocaleString('es-CL')}`);
-                        }
-                        
-                        if (c.saldoFavor) {
-                            descripcionParts.push(`💰 Saldo a favor: ${c.saldoFavor}`);
+                        // Agregar precio unitario si está disponible
+                        if (c.precioUnitario) {
+                            descripcionParts.push(`Precio unitario: $${c.precioUnitario.toLocaleString('es-CL')}`);
                         }
                         
                         // Agregar información de fecha de compra si está disponible
                         if (c.fechaCompra) {
-                            descripcionParts.push(`📅 Fecha compra: ${c.fechaCompra}`);
+                            descripcionParts.push(`Fecha compra: ${c.fechaCompra}`);
                         }
                         
-                        descripcion = descripcionParts.length > 0 ? descripcionParts.join(' • ') : 'Sin detalles específicos';
+                        // Información adicional opcional
+                        if (c.saldoFavor) {
+                            descripcionParts.push(`Saldo a favor: ${c.saldoFavor}`);
+                        }
+                        
+                        descripcion = descripcionParts.length > 0 ? descripcionParts.join(' • ') : '';
                         
                     } else {
                         // entretenimiento: cine, jumper, gimnasio
@@ -418,17 +399,14 @@ async function cargarSolicitudes(uid, rut) {
                         const cantidad = c.cantidad || c.cantidadEntradas || 0;
                         const precioTotal = c.precioTotal || c.montoTotal || 0;
                         
-                        titulo = `${nombreTipo} - ${cantidad} ${cantidad === 1 ? 'entrada' : 'entradas'}`;
-                        if (precioTotal > 0) {
-                            titulo += ` - $${precioTotal.toLocaleString('es-CL')}`;
-                        }
+                        titulo = `${nombreTipo} - ${cantidad} ${cantidad === 1 ? 'entrada' : 'entradas'} - $${precioTotal.toLocaleString('es-CL')}`;
                         
-                        descripcion = `💵 Precio total: $${precioTotal.toLocaleString('es-CL')}`;
+                        descripcion = `Precio total: $${precioTotal.toLocaleString('es-CL')}`;
                         if (c.precioUnitario) {
-                            descripcion += ` • 🎫 Precio unitario: $${c.precioUnitario.toLocaleString('es-CL')}`;
+                            descripcion += ` • Precio unitario: $${c.precioUnitario.toLocaleString('es-CL')}`;
                         }
                         if (c.fechaCompra) {
-                            descripcion += ` • 📅 Fecha compra: ${c.fechaCompra}`;
+                            descripcion += ` • Fecha compra: ${c.fechaCompra}`;
                         }
                     }
 
@@ -444,11 +422,6 @@ async function cargarSolicitudes(uid, rut) {
                         raw: c
                     });
                 });
-            }
-        } else {
-            // Si no devolvió success puede que la función devuelva directamente arrays (compatibilidad)
-            if (comprasPorRUT && comprasPorRUT.comprasPorTipo) {
-                // ya cubierto arriba; si estructura distinta, ignoramos silenciosamente
             }
         }
 
@@ -491,10 +464,10 @@ async function cargarSolicitudes(uid, rut) {
 }
 
 // ========================================
-// RENDERIZAR SOLICITUDES CON DETALLES MEJORADOS
+// RENDERIZAR SOLICITUDES CON ESTILO CONSISTENTE
 // ========================================
 
-// Renderiza la lista unificada de solicitudes/compras/prestamos con detalles mejorados
+// Renderiza la lista unificada de solicitudes/compras/prestamos con estilo consistente
 function renderMisSolicitudes(container, items) {
     if (!container) return;
 
@@ -589,15 +562,9 @@ function renderMisSolicitudes(container, items) {
         description.style.cssText = 'margin: 0; font-size: 14px; color: #495057; line-height: 1.5;';
         
         // ========================================
-        // MEJORA: RENDERIZADO ESPECIAL PARA COMPRAS DE GAS CON PRECIOS
+        // CAMBIO: DESCRIPCIÓN SIMPLE PARA TODAS LAS COMPRAS
         // ========================================
-        if (item.fuente === 'compra_gas') {
-            // Para gas, mostrar la descripción con formato especial
-            const descripcionFormatted = formatearDescripcionGas(item.descripcion);
-            description.innerHTML = descripcionFormatted;
-        } else {
-            description.textContent = escapeHtml(item.descripcion || '');
-        }
+        description.textContent = escapeHtml(item.descripcion || '');
 
         titleDiv.appendChild(title);
         if (item.descripcion) {
@@ -656,77 +623,8 @@ function renderMisSolicitudes(container, items) {
 }
 
 // ========================================
-// FUNCIONES AUXILIARES MEJORADAS
+// FUNCIONES AUXILIARES
 // ========================================
-
-/**
- * Formatea la descripción de las compras de gas con un diseño más visual incluyendo precios
- */
-function formatearDescripcionGas(descripcion) {
-    if (!descripcion) return 'Sin detalles específicos';
-    
-    // Dividir por separador •
-    const partes = descripcion.split(' • ');
-    let html = '<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">';
-    
-    partes.forEach(parte => {
-        if (parte.includes('Lipigas:')) {
-            html += `<div style="
-                background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
-                color: white;
-                padding: 4px 8px;
-                border-radius: 6px;
-                font-size: 12px;
-                font-weight: 600;
-                white-space: nowrap;
-            ">${escapeHtml(parte)}</div>`;
-        } else if (parte.includes('Abastible:')) {
-            html += `<div style="
-                background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-                color: white;
-                padding: 4px 8px;
-                border-radius: 6px;
-                font-size: 12px;
-                font-weight: 600;
-                white-space: nowrap;
-            ">${escapeHtml(parte)}</div>`;
-        } else if (parte.includes('Total:')) {
-            html += `<div style="
-                background: linear-gradient(135deg, #fd7e14 0%, #e55353 100%);
-                color: white;
-                padding: 4px 8px;
-                border-radius: 6px;
-                font-size: 12px;
-                font-weight: 700;
-                white-space: nowrap;
-                box-shadow: 0 2px 4px rgba(253, 126, 20, 0.3);
-            ">${escapeHtml(parte)}</div>`;
-        } else if (parte.includes('Saldo a favor:')) {
-            html += `<div style="
-                background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-                color: white;
-                padding: 4px 8px;
-                border-radius: 6px;
-                font-size: 12px;
-                font-weight: 600;
-                white-space: nowrap;
-            ">${escapeHtml(parte)}</div>`;
-        } else {
-            html += `<div style="
-                background: #f8f9fa;
-                color: #495057;
-                padding: 4px 8px;
-                border-radius: 6px;
-                font-size: 12px;
-                border: 1px solid #dee2e6;
-                white-space: nowrap;
-            ">${escapeHtml(parte)}</div>`;
-        }
-    });
-    
-    html += '</div>';
-    return html;
-}
 
 /**
  * Obtiene la etiqueta legible del tipo de fuente
@@ -882,6 +780,3 @@ function animateStats() {
 }
 
 window.addEventListener('load', animateStats);
-
-
-document.head.appendChild(style);
