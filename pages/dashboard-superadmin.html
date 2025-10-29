@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Administrador General - Bienestar APS</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <!-- Chart.js para gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+    <!-- Header Admin -->
+    <header class="header admin-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <a href="../index.html">
+                        <img src="../assets/images/logo-bienestar.png" alt="Logo Bienestar APS" style="height:120px; width:auto;">
+                    </a>
+                    <span class="admin-badge">SUPERADMIN</span>
+                </div>
+                <nav class="user-nav">
+                    <div class="user-info">
+                        <span class="user-name">🔐 Administrador General</span>
+                        <span class="user-rut">Panel de Control</span>
+                    </div>
+                    <button class="btn btn-logout" onclick="logout()">Cerrar Sesión</button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navegación -->
+    <nav class="dashboard-nav admin-nav">
+        <div class="container">
+            <ul class="nav-tabs">
+                <li class="nav-tab active" data-tab="dashboard">📊 Dashboard</li>
+                <li class="nav-tab" data-tab="administrativos">🛡️ Administrativos</li>
+                <li class="nav-tab" data-tab="graficos">📈 Gráficos</li>
+                <li class="nav-tab" data-tab="beneficios">💰 Beneficios</li>
+                <li class="nav-tab" data-tab="convenios">🏪 Convenios</li>
+                <li class="nav-tab" data-tab="precios">💵 Precios</li>
+                <li class="nav-tab" data-tab="afiliados">👥 Afiliados</li>
+                <li class="nav-tab" data-tab="solicitudes">📝 Solicitudes</li>
+                <li class="nav-tab" data-tab="compras-gas">🛒 Compras Gas</li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Contenido Principal -->
+    <section class="dashboard-content admin-content">
+        <div class="container">
+            <!-- Tab: Dashboard -->
+            <div class="tab-content active" id="tab-dashboard">
+                <h1 class="page-title">Panel de Control Administrador General</h1>
+                <!-- Aquí puedes dejar estadísticas globales, actividad reciente, etc. -->
+            </div>
+
+            <!-- Tab: Administrativos -->
+            <div class="tab-content" id="tab-administrativos">
+                <h2>🛡️ Gestión de Administrativos</h2>
+                <!-- Tabla de administrativos con botones para aprobar/rechazar y cambiar rol -->
+                <div id="administativos-list"></div>
+            </div>
+
+            <!-- Tab: Gráficos -->
+            <div class="tab-content" id="tab-graficos">
+                <h2>📈 Estadísticas Mensuales</h2>
+                <div style="max-width:900px; margin:auto;">
+                    <canvas id="chart-compras"></canvas>
+                </div>
+            </div>
+
+            <!-- Tab: Beneficios -->
+            <div class="tab-content" id="tab-beneficios">
+                <div class="section-header">
+                    <h2>💰 Administración de Beneficios</h2>
+                    <button class="btn btn-primary" onclick="abrirModalBeneficio()">➕ Crear Beneficio</button>
+                </div>
+                <div class="beneficios-admin-grid" id="beneficios-list">
+                    <!-- Beneficios dinámicos -->
+                </div>
+            </div>
+
+            <!-- Tab: Convenios -->
+            <div class="tab-content" id="tab-convenios">
+                <div class="section-header">
+                    <h2>🏪 Administración de Convenios</h2>
+                    <button class="btn btn-primary" onclick="abrirModalConvenio()">➕ Nuevo Convenio</button>
+                </div>
+                <div class="convenios-admin-list" id="convenios-list">
+                    <!-- Convenios dinámicos -->
+                </div>
+            </div>
+
+            <!-- Tab: Precios -->
+            <div class="tab-content" id="tab-precios">
+                <h2>💵 Configuración de Precios</h2>
+                <form id="form-precios">
+                    <div class="precios-grid">
+                        <div>
+                            <h3>Gas</h3>
+                            <label>Lipigas 5kg <input type="number" name="lipigas5" required></label>
+                            <label>Lipigas 11kg <input type="number" name="lipigas11" required></label>
+                            <label>Lipigas 15kg <input type="number" name="lipigas15" required></label>
+                            <label>Lipigas 45kg <input type="number" name="lipigas45" required></label>
+                            <label>Abastible 5kg <input type="number" name="abastible5" required></label>
+                            <label>Abastible 11kg <input type="number" name="abastible11" required></label>
+                            <label>Abastible 15kg <input type="number" name="abastible15" required></label>
+                            <label>Abastible 45kg <input type="number" name="abastible45" required></label>
+                        </div>
+                        <div>
+                            <h3>Otros</h3>
+                            <label>Cine <input type="number" name="cine" required></label>
+                            <label>Jumper Park <input type="number" name="jumper" required></label>
+                            <label>Gimnasio <input type="number" name="gimnasio" required></label>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success">Guardar Precios</button>
+                </form>
+            </div>
+
+            <!-- Tab: Afiliados -->
+            <div class="tab-content" id="tab-afiliados">
+                <!-- Igual que dashboard-admin.html -->
+            </div>
+
+            <!-- Tab: Solicitudes -->
+            <div class="tab-content" id="tab-solicitudes">
+                <!-- Igual que dashboard-admin.html -->
+            </div>
+
+            <!-- Tab: Compras Gas -->
+            <div class="tab-content" id="tab-compras-gas">
+                <!-- Igual que dashboard-admin.html -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Modales para Beneficios y Convenios -->
+    <div id="modal-beneficio" class="modal" style="display:none;">
+        <div class="modal-content">
+            <!-- Formulario para agregar/editar beneficio -->
+        </div>
+    </div>
+    <div id="modal-convenio" class="modal" style="display:none;">
+        <div class="modal-content">
+            <!-- Formulario para agregar/editar convenio -->
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 Servicio Bienestar APS - Panel Administrador General</p>
+        </div>
+    </footer>
+
+    <script type="module" src="../js/dashboard-superadmin.js"></script>
+</body>
+</html>
