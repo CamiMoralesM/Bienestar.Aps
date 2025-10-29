@@ -1,7 +1,3 @@
-// Dashboard del Afiliado - Versión con Estilo Simplificado para Compras de Gas
-// Modificado para mostrar las compras de gas con el mismo estilo que entretenimiento
-// CON SISTEMA DE FILTROS PARA SOLICITUDES Y ESTILO CONSISTENTE
-
 import { auth } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { 
@@ -10,15 +6,13 @@ import {
     actualizarFuncionario
 } from './firestore-operations.js';
 import { cerrarSesion } from './auth.js';
-
-// Nuevas importaciones para obtener compras y préstamos
 import { obtenerComprasPorRUT } from './compras-gas-firebase.js';
 import { obtenerSolicitudesPrestamosPorUID } from './prestamos-firebase.js';
 
 // Variable global para almacenar todas las solicitudes (para filtrado)
 let todasLasSolicitudes = [];
 
-// Verificar autenticación al cargar
+// Autenticación
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         const userType = sessionStorage.getItem('userType');
@@ -26,14 +20,12 @@ onAuthStateChanged(auth, async (user) => {
             window.location.href = 'login.html';
             return;
         }
-        // Cargar datos del usuario
         await cargarDatosUsuario(user.uid);
     } else {
         window.location.href = 'login.html';
     }
 });
 
-// Cargar datos del usuario
 async function cargarDatosUsuario(uid) {
     try {
         const funcionario = await obtenerFuncionario(uid);
@@ -41,7 +33,7 @@ async function cargarDatosUsuario(uid) {
             alert('Error al cargar datos del usuario');
             return;
         }
-        // Actualizar información en la UI
+        // Mostrar en cabecera
         const userNameEl = document.querySelector('.user-name');
         const userRutEl = document.querySelector('.user-rut');
         const bienvenidaEl = document.getElementById('bienvenida-usuario');
@@ -51,34 +43,24 @@ async function cargarDatosUsuario(uid) {
             const primerNombre = funcionario.nombre.split(" ")[0];
             bienvenidaEl.textContent = funcionario.genero === 'F' ? `¡Bienvenida, ${primerNombre}!` : `¡Bienvenido, ${primerNombre}!`;
         }
-        // Cargar estadísticas
         await cargarEstadisticas(uid, funcionario.fechaAfiliacion);
-        // Cargar solicitudes (ahora incluye compras y préstamos). Pasamos el RUT.
         await cargarSolicitudes(uid, funcionario.rut);
-        // Cargar perfil
         await cargarPerfil(funcionario);
     } catch (error) {
         console.error('Error al cargar datos:', error);
     }
 }
 
-// Cargar estadísticas del dashboard
 async function cargarEstadisticas(uid, fechaAfiliacion) {
     try {
         const solicitudes = await obtenerSolicitudesFuncionario(uid);
         const solicitudesPendientes = solicitudes.filter(s =>
             s.estado === 'pendiente' || s.estado === 'en_revision'
         ).length;
-        // Actualizar cards de estadísticas
-        const beneficiosEl = document.getElementById('beneficios-recibidos');
         const solicitudesEl = document.getElementById('solicitudes-pendientes');
-        const conveniosEl = document.getElementById('convenios-disponibles');
         const tiempoEl = document.getElementById('tiempo-afiliacion');
-        if (beneficiosEl) beneficiosEl.textContent = '$0';
         if (solicitudesEl) solicitudesEl.textContent = solicitudesPendientes;
-        if (conveniosEl) conveniosEl.textContent = "24";
-        // Tiempo de afiliación
-        if (fechaAfiliacion && fechaAfiliacion.toDate && tiempoEl) {
+        if (tiempoEl && fechaAfiliacion && fechaAfiliacion.toDate) {
             const fecha = fechaAfiliacion.toDate();
             const hoy = new Date();
             const msPorMes = 1000 * 60 * 60 * 24 * 30.44;
@@ -93,14 +75,11 @@ async function cargarEstadisticas(uid, fechaAfiliacion) {
 // ================================
 // SISTEMA DE FILTROS PARA SOLICITUDES
 // ================================
-
 function crearFiltrosSolicitudes() {
     const container = document.getElementById('listaSolicitudes');
     if (!container) return;
-    // Verificar si ya existe el contenedor de filtros
     let filtrosContainer = document.getElementById('filtros-solicitudes');
-    if (filtrosContainer) return; // Ya existe
-    // Crear contenedor de filtros
+    if (filtrosContainer) return;
     filtrosContainer = document.createElement('div');
     filtrosContainer.id = 'filtros-solicitudes';
     filtrosContainer.className = 'filtros-container';
@@ -170,7 +149,6 @@ function crearFiltrosSolicitudes() {
             </div>
         </div>
     `;
-    // Insertar antes del contenedor de solicitudes
     container.parentNode.insertBefore(filtrosContainer, container);
     document.getElementById('filtro-estado').addEventListener('change', aplicarFiltros);
     document.getElementById('filtro-tipo').addEventListener('change', aplicarFiltros);
@@ -181,7 +159,6 @@ function aplicarFiltros() {
     const filtroEstado = document.getElementById('filtro-estado')?.value || 'todas';
     const filtroTipo = document.getElementById('filtro-tipo')?.value || 'todos';
     let solicitudesFiltradas = [...todasLasSolicitudes];
-    // Filtrar por estado
     if (filtroEstado !== 'todas') {
         solicitudesFiltradas = solicitudesFiltradas.filter(solicitud => {
             const estado = (solicitud.estado || '').toLowerCase();
@@ -195,25 +172,16 @@ function aplicarFiltros() {
             return estado === filtro;
         });
     }
-    // Filtrar por tipo
     if (filtroTipo !== 'todos') {
         solicitudesFiltradas = solicitudesFiltradas.filter(solicitud => {
-            if (filtroTipo === 'solicitud_beneficio') {
-                return solicitud.fuente === 'solicitud_beneficio';
-            }
-            if (filtroTipo === 'prestamo') {
-                return solicitud.fuente === 'prestamo';
-            }
-            if (filtroTipo.startsWith('compra_')) {
-                return solicitud.fuente === filtroTipo;
-            }
+            if (filtroTipo === 'solicitud_beneficio') return solicitud.fuente === 'solicitud_beneficio';
+            if (filtroTipo === 'prestamo') return solicitud.fuente === 'prestamo';
+            if (filtroTipo.startsWith('compra_')) return solicitud.fuente === filtroTipo;
             return true;
         });
     }
-    // Renderizar solicitudes filtradas
     const container = document.getElementById('listaSolicitudes');
     renderMisSolicitudes(container, solicitudesFiltradas);
-    // Actualizar contador
     actualizarContadorSolicitudes(solicitudesFiltradas.length, todasLasSolicitudes.length);
 }
 
@@ -225,7 +193,6 @@ function limpiarFiltros() {
     actualizarContadorSolicitudes(todasLasSolicitudes.length, todasLasSolicitudes.length);
 }
 
-// Contador
 function actualizarContadorSolicitudes(mostradas, total) {
     const contador = document.getElementById('contador-solicitudes');
     if (contador) {
@@ -241,34 +208,17 @@ function actualizarContadorSolicitudes(mostradas, total) {
     }
 }
 
-// ========================================
-// CARGAR SOLICITUDES (MODIFICADO)
-// ========================================
-
 async function cargarSolicitudes(uid, rut) {
     try {
         const container = document.getElementById('listaSolicitudes');
         if (!container) return;
         container.innerHTML = '<p>Cargando solicitudes y compras...</p>';
-        // 1) Solicitudes tradicionales (beneficios)
         const solicitudes = await obtenerSolicitudesFuncionario(uid);
-        // 2) Compras (gas + entretenimiento) por RUT
         let comprasPorRUT = { success: false, comprasPorTipo: {} };
-        try {
-            comprasPorRUT = await obtenerComprasPorRUT(rut);
-        } catch (err) {
-            console.error('Error al obtener compras por RUT:', err);
-        }
-        // 3) Solicitudes de préstamos por UID
+        try { comprasPorRUT = await obtenerComprasPorRUT(rut); } catch (err) {}
         let prestamos = [];
-        try {
-            prestamos = await obtenerSolicitudesPrestamosPorUID(uid);
-        } catch (err) {
-            console.error('Error al obtener solicitudes de préstamos:', err);
-        }
-        // Normalizar y combinar todos los ítems en una sola lista
+        try { prestamos = await obtenerSolicitudesPrestamosPorUID(uid); } catch (err) {}
         const items = [];
-        // Mapear solicitudes (beneficios)
         if (Array.isArray(solicitudes)) {
             solicitudes.forEach(s => {
                 const fecha = s.createdAt?.toDate?.() || new Date();
@@ -285,7 +235,6 @@ async function cargarSolicitudes(uid, rut) {
                 });
             });
         }
-        // Mapear compras (comprasPorTipo: {gas: [...], cine: [...], ...})
         if (comprasPorRUT && comprasPorRUT.success && comprasPorRUT.comprasPorTipo) {
             const comprasObj = comprasPorRUT.comprasPorTipo;
             for (const [tipo, compras] of Object.entries(comprasObj)) {
@@ -303,9 +252,7 @@ async function cargarSolicitudes(uid, rut) {
                         const precioTotal = c.precioTotal || c.montoTotal || 0;
                         titulo = `Compra de Gas - ${total} carga${total !== 1 ? 's' : ''} - $${precioTotal.toLocaleString('es-CL')}`;
                         const descripcionParts = [];
-                        if (precioTotal > 0) {
-                            descripcionParts.push(`💰 Compra por $${precioTotal.toLocaleString('es-CL')}`);
-                        }
+                        if (precioTotal > 0) descripcionParts.push(`💰 Compra por $${precioTotal.toLocaleString('es-CL')}`);
                         let detallesCargas = [];
                         if (c.compraLipigas && c.cargas_lipigas) {
                             if (c.cargas_lipigas.kg5 > 0) detallesCargas.push(`${c.cargas_lipigas.kg5}×5kg Lipigas`);
@@ -319,9 +266,7 @@ async function cargarSolicitudes(uid, rut) {
                             if (c.cargas_abastible.kg15 > 0) detallesCargas.push(`${c.cargas_abastible.kg15}×15kg Abastible`);
                             if (c.cargas_abastible.kg45 > 0) detallesCargas.push(`${c.cargas_abastible.kg45}×45kg Abastible`);
                         }
-                        if (detallesCargas.length > 0) {
-                            descripcionParts.push(`⛽ Incluye: ${detallesCargas.join(', ')}`);
-                        }
+                        if (detallesCargas.length > 0) descripcionParts.push(`⛽ Incluye: ${detallesCargas.join(', ')}`);
                         if (c.fechaCompra) {
                             let fechaCompra = c.fechaCompra;
                             if (/^\d{4}-\d{2}-\d{2}$/.test(fechaCompra)) {
@@ -330,9 +275,7 @@ async function cargarSolicitudes(uid, rut) {
                             }
                             descripcionParts.push(`📅 Realizada el ${fechaCompra}`);
                         }
-                        if (c.saldoFavor) {
-                            descripcionParts.push(`💎 Saldo a favor: ${c.saldoFavor}`);
-                        }
+                        if (c.saldoFavor) descripcionParts.push(`💎 Saldo a favor: ${c.saldoFavor}`);
                         descripcion = descripcionParts.join(' • ');
                     } else {
                         const nombreTipo = tipo.charAt(0).toUpperCase() + tipo.slice(1);
@@ -340,12 +283,8 @@ async function cargarSolicitudes(uid, rut) {
                         const precioTotal = c.precioTotal || c.montoTotal || 0;
                         titulo = `${nombreTipo} - ${cantidad} ${cantidad === 1 ? 'entrada' : 'entradas'} - $${precioTotal.toLocaleString('es-CL')}`;
                         const descripcionParts = [];
-                        if (precioTotal > 0) {
-                            descripcionParts.push(`💰 Compra por $${precioTotal.toLocaleString('es-CL')}`);
-                        }
-                        if (c.precioUnitario) {
-                            descripcionParts.push(`🎫 Precio unitario: $${c.precioUnitario.toLocaleString('es-CL')}`);
-                        }
+                        if (precioTotal > 0) descripcionParts.push(`💰 Compra por $${precioTotal.toLocaleString('es-CL')}`);
+                        if (c.precioUnitario) descripcionParts.push(`🎫 Precio unitario: $${c.precioUnitario.toLocaleString('es-CL')}`);
                         if (c.fechaCompra) {
                             let fechaCompra = c.fechaCompra;
                             if (/^\d{4}-\d{2}-\d{2}$/.test(fechaCompra)) {
@@ -370,7 +309,6 @@ async function cargarSolicitudes(uid, rut) {
                 });
             }
         }
-        // Mapear préstamos
         if (Array.isArray(prestamos)) {
             prestamos.forEach(p => {
                 const fecha = p.createdAt?.toDate?.() || new Date();
@@ -387,9 +325,7 @@ async function cargarSolicitudes(uid, rut) {
                 });
             });
         }
-        // Ordenar items por fechaSolicitud descendente
         items.sort((a, b) => b.fechaSolicitud - a.fechaSolicitud);
-        // Guardar todas las solicitudes para filtrado
         todasLasSolicitudes = items;
         crearFiltrosSolicitudes();
         renderMisSolicitudes(container, items);
@@ -398,10 +334,6 @@ async function cargarSolicitudes(uid, rut) {
         console.error('Error al cargar solicitudes:', error);
     }
 }
-
-// ========================================
-// RENDERIZAR SOLICITUDES CON ESTILO CONSISTENTE
-// ========================================
 
 function renderMisSolicitudes(container, items) {
     if (!container) return;
@@ -447,20 +379,15 @@ function renderMisSolicitudes(container, items) {
         iconDiv.style.cssText = 'font-size: 32px; width:60px; text-align:center; margin-top: 4px; flex-shrink: 0;';
         switch (true) {
             case item.fuente.startsWith('compra_gas'):
-                iconDiv.textContent = '🛒';
-                break;
+                iconDiv.textContent = '🛒'; break;
             case item.fuente.startsWith('compra_cine'):
-                iconDiv.textContent = '🎬';
-                break;
+                iconDiv.textContent = '🎬'; break;
             case item.fuente.startsWith('compra_jumper'):
-                iconDiv.textContent = '🤸';
-                break;
+                iconDiv.textContent = '🤸'; break;
             case item.fuente.startsWith('compra_gimnasio'):
-                iconDiv.textContent = '💪';
-                break;
+                iconDiv.textContent = '💪'; break;
             case item.fuente === 'prestamo':
-                iconDiv.textContent = '💰';
-                break;
+                iconDiv.textContent = '💰'; break;
             default:
                 iconDiv.textContent = '📄';
         }
@@ -481,9 +408,7 @@ function renderMisSolicitudes(container, items) {
         description.style.cssText = 'margin: 0; font-size: 14px; color: #495057; line-height: 1.5;';
         description.textContent = escapeHtml(item.descripcion || '');
         titleDiv.appendChild(title);
-        if (item.descripcion) {
-            titleDiv.appendChild(description);
-        }
+        if (item.descripcion) { titleDiv.appendChild(description); }
         const badge = document.createElement('div');
         badge.innerHTML = `<span class="badge ${estadoClass}" style="
             padding: 8px 16px; 
@@ -507,11 +432,8 @@ function renderMisSolicitudes(container, items) {
         meta.style.gap = '12px';
         meta.style.alignItems = 'center';
         let metaHTML = `<div>📅 <strong>Solicitud:</strong> ${fechaReq}</div>`;
-        if (fechaAprob) {
-            metaHTML += `<div>✅ <strong>Respuesta:</strong> ${fechaAprob}</div>`;
-        } else {
-            metaHTML += `<div>⏳ <strong>Estado:</strong> En proceso</div>`;
-        }
+        if (fechaAprob) metaHTML += `<div>✅ <strong>Respuesta:</strong> ${fechaAprob}</div>`;
+        else metaHTML += `<div>⏳ <strong>Estado:</strong> En proceso</div>`;
         const tipoFuente = getTipoFuenteLabel(item.fuente);
         metaHTML += `<div>🏷️ <strong>Tipo:</strong> ${tipoFuente}</div>`;
         meta.innerHTML = metaHTML;
@@ -522,10 +444,6 @@ function renderMisSolicitudes(container, items) {
         container.appendChild(card);
     });
 }
-
-// ========================================
-// FUNCIONES AUXILIARES
-// ========================================
 
 function getTipoFuenteLabel(fuente) {
     const labels = {
@@ -542,7 +460,6 @@ function getTipoFuenteLabel(fuente) {
 function formatDate(d) {
     if (!d) return 'N/A';
     const date = (d instanceof Date) ? d : (d.toDate ? d.toDate() : new Date(d));
-    // DD/MM/AAAA HH:MM
     const pad = (n) => n.toString().padStart(2, '0');
     const day = pad(date.getDate());
     const month = pad(date.getMonth() + 1);
@@ -557,16 +474,12 @@ function estadoToClass(estado) {
     switch (estado.toLowerCase()) {
         case 'pendiente':
         case 'pendiente_comprobante':
-        case 'en_revision':
-            return 'badge-warning';
+        case 'en_revision': return 'badge-warning';
         case 'aprobada':
-        case 'aprobado':
-            return 'badge-success';
+        case 'aprobado': return 'badge-success';
         case 'rechazada':
-        case 'rechazado':
-            return 'badge-danger';
-        default:
-            return 'badge-secondary';
+        case 'rechazado': return 'badge-danger';
+        default: return 'badge-secondary';
     }
 }
 
@@ -585,19 +498,17 @@ function escapeHtml(str) {
         .replace(/'/g, '&#039;');
 }
 
-// ========================================
-// PERFIL: CARGA Y ACTUALIZACIÓN DE INFORMACIÓN PERSONAL
-// ========================================
+// ================================
+// PERFIL: CARGA Y ACTUALIZACIÓN
+// ================================
 async function cargarPerfil(funcionario) {
     try {
-        // Rellena inputs solo si el formulario existe
         const formPerfil = document.getElementById('formPerfil');
         if (formPerfil) {
             document.getElementById('perfil-nombre').value = funcionario.nombre || '';
             document.getElementById('perfil-email').value = funcionario.email || '';
             document.getElementById('perfil-telefono').value = funcionario.telefono || '';
         }
-        // Resto de la carga visual del perfil (información de cuenta)
         const inputs = document.querySelectorAll('#tab-perfil input[type="text"]');
         if (inputs[0]) inputs[0].value = funcionario.nombre || '';
         if (inputs[1]) inputs[1].value = funcionario.rut || '';
@@ -613,15 +524,13 @@ async function cargarPerfil(funcionario) {
             infoItems[2].textContent = funcionario.cargasFamiliares?.length || '0';
         }
         const estadoBadge = document.querySelector('.info-item .badge.success');
-        if (estadoBadge) {
-            estadoBadge.textContent = funcionario.estado || '';
-        }
+        if (estadoBadge) estadoBadge.textContent = funcionario.estado || '';
     } catch (error) {
         console.error('Error al cargar perfil:', error);
     }
 }
 
-// Guardar cambios al enviar el formulario de perfil
+// GUARDAR CAMBIOS DE PERFIL
 document.addEventListener('DOMContentLoaded', function () {
     const formPerfil = document.getElementById('formPerfil');
     if (formPerfil) {
@@ -635,15 +544,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 const nombre = document.getElementById('perfil-nombre').value.trim();
                 const email = document.getElementById('perfil-email').value.trim();
                 const telefono = document.getElementById('perfil-telefono').value.trim();
-                // UID del usuario autenticado
                 const uid = auth.currentUser?.uid || (JSON.parse(sessionStorage.getItem('userData') || '{}').uid);
                 if (!uid) throw new Error('No se pudo determinar el usuario');
-                // Actualizar en Firestore
                 const resultado = await actualizarFuncionario(uid, { nombre, email, telefono });
                 if (resultado.success) {
                     estadoGuardado.textContent = '✅ Cambios guardados correctamente.';
                     estadoGuardado.style.color = '#28a745';
-                    // Actualizar sessionStorage
                     const userData = JSON.parse(sessionStorage.getItem('userData') || '{}');
                     userData.nombre = nombre;
                     userData.email = email;
@@ -663,9 +569,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
-// ================================
-// MANEJO DE TABS, LOGOUT, ETC.
-// ================================
+// TABS Y FUNCIONES GLOBALES
 document.addEventListener('DOMContentLoaded', function () {
     const navTabs = document.querySelectorAll('.nav-tab');
     const tabContents = document.querySelectorAll('.tab-content');
@@ -687,24 +591,17 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-// Función de logout
 window.logout = async function () {
     if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
         await cerrarSesion();
     }
 }
-
-// Función para nueva solicitud
 window.nuevaSolicitud = function () {
     alert('Función de nueva solicitud en desarrollo.\nPróximamente podrás crear solicitudes desde aquí.');
 }
-
-// Funciones auxiliares
 window.verDetalleSolicitud = function (solicitudId) {
     alert(`Ver detalle de solicitud: ${solicitudId}`);
 }
-
-// Animación de entrada para las estadísticas
 function animateStats() {
     const statCards = document.querySelectorAll('.stat-card');
     statCards.forEach((card, index) => {
