@@ -91,7 +91,7 @@
                 </div>
                 
                 <!-- Información de Precios -->
-                <div class="info-precios-gas" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+                <div class="info-precios-gas" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 30px;">
                     <!-- Precios Lipigas -->
                     <div class="info-box" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);">
                         <h3 style="margin: 0 0 15px 0; font-size: 1.3em; display: flex; align-items: center; gap: 10px;">
@@ -139,6 +139,18 @@
                                 <span style="font-weight: 500;">45 kilos:</span>
                                 <span style="font-weight: bold; font-size: 1.1em;">$52.000</span>
                             </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Calculadora de Precio Total -->
+                    <div class="info-box" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);">
+                        <h3 style="margin: 0 0 15px 0; font-size: 1.3em; display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 1.5em;">🧮</span> Total a Pagar
+                        </h3>
+                        <div id="precio-total-display" style="background: rgba(255, 255, 255, 0.2); padding: 15px; border-radius: 10px; text-align: center;">
+                            <div style="font-size: 0.9em; margin-bottom: 8px;">Precio calculado:</div>
+                            <div style="font-size: 1.8em; font-weight: bold;" id="precio-total-valor">$0</div>
+                            <div style="font-size: 0.8em; margin-top: 8px; opacity: 0.9;">Se actualiza automáticamente</div>
                         </div>
                     </div>
                 </div>
@@ -322,10 +334,10 @@
                             <label for="cantidadCine">Cantidad de Entradas *</label>
                             <select id="cantidadCine" name="cantidadCine" required>
                                 <option value="0">Seleccione cantidad</option>
-                                <option value="1">1</option>
-                                <option value="2">2</option>
-                                <option value="3">3</option>
-                                <option value="4">4</option>
+                                <option value="1">1 - $7.000</option>
+                                <option value="2">2 - $14.000</option>
+                                <option value="3">3 - $21.000</option>
+                                <option value="4">4 - $28.000</option>
                             </select>
                         </div>
                         
@@ -384,12 +396,12 @@
                             <label for="cantidadJumper">Cantidad de Entradas *</label>
                             <select id="cantidadJumper" name="cantidadJumper" required>
                                 <option value="0">Seleccione cantidad</option>
-                                <option value="1">1</option>
-                                <option value="2">2</option>
-                                <option value="3">3</option>
-                                <option value="4">4</option>
-                                <option value="5">5</option>
-                                <option value="6">6</option>
+                                <option value="1">1 - $6.500</option>
+                                <option value="2">2 - $13.000</option>
+                                <option value="3">3 - $19.500</option>
+                                <option value="4">4 - $26.000</option>
+                                <option value="5">5 - $32.500</option>
+                                <option value="6">6 - $39.000</option>
                             </select>
                         </div>
                         
@@ -449,10 +461,10 @@
                             <label for="cantidadGimnasio">Cantidad de Tickets *</label>
                             <select id="cantidadGimnasio" name="cantidadGimnasio" required>
                                 <option value="0">Seleccione cantidad</option>
-                                <option value="1">1</option>
-                                <option value="2">2</option>
-                                <option value="3">3</option>
-                                <option value="4">4</option>
+                                <option value="1">1 - $18.000</option>
+                                <option value="2">2 - $36.000</option>
+                                <option value="3">3 - $54.000</option>
+                                <option value="4">4 - $72.000</option>
                             </select>
                         </div>
                         
@@ -466,6 +478,7 @@
                     <button type="submit" class="btn btn-primary btn-enviar-gimnasio">Enviar Compra Gimnasio</button>
                 </form>
             </div>
+
             <!-- NUEVA PESTAÑA: Préstamos / Fondo Solidario -->
             <div class="tab-content" id="tab-prestamos">
                 <div class="container">
@@ -726,7 +739,7 @@
         </div>
     </footer>  
     
-    <!-- SCRIPTS ACTUALIZADOS SIN CORS -->
+    <!-- SCRIPTS ACTUALIZADOS CON CALCULADORA DE PRECIOS -->
     <script type="module" src="../js/dashboard-afiliado-firebase.js"></script>
     <script type="module" src="../js/compras-unificadas.js"></script>
 
@@ -734,6 +747,110 @@
         // Importar módulos SIN CORS para préstamos
         import '../js/prestamos-firebase.js';
         import '../js/prestamos.js';
+
+        // ========================================
+        // CALCULADORA DE PRECIOS PARA GAS
+        // ========================================
+        
+        // Precios definidos según Firebase
+        const PRECIOS_GAS = {
+            lipigas: {
+                kg5: 7000,
+                kg11: 12000,
+                kg15: 16000,
+                kg45: 54000
+            },
+            abastible: {
+                kg5: 8000,
+                kg11: 15000,
+                kg15: 18000,
+                kg45: 52000
+            }
+        };
+
+        // Función para calcular precio total
+        function calcularPrecioTotal() {
+            let total = 0;
+            
+            // Calcular Lipigas
+            if (document.getElementById('compraLipigas').value === 'si') {
+                total += (parseInt(document.getElementById('lipigas5').value) || 0) * PRECIOS_GAS.lipigas.kg5;
+                total += (parseInt(document.getElementById('lipigas11').value) || 0) * PRECIOS_GAS.lipigas.kg11;
+                total += (parseInt(document.getElementById('lipigas15').value) || 0) * PRECIOS_GAS.lipigas.kg15;
+                total += (parseInt(document.getElementById('lipigas45').value) || 0) * PRECIOS_GAS.lipigas.kg45;
+            }
+            
+            // Calcular Abastible
+            if (document.getElementById('compraAbastible').value === 'si') {
+                total += (parseInt(document.getElementById('abastible5').value) || 0) * PRECIOS_GAS.abastible.kg5;
+                total += (parseInt(document.getElementById('abastible11').value) || 0) * PRECIOS_GAS.abastible.kg11;
+                total += (parseInt(document.getElementById('abastible15').value) || 0) * PRECIOS_GAS.abastible.kg15;
+                total += (parseInt(document.getElementById('abastible45').value) || 0) * PRECIOS_GAS.abastible.kg45;
+            }
+            
+            // Actualizar display
+            const precioDisplay = document.getElementById('precio-total-valor');
+            if (precioDisplay) {
+                precioDisplay.textContent = `$${total.toLocaleString('es-CL')}`;
+                
+                // Animar el cambio
+                precioDisplay.style.transform = 'scale(1.1)';
+                precioDisplay.style.color = total > 0 ? '#fff' : '#ccc';
+                
+                setTimeout(() => {
+                    precioDisplay.style.transform = 'scale(1)';
+                }, 200);
+            }
+            
+            return total;
+        }
+
+        // Agregar event listeners para calcular automáticamente
+        document.addEventListener('DOMContentLoaded', function() {
+            // Event listeners para selectores de Lipigas
+            ['lipigas5', 'lipigas11', 'lipigas15', 'lipigas45'].forEach(id => {
+                const elemento = document.getElementById(id);
+                if (elemento) {
+                    elemento.addEventListener('change', calcularPrecioTotal);
+                }
+            });
+            
+            // Event listeners para selectores de Abastible
+            ['abastible5', 'abastible11', 'abastible15', 'abastible45'].forEach(id => {
+                const elemento = document.getElementById(id);
+                if (elemento) {
+                    elemento.addEventListener('change', calcularPrecioTotal);
+                }
+            });
+            
+            // Event listeners para los toggles principales
+            const compraLipigas = document.getElementById('compraLipigas');
+            if (compraLipigas) {
+                compraLipigas.addEventListener('change', function() {
+                    calcularPrecioTotal();
+                    // Mostrar/ocultar opciones
+                    const opciones = document.getElementById('lipigasOpciones');
+                    if (opciones) {
+                        opciones.style.display = this.value === 'si' ? 'block' : 'none';
+                    }
+                });
+            }
+            
+            const compraAbastible = document.getElementById('compraAbastible');
+            if (compraAbastible) {
+                compraAbastible.addEventListener('change', function() {
+                    calcularPrecioTotal();
+                    // Mostrar/ocultar opciones
+                    const opciones = document.getElementById('abastibleOpciones');
+                    if (opciones) {
+                        opciones.style.display = this.value === 'si' ? 'block' : 'none';
+                    }
+                });
+            }
+            
+            // Inicial
+            calcularPrecioTotal();
+        });
 
         // Sistema de pestañas mejorado
         const tabs = document.querySelectorAll('.nav-tab');
@@ -781,6 +898,7 @@
         window.nuevaSolicitud = nuevaSolicitud;
         window.logout = logout;
         window.filtrarSolicitudes = filtrarSolicitudes;
+        window.calcularPrecioTotal = calcularPrecioTotal;
 
         // Agregar estado de envío si no existe
         document.addEventListener('DOMContentLoaded', function() {
@@ -828,3 +946,5 @@
     <!-- Librerías para generar PDF (mantenidas para descargas de formularios) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</body>
+</html>
