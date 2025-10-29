@@ -369,49 +369,29 @@ async function cargarSolicitudes(uid, rut) {
                         
                         titulo = `Compra de Gas (${total} carga${total !== 1 ? 's' : ''})${precioTexto}`;
                         
-                        // ========================================
-                        // MEJORA: CREAR DESCRIPCIÓN DETALLADA CON KILOS, CANTIDADES Y PRECIOS
-                        // ========================================
-                        let descripcionParts = [];
-                        
+                        // Mostrar detalles de cargas en una sola línea, sin badges
+                        let cargas = [];
                         if (c.compraLipigas && c.cargas_lipigas) {
-                            const lipigasDetails = [];
-                            if (c.cargas_lipigas.kg5 > 0) lipigasDetails.push(`${c.cargas_lipigas.kg5}x 5kg`);
-                            if (c.cargas_lipigas.kg11 > 0) lipigasDetails.push(`${c.cargas_lipigas.kg11}x 11kg`);
-                            if (c.cargas_lipigas.kg15 > 0) lipigasDetails.push(`${c.cargas_lipigas.kg15}x 15kg`);
-                            if (c.cargas_lipigas.kg45 > 0) lipigasDetails.push(`${c.cargas_lipigas.kg45}x 45kg`);
-                            if (lipigasDetails.length > 0) {
-                                descripcionParts.push(`🔥 Lipigas: ${lipigasDetails.join(', ')}`);
-                            }
+                            if (c.cargas_lipigas.kg5 > 0) cargas.push(`${c.cargas_lipigas.kg5}x5kg Lipigas`);
+                            if (c.cargas_lipigas.kg11 > 0) cargas.push(`${c.cargas_lipigas.kg11}x11kg Lipigas`);
+                            if (c.cargas_lipigas.kg15 > 0) cargas.push(`${c.cargas_lipigas.kg15}x15kg Lipigas`);
+                            if (c.cargas_lipigas.kg45 > 0) cargas.push(`${c.cargas_lipigas.kg45}x45kg Lipigas`);
                         }
-                        
                         if (c.compraAbastible && c.cargas_abastible) {
-                            const abastibleDetails = [];
-                            if (c.cargas_abastible.kg5 > 0) abastibleDetails.push(`${c.cargas_abastible.kg5}x 5kg`);
-                            if (c.cargas_abastible.kg11 > 0) abastibleDetails.push(`${c.cargas_abastible.kg11}x 11kg`);
-                            if (c.cargas_abastible.kg15 > 0) abastibleDetails.push(`${c.cargas_abastible.kg15}x 15kg`);
-                            if (c.cargas_abastible.kg45 > 0) abastibleDetails.push(`${c.cargas_abastible.kg45}x 45kg`);
-                            if (abastibleDetails.length > 0) {
-                                descripcionParts.push(`⛽ Abastible: ${abastibleDetails.join(', ')}`);
-                            }
+                            if (c.cargas_abastible.kg5 > 0) cargas.push(`${c.cargas_abastible.kg5}x5kg Abastible`);
+                            if (c.cargas_abastible.kg11 > 0) cargas.push(`${c.cargas_abastible.kg11}x11kg Abastible`);
+                            if (c.cargas_abastible.kg15 > 0) cargas.push(`${c.cargas_abastible.kg15}x15kg Abastible`);
+                            if (c.cargas_abastible.kg45 > 0) cargas.push(`${c.cargas_abastible.kg45}x45kg Abastible`);
                         }
-                        
-                        // Agregar precio total calculado desde Firebase
-                        if (precioTotal > 0) {
-                            descripcionParts.push(`💵 Total: $${precioTotal.toLocaleString('es-CL')}`);
+                        // Descripción similar a cine/jumper/gimnasio
+                        descripcion = `Compra por $${precioTotal.toLocaleString('es-CL')}`;
+                        if (cargas.length > 0) {
+                            descripcion += `: ${cargas.join(', ')}`;
                         }
-                        
-                        if (c.saldoFavor) {
-                            descripcionParts.push(`💰 Saldo a favor: ${c.saldoFavor}`);
-                        }
-                        
-                        // Agregar información de fecha de compra si está disponible
                         if (c.fechaCompra) {
-                            descripcionParts.push(`📅 Fecha compra: ${c.fechaCompra}`);
+                            descripcion += ` realizada el ${c.fechaCompra}`;
                         }
-                        
-                        descripcion = descripcionParts.length > 0 ? descripcionParts.join(' • ') : 'Sin detalles específicos';
-                        
+
                     } else {
                         // entretenimiento: cine, jumper, gimnasio
                         const nombreTipo = tipo.charAt(0).toUpperCase() + tipo.slice(1);
@@ -423,12 +403,9 @@ async function cargarSolicitudes(uid, rut) {
                             titulo += ` - $${precioTotal.toLocaleString('es-CL')}`;
                         }
                         
-                        descripcion = `💵 Precio total: $${precioTotal.toLocaleString('es-CL')}`;
-                        if (c.precioUnitario) {
-                            descripcion += ` • 🎫 Precio unitario: $${c.precioUnitario.toLocaleString('es-CL')}`;
-                        }
+                        descripcion = `Compra por $${precioTotal.toLocaleString('es-CL')}`;
                         if (c.fechaCompra) {
-                            descripcion += ` • 📅 Fecha compra: ${c.fechaCompra}`;
+                            descripcion += ` realizada el ${c.fechaCompra}`;
                         }
                     }
 
@@ -444,11 +421,6 @@ async function cargarSolicitudes(uid, rut) {
                         raw: c
                     });
                 });
-            }
-        } else {
-            // Si no devolvió success puede que la función devuelva directamente arrays (compatibilidad)
-            if (comprasPorRUT && comprasPorRUT.comprasPorTipo) {
-                // ya cubierto arriba; si estructura distinta, ignoramos silenciosamente
             }
         }
 
@@ -587,17 +559,7 @@ function renderMisSolicitudes(container, items) {
 
         const description = document.createElement('div');
         description.style.cssText = 'margin: 0; font-size: 14px; color: #495057; line-height: 1.5;';
-        
-        // ========================================
-        // MEJORA: RENDERIZADO ESPECIAL PARA COMPRAS DE GAS CON PRECIOS
-        // ========================================
-        if (item.fuente === 'compra_gas') {
-            // Para gas, mostrar la descripción con formato especial
-            const descripcionFormatted = formatearDescripcionGas(item.descripcion);
-            description.innerHTML = descripcionFormatted;
-        } else {
-            description.textContent = escapeHtml(item.descripcion || '');
-        }
+        description.textContent = escapeHtml(item.descripcion || '');
 
         titleDiv.appendChild(title);
         if (item.descripcion) {
@@ -658,75 +620,6 @@ function renderMisSolicitudes(container, items) {
 // ========================================
 // FUNCIONES AUXILIARES MEJORADAS
 // ========================================
-
-/**
- * Formatea la descripción de las compras de gas con un diseño más visual incluyendo precios
- */
-function formatearDescripcionGas(descripcion) {
-    if (!descripcion) return 'Sin detalles específicos';
-    
-    // Dividir por separador •
-    const partes = descripcion.split(' • ');
-    let html = '<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">';
-    
-    partes.forEach(parte => {
-        if (parte.includes('Lipigas:')) {
-            html += `<div style="
-                background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
-                color: white;
-                padding: 4px 8px;
-                border-radius: 6px;
-                font-size: 12px;
-                font-weight: 600;
-                white-space: nowrap;
-            ">${escapeHtml(parte)}</div>`;
-        } else if (parte.includes('Abastible:')) {
-            html += `<div style="
-                background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-                color: white;
-                padding: 4px 8px;
-                border-radius: 6px;
-                font-size: 12px;
-                font-weight: 600;
-                white-space: nowrap;
-            ">${escapeHtml(parte)}</div>`;
-        } else if (parte.includes('Total:')) {
-            html += `<div style="
-                background: linear-gradient(135deg, #fd7e14 0%, #e55353 100%);
-                color: white;
-                padding: 4px 8px;
-                border-radius: 6px;
-                font-size: 12px;
-                font-weight: 700;
-                white-space: nowrap;
-                box-shadow: 0 2px 4px rgba(253, 126, 20, 0.3);
-            ">${escapeHtml(parte)}</div>`;
-        } else if (parte.includes('Saldo a favor:')) {
-            html += `<div style="
-                background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-                color: white;
-                padding: 4px 8px;
-                border-radius: 6px;
-                font-size: 12px;
-                font-weight: 600;
-                white-space: nowrap;
-            ">${escapeHtml(parte)}</div>`;
-        } else {
-            html += `<div style="
-                background: #f8f9fa;
-                color: #495057;
-                padding: 4px 8px;
-                border-radius: 6px;
-                font-size: 12px;
-                border: 1px solid #dee2e6;
-                white-space: nowrap;
-            ">${escapeHtml(parte)}</div>`;
-        }
-    });
-    
-    html += '</div>';
-    return html;
-}
 
 /**
  * Obtiene la etiqueta legible del tipo de fuente
@@ -985,5 +878,8 @@ style.textContent = `
         border: 1px solid #dee2e6;
     }
 `;
+
+document.head.appendChild(style);
+
 
 document.head.appendChild(style);
