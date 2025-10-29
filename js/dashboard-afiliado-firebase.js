@@ -584,32 +584,62 @@ function escapeHtml(str) {
         .replace(/'/g, '&#039;');
 }
 
-// Cargar datos del perfil
-async function cargarPerfil(funcionario) {
-    try {
-        const inputs = document.querySelectorAll('#tab-perfil input[type="text"]');
-        if (inputs[0]) inputs[0].value = funcionario.nombre || '';
-        if (inputs[1]) inputs[1].value = funcionario.rut || '';
-        const emailInput = document.querySelector('#tab-perfil input[type="email"]');
-        if (emailInput) emailInput.value = funcionario.email || '';
-        const telInput = document.querySelector('#tab-perfil input[type="tel"]');
-        if (telInput) telInput.value = funcionario.telefono || '';
-        const infoItems = document.querySelectorAll('.info-item .info-value');
-        if (infoItems.length >= 3) {
-            const fecha = funcionario.fechaAfiliacion?.toDate().toLocaleDateString('es-CL') || 'N/A';
-            infoItems[0].textContent = fecha;
-            infoItems[1].textContent = funcionario.centroSalud || 'N/A';
-            infoItems[2].textContent = funcionario.cargasFamiliares?.length || '0';
-        }
-        const estadoBadge = document.querySelector('.info-item .badge.success');
-        if (estadoBadge) {
-            estadoBadge.textContent = funcionario.estado || '';
-        }
-    } catch (error) {
-        console.error('Error al cargar perfil:', error);
-    }
-}
+import { obtenerFuncionario, actualizarFuncionario } from './firestore-operations.js';
+import { auth } from './firebase-config.js';
 
+document.addEventListener('DOMContentLoaded', async function() {
+    // Cargar datos actuales en el formulario
+    const formPerfil = document.getElementById('formPerfil');
+    if (formPerfil) {
+        const userData = JSON.parse(sessionStorage.getItem('userData') || '{}');
+        document.getElementById('perfil-nombre').value = userData.nombre || '';
+        document.getElementById('perfil-email').value = userData.email || '';
+        document.getElementById('perfil-telefono').value = userData.telefono || '';
+    }
+
+    // Guardar cambios al enviar el formulario
+    if (formPerfil) {
+        formPerfil.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const estadoGuardado = document.getElementById('perfil-estado-guardado');
+            const btn = formPerfil.querySelector('button[type="submit"]');
+            btn.disabled = true;
+            btn.textContent = 'Guardando...';
+
+            try {
+                const nombre = document.getElementById('perfil-nombre').value.trim();
+                const email = document.getElementById('perfil-email').value.trim();
+                const telefono = document.getElementById('perfil-telefono').value.trim();
+
+                // UID del usuario autenticado
+                const uid = auth.currentUser?.uid || (JSON.parse(sessionStorage.getItem('userData') || '{}').uid);
+                if (!uid) throw new Error('No se pudo determinar el usuario');
+
+                // Actualizar en Firestore
+                const resultado = await actualizarFuncionario(uid, { nombre, email, telefono });
+                if (resultado.success) {
+                    estadoGuardado.textContent = '✅ Cambios guardados correctamente.';
+                    estadoGuardado.style.color = '#28a745';
+
+                    // Actualizar sessionStorage
+                    const userData = JSON.parse(sessionStorage.getItem('userData') || '{}');
+                    userData.nombre = nombre;
+                    userData.email = email;
+                    userData.telefono = telefono;
+                    sessionStorage.setItem('userData', JSON.stringify(userData));
+                } else {
+                    throw new Error(resultado.error);
+                }
+            } catch (error) {
+                estadoGuardado.textContent = '❌ Error al guardar: ' + error.message;
+                estadoGuardado.style.color = '#dc3545';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Guardar Cambios';
+            }
+        });
+    }
+});
 // Manejo de tabs
 document.addEventListener('DOMContentLoaded', function () {
     const navTabs = document.querySelectorAll('.nav-tab');
