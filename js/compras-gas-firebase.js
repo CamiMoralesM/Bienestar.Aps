@@ -34,6 +34,66 @@ const PRECIOS_ENTRETENIMIENTO = {
     gimnasio: 18000
 };
 
+// Precios para gas
+const PRECIOS_GAS = {
+    lipigas: {
+        kg5: 7000,
+        kg11: 12000,
+        kg15: 16000,
+        kg45: 54000
+    },
+    abastible: {
+        kg5: 8000,
+        kg11: 15000,
+        kg15: 18000,
+        kg45: 52000
+    }
+};
+
+// ========================================
+// FUNCIONES DE CÁLCULO DE PRECIOS
+// ========================================
+
+/**
+ * Calcula el precio total de una compra de gas
+ * @param {Object} compra - Datos de la compra de gas
+ * @returns {number} Precio total calculado
+ */
+function calcularPrecioTotalGas(compra) {
+    let total = 0;
+    
+    // Calcular Lipigas
+    if (compra.compraLipigas && compra.cargas_lipigas) {
+        const cargas = compra.cargas_lipigas;
+        total += (cargas.kg5 || 0) * PRECIOS_GAS.lipigas.kg5;
+        total += (cargas.kg11 || 0) * PRECIOS_GAS.lipigas.kg11;
+        total += (cargas.kg15 || 0) * PRECIOS_GAS.lipigas.kg15;
+        total += (cargas.kg45 || 0) * PRECIOS_GAS.lipigas.kg45;
+    }
+    
+    // Calcular Abastible
+    if (compra.compraAbastible && compra.cargas_abastible) {
+        const cargas = compra.cargas_abastible;
+        total += (cargas.kg5 || 0) * PRECIOS_GAS.abastible.kg5;
+        total += (cargas.kg11 || 0) * PRECIOS_GAS.abastible.kg11;
+        total += (cargas.kg15 || 0) * PRECIOS_GAS.abastible.kg15;
+        total += (cargas.kg45 || 0) * PRECIOS_GAS.abastible.kg45;
+    }
+    
+    return total;
+}
+
+/**
+ * Calcula el precio total de una compra de entretenimiento
+ * @param {string} tipoEntretenimiento - Tipo (cine, jumper, gimnasio)
+ * @param {number} cantidad - Cantidad de entradas
+ * @returns {number} Precio total calculado
+ */
+function calcularPrecioTotalEntretenimiento(tipoEntretenimiento, cantidad) {
+    const precioUnitario = PRECIOS_ENTRETENIMIENTO[tipoEntretenimiento] || 0;
+    return cantidad * precioUnitario;
+}
+
 // ========================================
 // FUNCIONES DE STORAGE (COMPROBANTES)
 // ========================================
@@ -141,6 +201,11 @@ async function guardarCompraGas(datosCompra, comprobanteFile) {
         }
         compraData.totalCargas = totalCargas;
         
+        // Calcular precio total
+        const precioTotal = calcularPrecioTotalGas(compraData);
+        compraData.precioTotal = precioTotal;
+        compraData.montoTotal = precioTotal; // Alias para compatibilidad
+        
         // Guardar en Firestore
         const docRef = await addDoc(collection(db, COLECCIONES.gas), compraData);
         
@@ -151,6 +216,7 @@ async function guardarCompraGas(datosCompra, comprobanteFile) {
             id: docRef.id,
             coleccion: COLECCIONES.gas,
             totalCargas: totalCargas,
+            precioTotal: precioTotal,
             message: 'Compra de gas registrada exitosamente'
         };
         
@@ -192,7 +258,7 @@ async function guardarCompraEntretenimiento(tipoEntretenimiento, datosCompra, co
         // Obtener cantidad y calcular monto
         const cantidad = parseInt(datosCompra[`cantidad${tipoCapitalizado}`]) || 0;
         const precioUnitario = PRECIOS_ENTRETENIMIENTO[tipoEntretenimiento] || 0;
-        const montoTotal = cantidad * precioUnitario;
+        const montoTotal = calcularPrecioTotalEntretenimiento(tipoEntretenimiento, cantidad);
         
         // Construir objeto de compra
         const compraData = {
@@ -208,6 +274,7 @@ async function guardarCompraEntretenimiento(tipoEntretenimiento, datosCompra, co
             cantidad: cantidad,
             precioUnitario: precioUnitario,
             montoTotal: montoTotal,
+            precioTotal: montoTotal, // Alias para compatibilidad
             tipoEntretenimiento: tipoEntretenimiento,
             
             // Comprobante
@@ -235,6 +302,7 @@ async function guardarCompraEntretenimiento(tipoEntretenimiento, datosCompra, co
             coleccion: coleccionTipo,
             cantidad: cantidad,
             montoTotal: montoTotal,
+            precioTotal: montoTotal,
             message: `Compra de ${tipoEntretenimiento} registrada exitosamente`
         };
         
@@ -317,6 +385,17 @@ async function obtenerComprasPorTipo(tipo, filtros = {}) {
                 }
             }
             
+            // Calcular precio total si no existe
+            if (!data.precioTotal && !data.montoTotal) {
+                if (tipo === 'gas') {
+                    data.precioTotal = calcularPrecioTotalGas(data);
+                    data.montoTotal = data.precioTotal;
+                } else if (['cine', 'jumper', 'gimnasio'].includes(tipo)) {
+                    data.precioTotal = calcularPrecioTotalEntretenimiento(tipo, data.cantidad || 0);
+                    data.montoTotal = data.precioTotal;
+                }
+            }
+            
             compras.push({
                 id: doc.id,
                 ...data
@@ -356,9 +435,22 @@ async function obtenerComprasPorRUT(rut) {
                 const compras = [];
                 
                 querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    
+                    // Calcular precio total si no existe
+                    if (!data.precioTotal && !data.montoTotal) {
+                        if (tipo === 'gas') {
+                            data.precioTotal = calcularPrecioTotalGas(data);
+                            data.montoTotal = data.precioTotal;
+                        } else if (['cine', 'jumper', 'gimnasio'].includes(tipo)) {
+                            data.precioTotal = calcularPrecioTotalEntretenimiento(tipo, data.cantidad || 0);
+                            data.montoTotal = data.precioTotal;
+                        }
+                    }
+                    
                     compras.push({
                         id: doc.id,
-                        ...doc.data(),
+                        ...data,
                         tipoCompra: tipo
                     });
                 });
@@ -426,9 +518,22 @@ async function obtenerComprasRecientes(rut = null, limite = 10) {
                 const querySnapshot = await getDocs(q);
                 
                 querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    
+                    // Calcular precio total si no existe
+                    if (!data.precioTotal && !data.montoTotal) {
+                        if (tipo === 'gas') {
+                            data.precioTotal = calcularPrecioTotalGas(data);
+                            data.montoTotal = data.precioTotal;
+                        } else if (['cine', 'jumper', 'gimnasio'].includes(tipo)) {
+                            data.precioTotal = calcularPrecioTotalEntretenimiento(tipo, data.cantidad || 0);
+                            data.montoTotal = data.precioTotal;
+                        }
+                    }
+                    
                     todasLasCompras.push({
                         id: doc.id,
-                        ...doc.data(),
+                        ...data,
                         tipoCompra: tipo
                     });
                 });
@@ -484,9 +589,10 @@ async function obtenerEstadisticasCompras(filtros = {}) {
                         }
                         return total + cargas;
                     }, 0);
+                    stats.montoTotal = compras.reduce((total, c) => total + (c.precioTotal || c.montoTotal || 0), 0);
                 } else {
                     stats.totalEntradas = compras.reduce((total, c) => total + (c.cantidad || 0), 0);
-                    stats.montoTotal = compras.reduce((total, c) => total + (c.montoTotal || 0), 0);
+                    stats.montoTotal = compras.reduce((total, c) => total + (c.precioTotal || c.montoTotal || 0), 0);
                 }
                 
                 estadisticas[tipo] = stats;
@@ -630,6 +736,7 @@ async function exportarGeneralExcelAdmin(fecha = null) {
                 "Tipo de carga": `${data.tipoCarga || ''} kg`,
                 Cantidad: data.cantidad || data.totalCargas || 0,
                 Empresa: data.empresa || '',
+                "Precio Total": data.precioTotal || data.montoTotal || 0,
                 "Comprobante URL": data.comprobanteUrl || ''
             };
         });
@@ -650,6 +757,11 @@ export {
     COLECCIONES,
     STORAGE_FOLDERS,
     PRECIOS_ENTRETENIMIENTO,
+    PRECIOS_GAS,
+    
+    // Funciones de cálculo
+    calcularPrecioTotalGas,
+    calcularPrecioTotalEntretenimiento,
     
     // Funciones de guardado
     guardarCompraGas,
