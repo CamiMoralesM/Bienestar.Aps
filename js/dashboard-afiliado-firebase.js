@@ -678,16 +678,15 @@ function getTipoFuenteLabel(fuente) {
 function formatDate(d) {
     if (!d) return 'N/A';
     const date = (d instanceof Date) ? d : (d.toDate ? d.toDate() : new Date(d));
-    return date.toLocaleDateString('es-CL', { 
-        day: '2-digit', 
-        month: '2-digit', 
-        year: 'numeric' 
-    }) + ' ' + date.toLocaleTimeString('es-CL', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
-    });
+    // DD/MM/AAAA HH:MM
+    const pad = (n) => n.toString().padStart(2, '0');
+    const day = pad(date.getDate());
+    const month = pad(date.getMonth() + 1);
+    const year = date.getFullYear();
+    const hour = pad(date.getHours());
+    const min = pad(date.getMinutes());
+    return `${day}/${month}/${year} ${hour}:${min}`;
 }
-
 function estadoToClass(estado) {
     if (!estado) return 'badge-secondary';
     switch (estado.toLowerCase()) {
