@@ -1,7 +1,6 @@
 // ========================================
-// SISTEMA COMPLETO DE VALIDACIÓN DE CUPOS MENSUALES
-// Integrado con Firebase - Gas, Cine, Jumper, Gimnasio
-// VERSIÓN MEJORADA CON BLOQUEO AUTOMÁTICO
+// SISTEMA MEJORADO DE VALIDACIÓN DE CUPOS MENSUALES
+// Con manejo flexible de formato de RUT
 // ========================================
 
 import { db, auth } from './firebase-config.js';
@@ -18,12 +17,10 @@ import {
 // ========================================
 
 const LIMITES_CUPOS = {
-    // Gas - varía por temporada
     gas: {
         temporada_normal: 4,  // Oct-May
         temporada_alta: 6     // Jun-Sep
     },
-    // Entretenimiento - fijos
     cine: 4,
     jumper: 6,
     gimnasio: 4
@@ -39,33 +36,74 @@ const COLECCIONES_FIREBASE = {
 const NOMBRES_SERVICIOS = {
     gas: 'Gas',
     cine: 'Cine',
-    jumper: 'Jumper Trampoline Park',
-    gimnasio: 'Gimnasio Energy'
-};
-
-const UNIDADES_MEDIDA = {
-    gas: 'cargas',
-    cine: 'entradas',
-    jumper: 'entradas',
-    gimnasio: 'tickets'
+    jumper: 'Jumper Park',
+    gimnasio: 'Gimnasio'
 };
 
 // ========================================
-// FUNCIONES AUXILIARES
+// FUNCIONES DE MANEJO DE RUT
 // ========================================
 
 /**
- * Determina si estamos en temporada alta para gas
+ * Limpia el RUT eliminando TODOS los formatos posibles
+ * Acepta: 12.345.678-9, 12345678-9, 123456789
+ * Retorna: 123456789 (sin puntos ni guión)
  */
+function limpiarRUT(rut) {
+    if (!rut) return '';
+    // Eliminar todos los puntos, guiones y espacios
+    return rut.replace(/[\.\-\s]/g, '').toUpperCase().trim();
+}
+
+/**
+ * Formatea el RUT para mostrar (agrega puntos y guión)
+ */
+export function formatearRUT(rut) {
+    if (!rut) return '';
+    const rutLimpio = limpiarRUT(rut);
+    if (rutLimpio.length < 2) return rutLimpio;
+    
+    const dv = rutLimpio.slice(-1);
+    let cuerpo = rutLimpio.slice(0, -1);
+    
+    // Agregar puntos cada 3 dígitos desde la derecha
+    cuerpo = cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    
+    return `${cuerpo}-${dv}`;
+}
+
+/**
+ * Valida que el RUT tenga el formato correcto
+ */
+export function validarFormatoRUT(rut) {
+    const rutLimpio = limpiarRUT(rut);
+    // RUT debe tener entre 8 y 9 caracteres
+    if (rutLimpio.length < 8 || rutLimpio.length > 9) {
+        return false;
+    }
+    // Verificar que los primeros caracteres sean números
+    const cuerpo = rutLimpio.slice(0, -1);
+    if (!/^\d+$/.test(cuerpo)) {
+        return false;
+    }
+    // Verificar que el dígito verificador sea válido
+    const dv = rutLimpio.slice(-1);
+    if (!/^[0-9K]$/.test(dv)) {
+        return false;
+    }
+    return true;
+}
+
+// ========================================
+// FUNCIONES DE TEMPORADA
+// ========================================
+
 function esTemporadaAlta() {
     const fecha = new Date();
     const mes = fecha.getMonth() + 1; // 1-12
     return mes >= 6 && mes <= 9; // Junio a Septiembre
 }
 
-/**
- * Obtiene el límite de cupo según el tipo de servicio
- */
 function obtenerLimiteCupo(tipoServicio) {
     if (tipoServicio === 'gas') {
         return esTemporadaAlta() ? LIMITES_CUPOS.gas.temporada_alta : LIMITES_CUPOS.gas.temporada_normal;
@@ -73,9 +111,6 @@ function obtenerLimiteCupo(tipoServicio) {
     return LIMITES_CUPOS[tipoServicio] || 0;
 }
 
-/**
- * Obtiene las fechas de inicio y fin del mes actual
- */
 function obtenerRangoMesActual() {
     const ahora = new Date();
     const primerDia = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
@@ -88,47 +123,42 @@ function obtenerRangoMesActual() {
     };
 }
 
-/**
- * Limpia y valida el formato del RUT
- */
-function limpiarRUT(rut) {
-    if (!rut) return '';
-    return rut.replace(/\./g, '').replace(/-/g, '').toUpperCase().trim();
-}
-
 // ========================================
-// FUNCIÓN PRINCIPAL DE VALIDACIÓN
+// FUNCIÓN PRINCIPAL DE VALIDACIÓN DE CUPO
 // ========================================
 
 /**
- * Valida el cupo disponible para un usuario en un tipo de servicio específico
- * @param {string} rut - RUT del usuario
+ * Valida el cupo disponible para un usuario
+ * @param {string} rut - RUT en cualquier formato
  * @param {string} tipoServicio - 'gas', 'cine', 'jumper', 'gimnasio'
- * @param {number} cantidadSolicitada - Cantidad que quiere comprar (opcional)
- * @returns {Promise<Object>} Resultado detallado de la validación
+ * @param {number} cantidadSolicitada - Cantidad que quiere comprar
+ * @returns {Promise<Object>} Resultado de la validación
  */
 export async function validarCupoMensual(rut, tipoServicio, cantidadSolicitada = 0) {
     try {
-        console.log(`🔍 [CUPO] Validando ${tipoServicio.toUpperCase()} para RUT: ${rut}`);
+        console.log(`🔍 [CUPO] Validando ${tipoServicio} para RUT original: ${rut}`);
         
-        // Validar parámetros de entrada
-        if (!rut || !tipoServicio) {
-            throw new Error('RUT y tipo de servicio son requeridos');
+        // Limpiar RUT
+        const rutLimpio = limpiarRUT(rut);
+        console.log(`🔍 [CUPO] RUT limpio: ${rutLimpio}`);
+        
+        // Validar formato
+        if (!validarFormatoRUT(rut)) {
+            throw new Error('Formato de RUT inválido');
         }
         
         if (!COLECCIONES_FIREBASE[tipoServicio]) {
             throw new Error(`Tipo de servicio no válido: ${tipoServicio}`);
         }
         
-        // Preparar datos
-        const rutLimpio = limpiarRUT(rut);
         const limiteCupo = obtenerLimiteCupo(tipoServicio);
         const rangoMes = obtenerRangoMesActual();
         const coleccion = COLECCIONES_FIREBASE[tipoServicio];
         
-        console.log(`📊 [CUPO] Límite para ${tipoServicio}: ${limiteCupo}, Consultando: ${coleccion}`);
+        console.log(`📊 [CUPO] Consultando ${coleccion} para RUT ${rutLimpio}`);
+        console.log(`📊 [CUPO] Límite: ${limiteCupo} ${tipoServicio === 'gas' ? 'cargas' : 'entradas'}`);
         
-        // Consultar compras del usuario en el mes actual
+        // Consultar compras del mes
         const consultaCompras = query(
             collection(db, coleccion),
             where("rut", "==", rutLimpio),
@@ -138,24 +168,22 @@ export async function validarCupoMensual(rut, tipoServicio, cantidadSolicitada =
         
         const snapshot = await getDocs(consultaCompras);
         
-        // Calcular uso actual del cupo
+        // Calcular uso actual
         let usoActual = 0;
         const comprasDelMes = [];
         
         snapshot.forEach(doc => {
             const compra = doc.data();
-            const compraCompleta = {
+            comprasDelMes.push({
                 id: doc.id,
                 fecha: compra.createdAt?.toDate() || new Date(),
                 estado: compra.estado || 'desconocido',
                 ...compra
-            };
+            });
             
-            comprasDelMes.push(compraCompleta);
-            
-            // Contar según el tipo de servicio
+            // Contar según el tipo
             if (tipoServicio === 'gas') {
-                // Para gas, sumar todas las cargas de ambas empresas
+                // Sumar todas las cargas
                 if (compra.cargas_lipigas) {
                     usoActual += (compra.cargas_lipigas.kg5 || 0);
                     usoActual += (compra.cargas_lipigas.kg11 || 0);
@@ -169,43 +197,41 @@ export async function validarCupoMensual(rut, tipoServicio, cantidadSolicitada =
                     usoActual += (compra.cargas_abastible.kg45 || 0);
                 }
             } else {
-                // Para entretenimiento, usar el campo cantidad
+                // Para entretenimiento
                 usoActual += parseInt(compra.cantidad || 1);
             }
         });
         
-        // Calcular disponibilidad
         const disponible = limiteCupo - usoActual;
         const puedeComprar = disponible > 0;
         const puedeComprarCantidad = cantidadSolicitada <= disponible;
-        const porcentajeUso = Math.round((usoActual / limiteCupo) * 100);
         
         // Determinar estado del cupo
         let estadoCupo = 'disponible';
         if (usoActual >= limiteCupo) {
             estadoCupo = 'agotado';
-        } else if (porcentajeUso >= 75) {
+        } else if (disponible <= 1) {
             estadoCupo = 'critico';
-        } else if (porcentajeUso >= 50) {
+        } else if (disponible <= Math.ceil(limiteCupo * 0.25)) {
             estadoCupo = 'medio';
         }
         
         const resultado = {
-            // Estado general
             success: true,
             timestamp: new Date().toISOString(),
             
             // Información básica
             tipoServicio,
             nombreServicio: NOMBRES_SERVICIOS[tipoServicio],
-            unidadMedida: UNIDADES_MEDIDA[tipoServicio],
-            rutConsultado: rutLimpio,
+            rutOriginal: rut,
+            rutLimpio: rutLimpio,
+            rutFormateado: formatearRUT(rut),
             
             // Información del cupo
             limiteCupo,
             usoActual,
             disponible,
-            porcentajeUso,
+            porcentajeUso: Math.round((usoActual / limiteCupo) * 100),
             estadoCupo,
             
             // Validaciones
@@ -222,29 +248,26 @@ export async function validarCupoMensual(rut, tipoServicio, cantidadSolicitada =
             comprasDelMes,
             totalComprasRealizadas: comprasDelMes.length,
             
-            // Mensajes
-            mensaje: generarMensajeEstado(tipoServicio, usoActual, limiteCupo, disponible, cantidadSolicitada, estadoCupo),
-            mensajeDetallado: generarMensajeDetallado(tipoServicio, usoActual, limiteCupo, disponible, cantidadSolicitada, comprasDelMes, estadoCupo),
+            // Mensaje para mostrar
+            mensaje: generarMensajeEstado(tipoServicio, usoActual, limiteCupo, disponible, estadoCupo),
             
             // Datos para UI
             colorEstado: obtenerColorEstado(estadoCupo),
             iconoEstado: obtenerIconoEstado(estadoCupo)
         };
         
-        console.log(`✅ [CUPO] Validación completada: ${tipoServicio} - ${usoActual}/${limiteCupo} (${estadoCupo})`);
-        
+        console.log(`✅ [CUPO] Validación completada: ${usoActual}/${limiteCupo} (${estadoCupo})`);
         return resultado;
         
     } catch (error) {
-        console.error(`❌ [CUPO] Error en validación de ${tipoServicio}:`, error);
+        console.error(`❌ [CUPO] Error en validación:`, error);
         return {
             success: false,
             error: error.message,
             tipoServicio,
             rutConsultado: limpiarRUT(rut),
-            mensaje: `Error al verificar el cupo de ${NOMBRES_SERVICIOS[tipoServicio] || tipoServicio}`,
+            mensaje: `Error al verificar el cupo: ${error.message}`,
             puedeComprar: false,
-            puedeComprarCantidad: false,
             estadoCupo: 'error',
             colorEstado: '#dc3545',
             iconoEstado: '❌'
@@ -253,119 +276,34 @@ export async function validarCupoMensual(rut, tipoServicio, cantidadSolicitada =
 }
 
 // ========================================
-// FUNCIONES DE GENERACIÓN DE MENSAJES
+// FUNCIONES DE MENSAJES Y UI
 // ========================================
 
-function generarMensajeEstado(tipoServicio, usoActual, limiteCupo, disponible, cantidadSolicitada, estadoCupo) {
+function generarMensajeEstado(tipoServicio, usoActual, limiteCupo, disponible, estadoCupo) {
     const nombreServicio = NOMBRES_SERVICIOS[tipoServicio];
-    const unidad = UNIDADES_MEDIDA[tipoServicio];
+    const unidad = tipoServicio === 'gas' ? 'cargas' : 'entradas';
     
     switch (estadoCupo) {
         case 'agotado':
-            return `❌ Cupo mensual de ${nombreServicio} agotado (${usoActual}/${limiteCupo} ${unidad})`;
-        
+            return `❌ Cupo agotado: Ya utilizó ${usoActual} de ${limiteCupo} ${unidad} este mes`;
         case 'critico':
-            return `⚠️ Cupo de ${nombreServicio} crítico: ${disponible} ${unidad} restantes`;
-        
+            return `⚠️ Cupo crítico: Solo ${disponible} ${unidad} disponibles`;
         case 'medio':
-            return `🟡 Cupo de ${nombreServicio}: ${disponible} ${unidad} disponibles de ${limiteCupo}`;
-        
+            return `🟡 Quedan ${disponible} ${unidad} de ${limiteCupo}`;
         case 'disponible':
-            return `✅ Cupo de ${nombreServicio}: ${disponible} ${unidad} disponibles de ${limiteCupo}`;
-        
+            return `✅ ${disponible} ${unidad} disponibles de ${limiteCupo}`;
         default:
-            return `✅ Estado del cupo: ${disponible} ${unidad} disponibles`;
+            return `Estado: ${disponible} ${unidad} disponibles`;
     }
-}
-
-function generarMensajeDetallado(tipoServicio, usoActual, limiteCupo, disponible, cantidadSolicitada, comprasDelMes, estadoCupo) {
-    const nombreServicio = NOMBRES_SERVICIOS[tipoServicio];
-    const unidad = UNIDADES_MEDIDA[tipoServicio];
-    const temporadaInfo = tipoServicio === 'gas' && esTemporadaAlta() ? ' (Temporada Alta)' : '';
-    
-    let mensaje = `📊 ESTADO DEL CUPO DE ${nombreServicio.toUpperCase()}${temporadaInfo}\n`;
-    mensaje += `${'='.repeat(50)}\n\n`;
-    
-    // Información básica del cupo
-    mensaje += `💳 Límite mensual: ${limiteCupo} ${unidad}\n`;
-    mensaje += `📈 Usado este mes: ${usoActual} ${unidad}\n`;
-    mensaje += `🎯 Disponible: ${disponible} ${unidad}\n`;
-    mensaje += `📊 Porcentaje de uso: ${Math.round((usoActual / limiteCupo) * 100)}%\n`;
-    mensaje += `🛒 Compras realizadas: ${comprasDelMes.length}\n\n`;
-    
-    // Estado actual
-    const iconoEstado = obtenerIconoEstado(estadoCupo);
-    mensaje += `${iconoEstado} Estado: ${estadoCupo.toUpperCase()}\n\n`;
-    
-    // Información de compra actual
-    if (cantidadSolicitada > 0) {
-        mensaje += `🛍️ COMPRA ACTUAL\n`;
-        mensaje += `${'-'.repeat(20)}\n`;
-        mensaje += `Cantidad solicitada: ${cantidadSolicitada} ${unidad}\n`;
-        
-        if (cantidadSolicitada > disponible) {
-            mensaje += `❌ COMPRA NO AUTORIZADA\n`;
-            mensaje += `💡 Máximo permitido: ${disponible} ${unidad}\n`;
-        } else {
-            mensaje += `✅ COMPRA AUTORIZADA\n`;
-            mensaje += `📈 Después de comprar: ${usoActual + cantidadSolicitada}/${limiteCupo} ${unidad}\n`;
-            mensaje += `🎯 Restante después: ${disponible - cantidadSolicitada} ${unidad}\n`;
-        }
-        mensaje += `\n`;
-    }
-    
-    // Historial del mes
-    if (comprasDelMes.length > 0) {
-        mensaje += `📋 HISTORIAL DEL MES\n`;
-        mensaje += `${'-'.repeat(20)}\n`;
-        
-        comprasDelMes.forEach((compra, index) => {
-            const fecha = compra.fecha.toLocaleDateString('es-CL');
-            const hora = compra.fecha.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
-            let cantidad = 0;
-            
-            if (tipoServicio === 'gas') {
-                if (compra.cargas_lipigas) {
-                    cantidad += (compra.cargas_lipigas.kg5 || 0) + (compra.cargas_lipigas.kg11 || 0) + 
-                               (compra.cargas_lipigas.kg15 || 0) + (compra.cargas_lipigas.kg45 || 0);
-                }
-                if (compra.cargas_abastible) {
-                    cantidad += (compra.cargas_abastible.kg5 || 0) + (compra.cargas_abastible.kg11 || 0) + 
-                               (compra.cargas_abastible.kg15 || 0) + (compra.cargas_abastible.kg45 || 0);
-                }
-            } else {
-                cantidad = compra.cantidad || 1;
-            }
-            
-            const estadoCompra = compra.estado === 'pendiente' ? '⏳' : 
-                               compra.estado === 'aprobada' ? '✅' : 
-                               compra.estado === 'rechazada' ? '❌' : '❓';
-            
-            mensaje += `  ${index + 1}. ${fecha} ${hora}: ${cantidad} ${unidad} ${estadoCompra}\n`;
-        });
-        
-        mensaje += `\n`;
-    }
-    
-    // Información adicional según el estado
-    if (estadoCupo === 'agotado') {
-        const proximoMes = new Date();
-        proximoMes.setMonth(proximoMes.getMonth() + 1);
-        mensaje += `🗓️ Próximo cupo disponible: ${proximoMes.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })}\n`;
-    } else if (estadoCupo === 'critico') {
-        mensaje += `⚠️ ATENCIÓN: Está cerca de agotar su cupo mensual\n`;
-    }
-    
-    return mensaje;
 }
 
 function obtenerColorEstado(estadoCupo) {
     const colores = {
-        'disponible': '#28a745',  // Verde
-        'medio': '#ffc107',       // Amarillo
-        'critico': '#fd7e14',     // Naranja
-        'agotado': '#dc3545',     // Rojo
-        'error': '#6c757d'        // Gris
+        'disponible': '#28a745',
+        'medio': '#ffc107',
+        'critico': '#fd7e14',
+        'agotado': '#dc3545',
+        'error': '#6c757d'
     };
     return colores[estadoCupo] || '#6c757d';
 }
@@ -382,306 +320,163 @@ function obtenerIconoEstado(estadoCupo) {
 }
 
 // ========================================
-// FUNCIONES DE VALIDACIÓN ESPECÍFICAS
+// FUNCIONES DE INTEGRACIÓN CON FORMULARIOS
 // ========================================
 
 /**
- * Valida específicamente el cupo de gas
+ * Muestra el estado del cupo en el formulario
  */
-export async function validarCupoGas(rut, totalCargas = 0) {
-    return await validarCupoMensual(rut, 'gas', totalCargas);
-}
-
-/**
- * Valida específicamente el cupo de cine
- */
-export async function validarCupoCine(rut, cantidadEntradas = 0) {
-    return await validarCupoMensual(rut, 'cine', cantidadEntradas);
-}
-
-/**
- * Valida específicamente el cupo de jumper
- */
-export async function validarCupoJumper(rut, cantidadEntradas = 0) {
-    return await validarCupoMensual(rut, 'jumper', cantidadEntradas);
-}
-
-/**
- * Valida específicamente el cupo de gimnasio
- */
-export async function validarCupoGimnasio(rut, cantidadTickets = 0) {
-    return await validarCupoMensual(rut, 'gimnasio', cantidadTickets);
-}
-
-// ========================================
-// FUNCIÓN DE VALIDACIÓN MÚLTIPLE
-// ========================================
-
-/**
- * Valida los cupos de todos los servicios para un usuario
- */
-export async function validarTodosLosCupos(rut) {
-    try {
-        console.log(`🔍 [CUPO] Validando todos los servicios para RUT: ${rut}`);
-        
-        const validaciones = await Promise.all([
-            validarCupoGas(rut),
-            validarCupoCine(rut),
-            validarCupoJumper(rut),
-            validarCupoGimnasio(rut)
-        ]);
-        
-        const [gas, cine, jumper, gimnasio] = validaciones;
-        
-        const resultado = {
-            success: true,
-            timestamp: new Date().toISOString(),
-            rut: limpiarRUT(rut),
-            cupos: { gas, cine, jumper, gimnasio },
-            resumen: {
-                totalServicios: 4,
-                serviciosDisponibles: validaciones.filter(v => v.puedeComprar).length,
-                serviciosAgotados: validaciones.filter(v => !v.puedeComprar).length,
-                serviciosCriticos: validaciones.filter(v => v.estadoCupo === 'critico').length,
-                usoTotal: validaciones.reduce((total, v) => total + (v.usoActual || 0), 0),
-                limitesTotal: validaciones.reduce((total, v) => total + (v.limiteCupo || 0), 0)
-            }
-        };
-        
-        console.log(`✅ [CUPO] Validación completa: ${resultado.resumen.serviciosDisponibles}/4 servicios disponibles`);
-        return resultado;
-        
-    } catch (error) {
-        console.error('❌ [CUPO] Error en validación múltiple:', error);
-        return {
-            success: false,
-            error: error.message,
-            mensaje: 'Error al verificar los cupos de servicios'
-        };
-    }
-}
-
-// ========================================
-// FUNCIONES PARA CONTROL DE UI
-// ========================================
-
-/**
- * Bloquea un formulario cuando el cupo está agotado
- */
-export function bloquearFormularioPorCupo(formId, tipoServicio, validacion) {
-    const form = document.getElementById(formId);
-    if (!form) {
-        console.warn(`Formulario ${formId} no encontrado para bloqueo`);
-        return;
-    }
-    
-    console.log(`🔒 [UI] Bloqueando formulario ${formId} por cupo agotado`);
-    
-    // Deshabilitar elementos del formulario
-    const elementos = form.querySelectorAll('input:not([type="submit"]), select, textarea');
-    elementos.forEach(el => {
-        el.disabled = true;
-        el.style.backgroundColor = '#f8f9fa';
-        el.style.color = '#6c757d';
-    });
-    
-    // Modificar botón de envío
-    const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
-    if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.textContent = `❌ Cupo ${NOMBRES_SERVICIOS[tipoServicio]} Agotado`;
-        submitBtn.style.backgroundColor = '#dc3545';
-        submitBtn.style.color = 'white';
-        submitBtn.style.border = '1px solid #dc3545';
-        submitBtn.style.cursor = 'not-allowed';
-    }
-    
-    // Mostrar mensaje de estado
-    mostrarMensajeCupoEnFormulario(formId, validacion, 'agotado');
-}
-
-/**
- * Habilita un formulario cuando hay cupo disponible
- */
-export function habilitarFormularioPorCupo(formId, tipoServicio, validacion) {
-    const form = document.getElementById(formId);
-    if (!form) {
-        console.warn(`Formulario ${formId} no encontrado para habilitación`);
-        return;
-    }
-    
-    console.log(`🔓 [UI] Habilitando formulario ${formId} por cupo disponible`);
-    
-    // Habilitar elementos del formulario
-    const elementos = form.querySelectorAll('input, select, textarea, button');
-    elementos.forEach(el => {
-        el.disabled = false;
-        el.style.backgroundColor = '';
-        el.style.color = '';
-    });
-    
-    // Restaurar botón de envío
-    const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
-    if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = `Enviar Compra de ${NOMBRES_SERVICIOS[tipoServicio]}`;
-        submitBtn.style.backgroundColor = '';
-        submitBtn.style.color = '';
-        submitBtn.style.border = '';
-        submitBtn.style.cursor = 'pointer';
-    }
-    
-    // Mostrar mensaje de estado
-    mostrarMensajeCupoEnFormulario(formId, validacion, validacion.estadoCupo || 'disponible');
-}
-
-/**
- * Muestra mensaje de estado del cupo en el formulario
- */
-function mostrarMensajeCupoEnFormulario(formId, validacion, estado) {
+export function mostrarEstadoCupo(formId, validacion) {
     const form = document.getElementById(formId);
     if (!form) return;
     
+    // Buscar o crear elemento de mensaje
     let mensajeCupo = form.querySelector('.mensaje-cupo-estado');
     if (!mensajeCupo) {
         mensajeCupo = document.createElement('div');
         mensajeCupo.className = 'mensaje-cupo-estado';
-        // Insertar al inicio del formulario
         form.insertBefore(mensajeCupo, form.firstElementChild);
     }
     
-    const color = validacion.colorEstado || obtenerColorEstado(estado);
-    const icono = validacion.iconoEstado || obtenerIconoEstado(estado);
-    
+    // Aplicar estilos según estado
     mensajeCupo.style.cssText = `
-        padding: 12px 16px;
+        padding: 15px;
         margin-bottom: 20px;
         border-radius: 8px;
         font-weight: 500;
-        font-size: 14px;
-        border: 2px solid ${color};
-        background-color: ${color}15;
-        color: ${color};
+        border: 2px solid ${validacion.colorEstado};
+        background-color: ${validacion.colorEstado}20;
+        color: ${validacion.colorEstado};
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 10px;
+        animation: slideIn 0.3s ease;
     `;
     
-    let contenidoMensaje = '';
+    // Contenido del mensaje
+    mensajeCupo.innerHTML = `
+        <span style="font-size: 1.5em;">${validacion.iconoEstado}</span>
+        <div>
+            <strong>${validacion.mensaje}</strong>
+            ${validacion.estadoCupo === 'agotado' ? 
+                '<br><small>Podrá realizar nuevas compras el próximo mes</small>' : ''}
+        </div>
+    `;
     
-    if (estado === 'agotado') {
-        contenidoMensaje = `
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 18px;">${icono}</span>
-                <div>
-                    <strong>Cupo Mensual Agotado</strong><br>
-                    <small>${validacion.mensaje}</small><br>
-                    <small style="opacity: 0.8;">Podrá realizar nuevas compras el próximo mes.</small>
-                </div>
-            </div>
-        `;
-    } else if (estado === 'critico') {
-        contenidoMensaje = `
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 18px;">${icono}</span>
-                <div>
-                    <strong>Cupo Crítico</strong><br>
-                    <small>${validacion.mensaje}</small>
-                </div>
-            </div>
-        `;
+    // Bloquear/habilitar formulario según estado
+    const elementos = form.querySelectorAll('input:not([readonly]), select, textarea');
+    const submitBtn = form.querySelector('button[type="submit"]');
+    
+    if (validacion.estadoCupo === 'agotado') {
+        elementos.forEach(el => {
+            if (el.id !== form.querySelector('[id*="rut"]')?.id) {
+                el.disabled = true;
+                el.style.backgroundColor = '#f8f9fa';
+            }
+        });
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = '❌ Cupo Agotado';
+            submitBtn.style.opacity = '0.6';
+            submitBtn.style.cursor = 'not-allowed';
+        }
     } else {
-        contenidoMensaje = `
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 18px;">${icono}</span>
-                <div>
-                    <strong>Cupo Disponible</strong><br>
-                    <small>${validacion.mensaje}</small>
-                </div>
-            </div>
-        `;
+        elementos.forEach(el => {
+            el.disabled = false;
+            el.style.backgroundColor = '';
+        });
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '';
+            submitBtn.style.cursor = 'pointer';
+        }
     }
-    
-    mensajeCupo.innerHTML = contenidoMensaje;
 }
 
 /**
- * Valida automáticamente el cupo cuando el usuario ingresa su RUT
+ * Valida el cupo cuando se ingresa el RUT
  */
 export async function validarCupoEnRUT(rutInputId, formId, tipoServicio) {
     const rutInput = document.getElementById(rutInputId);
-    if (!rutInput) {
-        console.warn(`Input de RUT ${rutInputId} no encontrado`);
-        return null;
-    }
+    if (!rutInput) return null;
     
     const rut = rutInput.value.trim();
     
     if (!rut || rut.length < 8) {
-        // RUT incompleto, habilitar formulario pero mostrar mensaje informativo
-        habilitarFormularioPorCupo(formId, tipoServicio, { 
-            mensaje: 'Ingrese su RUT para verificar el cupo disponible',
-            estadoCupo: 'disponible',
-            colorEstado: '#6c757d',
-            iconoEstado: 'ℹ️'
-        });
+        // RUT incompleto
+        const form = document.getElementById(formId);
+        const mensajeCupo = form?.querySelector('.mensaje-cupo-estado');
+        if (mensajeCupo) {
+            mensajeCupo.remove();
+        }
         return null;
     }
     
+    // Mostrar indicador de carga
+    const form = document.getElementById(formId);
+    if (form) {
+        let loader = form.querySelector('.cupo-loader');
+        if (!loader) {
+            loader = document.createElement('div');
+            loader.className = 'cupo-loader';
+            loader.style.cssText = `
+                padding: 10px;
+                text-align: center;
+                color: #6c757d;
+                font-size: 14px;
+                background: #f8f9fa;
+                border-radius: 5px;
+                margin-bottom: 15px;
+            `;
+            form.insertBefore(loader, form.firstElementChild);
+        }
+        loader.innerHTML = '⏳ Verificando cupo disponible...';
+    }
+    
     try {
-        console.log(`🔍 [UI] Validando cupo en RUT para ${tipoServicio}: ${rut}`);
-        
-        // Mostrar indicador de carga
-        const form = document.getElementById(formId);
-        if (form) {
-            let loader = form.querySelector('.cupo-loader');
-            if (!loader) {
-                loader = document.createElement('div');
-                loader.className = 'cupo-loader';
-                loader.style.cssText = `
-                    padding: 8px 16px;
-                    text-align: center;
-                    color: #6c757d;
-                    font-size: 14px;
-                `;
-                form.insertBefore(loader, form.firstElementChild);
+        // Calcular cantidad solicitada si es gas
+        let cantidadSolicitada = 0;
+        if (tipoServicio === 'gas') {
+            // Sumar todas las selecciones actuales
+            if (document.getElementById('compraLipigas')?.value === 'si') {
+                cantidadSolicitada += parseInt(document.getElementById('lipigas5')?.value || 0);
+                cantidadSolicitada += parseInt(document.getElementById('lipigas11')?.value || 0);
+                cantidadSolicitada += parseInt(document.getElementById('lipigas15')?.value || 0);
+                cantidadSolicitada += parseInt(document.getElementById('lipigas45')?.value || 0);
             }
-            loader.innerHTML = '⏳ Verificando cupo disponible...';
+            if (document.getElementById('compraAbastible')?.value === 'si') {
+                cantidadSolicitada += parseInt(document.getElementById('abastible5')?.value || 0);
+                cantidadSolicitada += parseInt(document.getElementById('abastible11')?.value || 0);
+                cantidadSolicitada += parseInt(document.getElementById('abastible15')?.value || 0);
+                cantidadSolicitada += parseInt(document.getElementById('abastible45')?.value || 0);
+            }
+        } else {
+            // Para entretenimiento
+            const cantidadInput = document.getElementById(`cantidad${tipoServicio.charAt(0).toUpperCase() + tipoServicio.slice(1)}`);
+            cantidadSolicitada = parseInt(cantidadInput?.value || 0);
         }
         
-        const validacion = await validarCupoMensual(rut, tipoServicio);
+        const validacion = await validarCupoMensual(rut, tipoServicio, cantidadSolicitada);
         
-        // Remover indicador de carga
+        // Remover loader
         const loader = form?.querySelector('.cupo-loader');
         if (loader) loader.remove();
         
         if (validacion.success) {
-            if (validacion.puedeComprar) {
-                habilitarFormularioPorCupo(formId, tipoServicio, validacion);
-            } else {
-                bloquearFormularioPorCupo(formId, tipoServicio, validacion);
-            }
-        } else {
-            // Error en la validación, habilitar formulario pero mostrar error
-            habilitarFormularioPorCupo(formId, tipoServicio, {
-                mensaje: 'Error al verificar cupo. Inténtelo nuevamente.',
-                estadoCupo: 'error',
-                colorEstado: '#dc3545',
-                iconoEstado: '⚠️'
-            });
+            mostrarEstadoCupo(formId, validacion);
         }
         
         return validacion;
         
     } catch (error) {
-        console.error(`❌ [UI] Error al validar cupo en RUT:`, error);
+        console.error(`❌ [UI] Error al validar cupo:`, error);
         
-        // Remover indicador de carga en caso de error
-        const loader = document.getElementById(formId)?.querySelector('.cupo-loader');
+        // Remover loader
+        const loader = form?.querySelector('.cupo-loader');
         if (loader) loader.remove();
         
-        habilitarFormularioPorCupo(formId, tipoServicio, {
-            mensaje: 'Error al verificar cupo. Inténtelo nuevamente.',
+        mostrarEstadoCupo(formId, {
+            mensaje: 'Error al verificar cupo. Intente nuevamente.',
             estadoCupo: 'error',
             colorEstado: '#dc3545',
             iconoEstado: '⚠️'
@@ -692,46 +487,160 @@ export async function validarCupoEnRUT(rutInputId, formId, tipoServicio) {
 }
 
 /**
- * Inicializa la validación automática de cupo para un formulario
+ * Inicializa la validación automática para un formulario
  */
-export function inicializarValidacionCupoAutomatica(rutInputId, formId, tipoServicio) {
+export function inicializarValidacionAutomatica(rutInputId, formId, tipoServicio) {
     const rutInput = document.getElementById(rutInputId);
     if (!rutInput) {
-        console.warn(`No se pudo inicializar validación automática: input ${rutInputId} no encontrado`);
+        console.warn(`Input ${rutInputId} no encontrado`);
         return;
     }
     
-    console.log(`🎯 [UI] Inicializando validación automática para ${tipoServicio}`);
+    console.log(`🎯 Inicializando validación automática para ${tipoServicio}`);
     
-    // Validar al perder el foco (blur)
-    rutInput.addEventListener('blur', () => {
+    let timeoutId;
+    
+    // Validar al escribir (con delay)
+    rutInput.addEventListener('input', function() {
+        clearTimeout(timeoutId);
+        
+        // Formatear RUT mientras escribe
+        const valorFormateado = formatearRUT(this.value);
+        if (this.value !== valorFormateado) {
+            this.value = valorFormateado;
+        }
+        
+        // Validar después de un delay
+        timeoutId = setTimeout(() => {
+            validarCupoEnRUT(rutInputId, formId, tipoServicio);
+        }, 1000);
+    });
+    
+    // Validar al perder el foco
+    rutInput.addEventListener('blur', function() {
+        clearTimeout(timeoutId);
         validarCupoEnRUT(rutInputId, formId, tipoServicio);
     });
     
-    // Validar al cambiar el valor (después de un pequeño delay)
-    let timeoutId;
-    rutInput.addEventListener('input', () => {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => {
-            validarCupoEnRUT(rutInputId, formId, tipoServicio);
-        }, 1500); // Esperar 1.5 segundos después de dejar de escribir
-    });
+    // También validar cuando cambian las cantidades (solo para gas)
+    if (tipoServicio === 'gas') {
+        const selectores = [
+            'lipigas5', 'lipigas11', 'lipigas15', 'lipigas45',
+            'abastible5', 'abastible11', 'abastible15', 'abastible45',
+            'compraLipigas', 'compraAbastible'
+        ];
+        
+        selectores.forEach(id => {
+            const elemento = document.getElementById(id);
+            if (elemento) {
+                elemento.addEventListener('change', () => {
+                    if (rutInput.value.trim().length >= 8) {
+                        validarCupoEnRUT(rutInputId, formId, tipoServicio);
+                    }
+                });
+            }
+        });
+    } else {
+        // Para entretenimiento
+        const cantidadSelect = document.getElementById(`cantidad${tipoServicio.charAt(0).toUpperCase() + tipoServicio.slice(1)}`);
+        if (cantidadSelect) {
+            cantidadSelect.addEventListener('change', () => {
+                if (rutInput.value.trim().length >= 8) {
+                    validarCupoEnRUT(rutInputId, formId, tipoServicio);
+                }
+            });
+        }
+    }
     
-    // Validar inmediatamente si ya hay un valor
-    if (rutInput.value.trim()) {
+    // Validar si ya hay un valor
+    if (rutInput.value.trim().length >= 8) {
         validarCupoEnRUT(rutInputId, formId, tipoServicio);
     }
 }
 
 // ========================================
-// EXPORTAR CONSTANTES Y UTILIDADES
+// INICIALIZACIÓN GLOBAL
+// ========================================
+
+/**
+ * Inicializa el sistema de validación de cupos para todos los formularios
+ */
+export function inicializarSistemaValidacionCupos() {
+    console.log('🚀 Inicializando sistema de validación de cupos...');
+    
+    // Agregar estilos CSS para animaciones
+    if (!document.getElementById('cupos-styles')) {
+        const style = document.createElement('style');
+        style.id = 'cupos-styles';
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateY(-10px);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateY(0);
+                    opacity: 1;
+                }
+            }
+            
+            .mensaje-cupo-estado {
+                transition: all 0.3s ease;
+            }
+            
+            .cupo-loader {
+                animation: pulse 1.5s ease infinite;
+            }
+            
+            @keyframes pulse {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.6; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    // Inicializar validación para cada formulario
+    const configuraciones = [
+        { rutId: 'rutGas', formId: 'formCompraGas', tipo: 'gas' },
+        { rutId: 'rutCine', formId: 'formCompraCine', tipo: 'cine' },
+        { rutId: 'rutJumper', formId: 'formCompraJumper', tipo: 'jumper' },
+        { rutId: 'rutGimnasio', formId: 'formCompraGimnasio', tipo: 'gimnasio' }
+    ];
+    
+    configuraciones.forEach(config => {
+        if (document.getElementById(config.rutId) && document.getElementById(config.formId)) {
+            inicializarValidacionAutomatica(config.rutId, config.formId, config.tipo);
+            console.log(`✅ Validación iniciada para ${config.tipo}`);
+        }
+    });
+    
+    console.log('✅ Sistema de validación de cupos inicializado');
+}
+
+// Inicializar automáticamente cuando el DOM esté listo
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', inicializarSistemaValidacionCupos);
+} else {
+    inicializarSistemaValidacionCupos();
+}
+
+// ========================================
+// EXPORTACIONES
 // ========================================
 export {
     LIMITES_CUPOS,
     COLECCIONES_FIREBASE,
     NOMBRES_SERVICIOS,
-    UNIDADES_MEDIDA,
     esTemporadaAlta,
     obtenerLimiteCupo,
     limpiarRUT
+};
+
+export default {
+    validarCupoMensual,
+    inicializarValidacionAutomatica,
+    inicializarSistemaValidacionCupos,
+    formatearRUT,
+    validarFormatoRUT
 };
