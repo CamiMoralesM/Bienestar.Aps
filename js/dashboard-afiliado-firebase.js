@@ -443,12 +443,16 @@ async function cargarSolicitudes(uid, rut) {
                         }
                         
                         // 3. Fecha de compra
-                        if (c.fechaCompra) {
-                            descripcionParts.push(`📅 Realizada el ${c.fechaCompra}`);
-                        }
-                        
-                        descripcion = descripcionParts.join(' • ');
-                    }
+                       if (c.fechaCompra) {
+    // Si es string tipo "2025-10-22", lo convertimos
+    let fechaCompra = c.fechaCompra;
+    // Si tiene formato YYYY-MM-DD, convertir a DD/MM/AAAA
+    if (/^\d{4}-\d{2}-\d{2}$/.test(fechaCompra)) {
+        const [a, m, d] = fechaCompra.split('-');
+        fechaCompra = `${d}/${m}/${a}`;
+    }
+    descripcionParts.push(`📅 Realizada el ${fechaCompra}`);
+}
 
                     items.push({
                         id: c.id,
